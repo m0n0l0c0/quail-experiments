@@ -1,0 +1,10 @@
+md5: 128e27b3d9d6934ec8d59d18d2e19677
+cmd: wget https://worksheets.codalab.org/rest/bundles/0xf868182531244692878454c0f949822e/contents/blob/
+  -O data/quail/train_answers.json
+wdir: ../..
+outs:
+- md5: c1b17d1e9bb8bbce4b28c253e5167001
+  path: data/quail/train_answers.json
+  cache: true
+  metric: false
+  persist: false
