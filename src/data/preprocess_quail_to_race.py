@@ -21,7 +21,11 @@ def parse_args():
 
 def merge_data_with_labels(data, gold_answers):
   dataset = []
+  skipped = []
   for id, item in data.items():
+    if id not in gold_answers.keys():
+      skipped.append(id)
+      continue
     questions, options, answers = [], [], []
     for q_id, question_data in item['questions'].items():
       # gold_answers
@@ -36,17 +40,18 @@ def merge_data_with_labels(data, gold_answers):
     example = dict(id=id, questions=questions, options=options, answers=answers)
     dataset.append(example)
 
-  return dataset
+  return dataset, skipped
 
 def main(args):
   questions = json.load(open(args.data, 'r'))
   answers = json.load(open(args.answers, 'r'))
-  dataset = merge_data_with_labels(questions['data'], answers['data'])
+  dataset, skipped = merge_data_with_labels(questions['data'], answers['data'])
   data = dict(version=questions['version'], data=dataset)
   data_print = json.dumps(obj=data, ensure_ascii=False) + '\n'
   if args.output is None:
     print(data)
   else:
+    print(f'Skipped {len(skipped)}/{len(data)} documents.')
     with open(args.output, 'w') as fstream:
       fstream.write(data_print)
 

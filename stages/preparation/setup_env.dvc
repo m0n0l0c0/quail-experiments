@@ -1,0 +1,18 @@
+md5: 465a339cc50218ae1ba471bda88cddb0
+cmd: ./scripts/setup.sh 1
+wdir: ../..
+deps:
+- md5: b953262e2d4047cd17f5fd0b61f2d735
+  path: scripts/setup.sh
+- md5: a5c2d9c12b3cc3adef6308d34533f1e8
+  path: scripts/install_packages.sh
+- md5: 5e68eb226c1bed34e5e05c571cf1d646
+  path: data/quail/dev_race_fmt.json
+- md5: 414ada59212b798c67afce6910f13bc5
+  path: data/quail/train_race_fmt.json
+outs:
+- md5: 1d256f7c843c574f6e4687b7dce45a9b.dir
+  path: transformers
+  cache: false
+  metric: false
+  persist: false
