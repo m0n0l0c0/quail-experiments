@@ -51,7 +51,7 @@ def main(args):
   if args.output is None:
     print(data)
   else:
-    print(f'Skipped {len(skipped)}/{len(data)} documents.')
+    print('Skipped %d/%d documents.'.format(len(skipped), len(data)))
     with open(args.output, 'w') as fstream:
       fstream.write(data_print)
 
