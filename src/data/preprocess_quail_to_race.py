@@ -36,10 +36,12 @@ def merge_data_with_labels(data, gold_answers, strict_nof_options=4):
       nof_questions += 1
       answer_opts = list(question_data['answers'].values())
       if q_id not in gold_keys:
+        print('Skipping: ', q_id, 'gold_keys')
         skipped_questions += 1
         continue
       elif strict_nof_options > 0:
         if len(answer_opts) != strict_nof_options:
+          print('Skipping: ', q_id, 'strict_nof_options', len(answer_opts))
           skipped_questions += 1
           continue
 
@@ -53,10 +55,24 @@ def merge_data_with_labels(data, gold_answers, strict_nof_options=4):
 
   return dataset, skipped_questions, nof_questions
 
+def prepare_gold_answers(answers):
+  # dev split has ids accessed through topics: Eg: Belief_states, Entitiy_properties... see the paper:
+  # https://aaai.org/Papers/AAAI/2020GB/AAAI-RogersA.7778.pdf
+  gold_answers = {}
+  first_key = list(answers.keys())[0]
+  if type(answers[first_key]) == dict:
+    # dev collection
+    for golds in answers.values():
+      gold_answers.update(golds)
+  else:
+    gold_answers = answers
+  return gold_answers  
+
 def main(args):
   questions = json.load(open(args.data, 'r'))
   answers = json.load(open(args.answers, 'r'))
-  dataset, skipped, total = merge_data_with_labels(questions['data'], answers['data'])
+  gold_answers = prepare_gold_answers(answers['data'])
+  dataset, skipped, total = merge_data_with_labels(questions['data'], gold_answers)
   data = dict(version=questions['version'], data=dataset)
   data_print = json.dumps(obj=data, ensure_ascii=False) + '\n'
   if args.output is None:

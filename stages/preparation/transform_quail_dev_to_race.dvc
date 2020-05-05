@@ -1,4 +1,4 @@
-md5: bc3c2c4c2beb0cea093c6f203490aee7
+md5: 22dceac464d92423bd686795cd3c0435
 cmd: src/data/preprocess_quail_to_race.py data/quail/dev.json data/quail/dev_answers.json
   -o data/quail/dev_race_fmt.json
 wdir: ../..
@@ -7,10 +7,10 @@ deps:
   path: data/quail/dev.json
 - md5: 1665e633ee7aa0183a45a3749e4e061b
   path: data/quail/dev_answers.json
-- md5: 64d52be4b2e59b893ec7ce5605b7ae51
+- md5: 585ccc76eed8175fea5686c9ba76fafd
   path: src/data/preprocess_quail_to_race.py
 outs:
-- md5: 5e68eb226c1bed34e5e05c571cf1d646
+- md5: 0e3565fc252fee28b77099b89f7b2d4f
   path: data/quail/dev_race_fmt.json
   cache: true
   metric: false
