@@ -52,7 +52,7 @@ local modelName(testName) = utils.getStringSegment(testName, '-', 0);
 local testOnlyName(testName) = utils.getStringSegment(utils.trimExt(testName), '-', 1);
 // from bert-high.sh to test/high
 local composeDataId(testName) = {
-  DATA_ID: testsData.datasetPrefix,
+  data_id: testsData.datasetPrefix,
 };
 
 local files = {
