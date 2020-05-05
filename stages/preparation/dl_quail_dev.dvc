@@ -1,4 +1,4 @@
-md5: 2d622c9a14f9a1aa8fe4b04b01ba6f79
+md5: 7cdbedae9229185b51ea2326860ed6e8
 cmd: wget -q --show-progress https://worksheets.codalab.org/rest/bundles/0x7e113f2e5c7d4cb583e21224770880c0/contents/blob/
   -O data/quail/dev.json
 wdir: ../..
