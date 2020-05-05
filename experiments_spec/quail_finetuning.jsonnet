@@ -3,18 +3,18 @@ local utils = import 'utils.libsonnet';
 local common = {
   task_name: 'ee',
   data_dir: 'data/quail',
+  model_type: 'bert',
+  do_train: true,
+  do_eval: true,
   fp16: true,
   fp16_opt_level: 'O2',
   max_seq_length: 384,
-  do_train: true,
-  do_eval: true,
+  per_gpu_train_batch_size: 8,
+  per_gpu_eval_batch_size: 4,
+  gradient_accumulation_steps: 4,
   warmup_proportion: 0.1,
   num_train_epochs: 3,
   loss_scale: 128,
-  per_gpu_train_batch_size: 4,
-  per_gpu_eval_batch_size: 32,
-  gradient_accumulation_steps: 8,
-  model_type: 'bert',
 };
 
 local models = {
@@ -26,7 +26,7 @@ local models = {
   multibert_quail: {
     output_dir: 'data/bert-base-multilingual-cased-quail',
     model_name_or_path: 'bert-base-multilingual-cased-quail',
-    learning_rate: 1e-5,
+    learning_rate: 5e-5,
   },
 };
 
