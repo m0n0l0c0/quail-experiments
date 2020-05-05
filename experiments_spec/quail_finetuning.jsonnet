@@ -8,7 +8,7 @@ local common = {
   do_eval: true,
   fp16: true,
   fp16_opt_level: 'O2',
-  max_seq_length: 384,
+  max_seq_length: 484,
   per_gpu_train_batch_size: 8,
   per_gpu_eval_batch_size: 4,
   gradient_accumulation_steps: 4,
