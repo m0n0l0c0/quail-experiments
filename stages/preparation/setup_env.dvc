@@ -1,4 +1,4 @@
-md5: b1f56da21f6d8ad7d650ffd518c176bd
+md5: bccbedefc38979c8cb63280e593ff0e9
 cmd: ./scripts/setup.sh 1
 wdir: ../..
 deps:
@@ -6,7 +6,7 @@ deps:
   path: scripts/setup.sh
 - md5: a5c2d9c12b3cc3adef6308d34533f1e8
   path: scripts/install_packages.sh
-- md5: dc6b807c1ea1d8fc3c0ab95a6ff6345d
+- md5: 0e3565fc252fee28b77099b89f7b2d4f
   path: data/quail/dev_race_fmt.json
 - md5: 414ada59212b798c67afce6910f13bc5
   path: data/quail/train_race_fmt.json
