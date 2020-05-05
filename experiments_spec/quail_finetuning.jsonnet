@@ -1,7 +1,7 @@
 local utils = import 'utils.libsonnet';
 
 local common = {
-  task_name: 'ee',
+  task_name: 'generic',
   data_dir: 'data/quail',
   model_type: 'bert',
   do_train: true,
