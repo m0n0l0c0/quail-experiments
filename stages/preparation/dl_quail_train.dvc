@@ -1,5 +1,5 @@
 md5: 46782900e97dd6e62fe7ee0a256ee15c
-cmd: wget https://worksheets.codalab.org/rest/bundles/0x3f22902d168b4e79b2fc2b1cba7e7201/contents/blob/
+cmd: wget -q --show-progress https://worksheets.codalab.org/rest/bundles/0x3f22902d168b4e79b2fc2b1cba7e7201/contents/blob/
   -O data/quail/train.json
 wdir: ../..
 outs:
