@@ -35,7 +35,7 @@ save_experiment_data() {
 
 run_experiment() {
   local file=$1; shift
-  local script_file="./transformers/examples/run_multiple_choice.py"
+  local script_file="./src/mc-transformers/run_multiple_choice.py"
   if [[ -z ${DOCKERIZE} ]]; then
     inside_docker=""
   else
@@ -54,6 +54,15 @@ echo "###### Starting experiments $(date)"
 total_start_time=$(date -u +%s)
 
 experiments=($@)
+if [[ "${#experiments[@]}" -eq 1 ]]; then
+  # if it is a filelist, parse it
+  first_exp="${experiments[0]}"
+  if [[ " ${first_exp##*.} " =~ " filelist " ]]; then
+    IFS=$'\n' read -d '' -r -a experiments < $first_exp
+    echo "* Read experiments from $first_exp:"
+    echo "* ${experiments[@]}"
+  fi
+fi
 for raw_exp in ${experiments[@]}; do
   exp=$(fix_experiment_path $raw_exp)
   echo "*********** $exp *************";
