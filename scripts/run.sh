@@ -1,5 +1,9 @@
 #!/bin/bash
 
+scriptdir=$(dirname -- "$(realpath -- "$0")")
+rootdir=$(dirname $scriptdir)
+cd $rootdir >/dev/null
+
 result_files=(
   "is_test_false_eval_results.txt"
   "is_test_false_eval_nbest_predictions.json"
