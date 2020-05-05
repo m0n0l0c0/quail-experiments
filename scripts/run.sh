@@ -21,26 +21,13 @@ save_experiment_data() {
 
 run_experiment() {
   local file=$1; shift
-  args="./transformers/examples/run_multiple_choice.py "
-  # Run this if just want to dump your args to a config file (use with from config import *)
-  #   args="./scripts/dump_args.py "
-  for line in $(sed -n 's/^export \(.*\)=\([^ ]*\)/\1=\2/p' $file | tr -d \'\"); do 
-    # <key>=<value>
-    key=${line%=*}
-    value=${line#*=}
-    # lowercase
-    args+="--${key,,} "
-    if [[ ! "${value,,}" == "true" ]]; then
-      args+="$value "
-    fi
-  done
-
+  local script_file="./transformers/examples/run_multiple_choice.py"
   if [[ -z ${DOCKERIZE} ]]; then
     inside_docker=""
   else
     inside_docker="nvidia-docker run ${docker_args[@]}"
   fi
-  ${inside_docker} python3 ${args[@]}
+  ${inside_docker} python3 ${script_file$} $(python3 scripts/json_to_program_args.py $file)
 }
 
 results_dir='./results'
@@ -54,11 +41,12 @@ total_start_time=$(date -u +%s)
 
 experiments=($@)
 for exp in ${experiments[@]}; do
-  model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
+  # model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
   exp_name=${exp%.*}
   echo "*********** $exp *************";
   run_experiment experiments/$exp
-  save_experiment_data $model_dir $results_dir $exp_name
+  # ToDo := Review this step
+  # save_experiment_data $model_dir $results_dir $exp_name
   echo "********************************";
 done
 
