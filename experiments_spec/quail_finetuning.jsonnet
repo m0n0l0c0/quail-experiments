@@ -3,6 +3,7 @@ local utils = import 'utils.libsonnet';
 local common = {
   task_name: 'generic',
   data_dir: 'data/quail',
+  data_id: 'train_race_fmt.json',
   model_type: 'bert',
   do_train: true,
   do_eval: true,
