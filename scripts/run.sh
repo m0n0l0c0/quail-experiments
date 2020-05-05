@@ -4,6 +4,16 @@ scriptdir=$(dirname -- "$(realpath -- "$0")")
 rootdir=$(dirname $scriptdir)
 cd $rootdir >/dev/null
 
+fix_experiment_path() {
+  local exp=$1
+  if [[ " $(basename $1) " =~ " ${exp} " ]]; then
+    # just file name
+    echo "experiments/${exp}"
+  else
+    echo "${exp}"
+  fi
+}
+
 result_files=(
   "is_test_false_eval_results.txt"
   "is_test_false_eval_nbest_predictions.json"
@@ -31,25 +41,26 @@ run_experiment() {
   else
     inside_docker="nvidia-docker run ${docker_args[@]}"
   fi
-  ${inside_docker} python3 ${script_file$} $(python3 scripts/json_to_program_args.py $file)
+  ${inside_docker} python3 ${script_file} $(python3 scripts/json_to_program_args.py $file)
 }
 
 results_dir='./results'
 [[ ! -d $results_dir ]] && mkdir $results_dir
 
-docker_img="race-experiments"
+docker_img="quail-experiments"
 docker_args="--shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v `pwd`:/workspace $docker_img"
 
 echo "###### Starting experiments $(date)"
 total_start_time=$(date -u +%s)
 
 experiments=($@)
-for exp in ${experiments[@]}; do
-  # model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
-  exp_name=${exp%.*}
+for raw_exp in ${experiments[@]}; do
+  exp=$(fix_experiment_path $raw_exp)
   echo "*********** $exp *************";
-  run_experiment experiments/$exp
+  run_experiment $exp
   # ToDo := Review this step
+  # model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
+  # exp_name=${exp%.*}
   # save_experiment_data $model_dir $results_dir $exp_name
   echo "********************************";
 done
