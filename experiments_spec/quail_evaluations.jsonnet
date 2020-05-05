@@ -16,19 +16,19 @@ local common = {
 // to load from checkpoint, otherwise will download the model from the internet
 local models = {
   bert_race: {
-    output_dir: 'data/bert-base-uncased-race',
+    output_dir: 'data/models/bert-base-uncased-race',
     model_name_or_path: self.output_dir,
   },
   multibert_race: {
-    output_dir: 'data/bert-base-multilingual-cased-race',
+    output_dir: 'data/models/bert-base-multilingual-cased-race',
     model_name_or_path: self.output_dir,
   },
   bert_quail: {
-    output_dir: 'data/bert-base-uncased-quail',
+    output_dir: 'data/models/bert-base-uncased-quail',
     model_name_or_path: self.output_dir,
   },
   multibert_quail: {
-    output_dir: 'data/bert-base-multilingual-cased-quail',
+    output_dir: 'data/models/bert-base-multilingual-cased-quail',
     model_name_or_path: self.output_dir,
   },
 };
