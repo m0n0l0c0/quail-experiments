@@ -19,39 +19,50 @@ def parse_args():
 
   return parser.parse_args()
 
-def merge_data_with_labels(data, gold_answers):
+"""
+  gold_answers
+    "f001_0": "3", ...
+  race format:
+    "C"
+"""
+def merge_data_with_labels(data, gold_answers, strict_nof_options=4):
   dataset = []
-  skipped = []
+  nof_questions = 0
+  skipped_questions = 0
+  gold_keys = list(gold_answers.keys())
   for id, item in data.items():
-    if id not in gold_answers.keys():
-      skipped.append(id)
-      continue
     questions, options, answers = [], [], []
     for q_id, question_data in item['questions'].items():
-      # gold_answers
-      #   "f001_0": "3", ...
-      # race format:
-      #   "C"
+      nof_questions += 1
+      answer_opts = list(question_data['answers'].values())
+      if q_id not in gold_keys:
+        skipped_questions += 1
+        continue
+      elif strict_nof_options > 0:
+        if len(answer_opts) != strict_nof_options:
+          skipped_questions += 1
+          continue
+
       questions.append(question_data['question'])
-      options.append(list(question_data['answers'].values()))
+      options.append(answer_opts)
       answers.append(chr(ord('A') + int(gold_answers[q_id])))
 
     assert(len(questions) == len(options) == len(answers))
     example = dict(id=id, questions=questions, options=options, answers=answers)
     dataset.append(example)
 
-  return dataset, skipped
+  return dataset, skipped_questions, nof_questions
 
 def main(args):
   questions = json.load(open(args.data, 'r'))
   answers = json.load(open(args.answers, 'r'))
-  dataset, skipped = merge_data_with_labels(questions['data'], answers['data'])
+  dataset, skipped, total = merge_data_with_labels(questions['data'], answers['data'])
   data = dict(version=questions['version'], data=dataset)
   data_print = json.dumps(obj=data, ensure_ascii=False) + '\n'
   if args.output is None:
     print(data)
   else:
-    print('Skipped %d/%d documents.'.format(len(skipped), len(data)))
+    print('Skipped {}/{} documents.'.format(skipped, total))
     with open(args.output, 'w') as fstream:
       fstream.write(data_print)
 
