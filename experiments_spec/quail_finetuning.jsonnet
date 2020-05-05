@@ -20,12 +20,12 @@ local common = {
 local models = {
   bert_quail: {
     output_dir: 'data/results/bert-base-uncased-quail',
-    model_name_or_path: 'data/models/bert-base-uncased-quail',
+    model_name_or_path: 'data/models/bert-base-uncased',
     learning_rate: 5e-5,
   },
   multibert_quail: {
     output_dir: 'data/results/bert-base-multilingual-cased-quail',
-    model_name_or_path: 'data/models/bert-base-multilingual-cased-quail',
+    model_name_or_path: 'data/models/bert-base-multilingual-cased',
     learning_rate: 5e-5,
   },
 };
