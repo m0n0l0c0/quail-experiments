@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import json
@@ -31,7 +31,7 @@ def merge_data_with_labels(data, gold_answers, strict_nof_options=4):
   skipped_questions = 0
   gold_keys = list(gold_answers.keys())
   for id, item in data.items():
-    questions, options, answers = [], [], []
+    questions, options, answers, article = [], [], [], None
     for q_id, question_data in item['questions'].items():
       nof_questions += 1
       answer_opts = list(question_data['answers'].values())
@@ -49,8 +49,9 @@ def merge_data_with_labels(data, gold_answers, strict_nof_options=4):
       options.append(answer_opts)
       answers.append(chr(ord('A') + int(gold_answers[q_id])))
 
+    article = item['context']
     assert(len(questions) == len(options) == len(answers))
-    example = dict(id=id, questions=questions, options=options, answers=answers)
+    example = dict(id=id, questions=questions, options=options, answers=answers, article=article)
     dataset.append(example)
 
   return dataset, skipped_questions, nof_questions
