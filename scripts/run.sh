@@ -14,13 +14,6 @@ fix_experiment_path() {
   fi
 }
 
-result_files=(
-  "is_test_false_eval_results.txt"
-  "is_test_false_eval_nbest_predictions.json"
-  "is_test_true_eval_results.txt"
-  "is_test_true_eval_nbest_predictions.json"
-)
-
 save_experiment_data() {
   local model_dir=$1; shift
   local results_dir=$1; shift
@@ -36,13 +29,39 @@ save_experiment_data() {
 run_experiment() {
   local file=$1; shift
   local script_file="./src/mc-transformers/run_multiple_choice.py"
-  if [[ -z ${DOCKERIZE} ]]; then
+  if [[ ! -z ${DONT_DOCKERIZE} ]]; then
     inside_docker=""
   else
-    inside_docker="nvidia-docker run ${docker_args[@]}"
+    inside_docker="nvidia-docker run --rm ${docker_args[@]}"
   fi
   ${inside_docker} python3 ${script_file} $(python3 scripts/json_to_program_args.py $file)
 }
+
+get_experiments(){
+  local args=($@);
+  local aux_flist=()
+  experiments=()
+  for arg in "${args[@]}"; do
+    # if it is a filelist, parse it
+    if [[ " ${arg##*.} " =~ " filelist " ]]; then
+      IFS=$'\n' read -d '' -r -a aux_flist < $arg
+      echo "* Read experiments from $arg:"
+      echo "* ${aux_flist[@]}"
+      for aux in "${aux_flist[@]}"; do 
+        experiments+=($aux)
+      done
+    else
+      experiments+=($arg)
+    fi
+  done
+}
+
+result_files=(
+  "is_test_false_eval_results.txt"
+  "is_test_false_eval_nbest_predictions.json"
+  "is_test_true_eval_results.txt"
+  "is_test_true_eval_nbest_predictions.json"
+)
 
 results_dir='./results'
 [[ ! -d $results_dir ]] && mkdir $results_dir
@@ -53,20 +72,16 @@ docker_args="--shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v `pwd`:
 echo "###### Starting experiments $(date)"
 total_start_time=$(date -u +%s)
 
-experiments=($@)
-if [[ "${#experiments[@]}" -eq 1 ]]; then
-  # if it is a filelist, parse it
-  first_exp="${experiments[0]}"
-  if [[ " ${first_exp##*.} " =~ " filelist " ]]; then
-    IFS=$'\n' read -d '' -r -a experiments < $first_exp
-    echo "* Read experiments from $first_exp:"
-    echo "* ${experiments[@]}"
-  fi
-fi
+experiments=()
+get_experiments $@
+echo "* Total experiments:"
+echo "* ${experiments[@]}"
+
 for raw_exp in ${experiments[@]}; do
   exp=$(fix_experiment_path $raw_exp)
   echo "*********** $exp *************";
   run_experiment $exp
+  # backup experiment_data $exp
   # ToDo := Review this step
   # model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
   # exp_name=${exp%.*}
