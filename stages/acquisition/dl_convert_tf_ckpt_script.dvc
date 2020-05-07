@@ -1,0 +1,10 @@
+md5: 61f39f447ae5b67d2059078db992010f
+cmd: wget -q --show-progress -O src/data/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
+  https://raw.githubusercontent.com/huggingface/transformers/master/src/transformers/convert_bert_original_tf_checkpoint_to_pytorch.py
+wdir: ../..
+outs:
+- md5: e4857f2684c884801070442968a0934a
+  path: src/data/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
+  cache: true
+  metric: false
+  persist: false
