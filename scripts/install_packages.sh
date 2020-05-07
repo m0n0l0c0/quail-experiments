@@ -19,6 +19,8 @@ cd transformers
 ${sudo_cmd} pip3 install .
 cd -
 
+# apex needs torch to compule, though its not in apex requirements
+${sudo_cmd} pip3 install torch
 # install apex manually (py3 error...)
 git clone https://www.github.com/nvidia/apex
 cd apex
