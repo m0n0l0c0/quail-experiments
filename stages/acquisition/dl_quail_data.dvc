@@ -1,9 +1,9 @@
-md5: 9bcbd57bdeb0de4ccb5db0224ce4c85f
-cmd: ./src/data/etl/etl_quail.sh
+md5: 258be3e382ce05e653ce97a06cc56d5d
+cmd: ./src/data/etl/dl_quail.sh
 wdir: ../..
 deps:
 - md5: 8444f25fb73c65b0672d2b5af3f2166a
-  path: src/data/etl/etl_quail.sh
+  path: src/data/etl/dl_quail.sh
 outs:
 - md5: 5409940d9b8479dc51fe56c9b5607344
   path: data/quail/train.json

@@ -83,3 +83,10 @@ python3 $convert_script \
   --tf_checkpoint_path "$(find $model_dir -type f -iname '*_model.ckpt.data*' | sed -e 's/\(.*_model.ckpt\).*/\1/')" \
   --bert_config_file "$(find $model_dir -type f -iname '*_config.json')" \
   --pytorch_dump_path "${model_dir}/pytorch_model.bin"
+
+# move bert_model.ckpt. .. -> model.ckpt
+for file in $(find "${model_dir}" -iname 'bert_*'); do
+  name=$(basename $file)
+  no_bert_name=$(echo "${name}" | sed -e 's/bert_\(.*\)/\1/')
+  mv "${model_dir}/${name}" "${model_dir}/${no_bert_name}"
+done
