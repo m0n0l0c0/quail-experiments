@@ -71,7 +71,7 @@ all_models_dir="${data_dir}/models"
 model_zip_path="${raw_dir}/${model_zip_file}"
 model_dir="${all_models_dir}/${model_name}"
 
-convert_script="src/data/etl/convert_bert_original_tf_checkpoint_to_pytorch.py"
+convert_script="src/etl/convert_bert_original_tf_checkpoint_to_pytorch.py"
 
 # (only endpoints, -p option enabled)
 ensure_dirs $raw_dir $all_models_dir

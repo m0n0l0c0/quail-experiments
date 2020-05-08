@@ -1,14 +1,14 @@
-md5: 326c749f8cd0e071b0939c97a15aa3cd
+md5: 84627e860b74b5d2446bfd923985a0b0
 cmd: ./src/etl/etl_google_model.sh bert-base-multilingual-cased https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip
 wdir: ../..
 deps:
-- md5: 6cd277007fdea6f76f85f0be519482b8
+- md5: c76bfe983201c75232983e3476e690d8
   path: src/etl/etl_google_model.sh
 - md5: e4857f2684c884801070442968a0934a
   path: src/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
 outs:
-- md5: f06492cae0efd82bb3d1af12c4e137b6.dir
-  path: data/models/bert-base_multilingual-cased
+- md5: e3a64d001201476283df3f5faa0b4ddd.dir
+  path: data/models/bert-base-multilingual-cased
   cache: true
   metric: false
   persist: false
