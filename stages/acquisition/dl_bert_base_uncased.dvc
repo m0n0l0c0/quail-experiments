@@ -1,11 +1,11 @@
 md5: 46bde72da019727c5af8c1cf87e88a84
-cmd: ./src/data/etl/etl_google_model.sh bert-base-uncased https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip
+cmd: ./src/etl/etl_google_model.sh bert-base-uncased https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip
 wdir: ../..
 deps:
 - md5: b79e04cc201434f1b44b7685064feb67
-  path: src/data/etl/etl_google_model.sh
+  path: src/etl/etl_google_model.sh
 - md5: e4857f2684c884801070442968a0934a
-  path: src/data/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
+  path: src/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
 outs:
 - md5: f1d6ba3562ed26b00218d685e76aaa90.dir
   path: data/models/bert-base-uncased
