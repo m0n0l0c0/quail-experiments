@@ -1,4 +1,4 @@
-md5: 0156eb1ad91be96b75c084c4de744d42
+md5: 68999347e71cf8f914b3bc4f5e737c1a
 cmd: wget -q --show-progress -O src/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
   https://raw.githubusercontent.com/huggingface/transformers/master/src/transformers/convert_bert_original_tf_checkpoint_to_pytorch.py
 wdir: ../..

@@ -1,3 +1,6 @@
 /transformers
 /experiments
 /src/mc-transformers
+/*.pid
+# runs from transformers
+/runs

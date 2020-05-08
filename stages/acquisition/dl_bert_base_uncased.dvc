@@ -1,13 +1,13 @@
-md5: 46bde72da019727c5af8c1cf87e88a84
+md5: b143b1106dbd517cbe94e016af92b8fe
 cmd: ./src/etl/etl_google_model.sh bert-base-uncased https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip
 wdir: ../..
 deps:
-- md5: b79e04cc201434f1b44b7685064feb67
+- md5: 6cd277007fdea6f76f85f0be519482b8
   path: src/etl/etl_google_model.sh
 - md5: e4857f2684c884801070442968a0934a
   path: src/etl/convert_bert_original_tf_checkpoint_to_pytorch.py
 outs:
-- md5: f1d6ba3562ed26b00218d685e76aaa90.dir
+- md5: 23a3d400e7d78febe1dab8786938167b.dir
   path: data/models/bert-base-uncased
   cache: true
   metric: false
