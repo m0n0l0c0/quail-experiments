@@ -6,7 +6,7 @@ if [[ "$#" -lt 1 ]]; then
   exit 0
 fi
 
-ch_to_project_dir(){
+ch_to_project_root(){
   # chdir to project root
   scriptdir=$(dirname -- "$(realpath -- "$0")")
   rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments\).*/\1/')
@@ -54,7 +54,7 @@ maybe_extract_data(){
   fi
 }
 
-ch_to_project_dir
+ch_to_project_root
 
 model_name=$1; shift
 url=$1; shift

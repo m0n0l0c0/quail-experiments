@@ -34,7 +34,7 @@ run_experiment() {
   else
     inside_docker="nvidia-docker run --rm ${docker_args[@]}"
   fi
-  ${inside_docker} python3 ${script_file} $(python3 scripts/json_to_program_args.py $file)
+  ${inside_docker} python3 ${script_file} $(python3 $json_as_args $file)
 }
 
 get_experiments(){
@@ -56,6 +56,16 @@ get_experiments(){
   done
 }
 
+ch_to_project_root(){
+  # chdir to project root
+  scriptdir=$(dirname -- "$(realpath -- "$0")")
+  rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments\).*/\1/')
+  cwd=$(pwd)
+  cd $rootdir >/dev/null
+}
+
+ch_to_project_root
+
 result_files=(
   "is_test_false_eval_results.txt"
   "is_test_false_eval_nbest_predictions.json"
@@ -68,6 +78,7 @@ results_dir='./results'
 
 docker_img="quail-experiments"
 docker_args="--shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v `pwd`:/workspace $docker_img"
+json_as_args="./src/processing/json_to_program_args.py"
 
 echo "###### Starting experiments $(date)"
 total_start_time=$(date -u +%s)
