@@ -1,9 +1,5 @@
 #!/bin/bash
 
-scriptdir=$(dirname -- "$(realpath -- "$0")")
-rootdir=$(dirname $scriptdir)
-cd $rootdir >/dev/null
-
 fix_experiment_path() {
   local exp=$1
   if [[ " $(basename $1) " =~ " ${exp} " ]]; then
