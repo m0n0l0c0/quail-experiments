@@ -1,6 +1,6 @@
 #!/bin/bash
 
-fix_experiment_path() {
+fix_experiment_path(){
   local exp=$1
   if [[ " $(basename $1) " =~ " ${exp} " ]]; then
     # just file name
@@ -10,19 +10,7 @@ fix_experiment_path() {
   fi
 }
 
-save_experiment_data() {
-  local model_dir=$1; shift
-  local results_dir=$1; shift
-  local exp_name=$1; shift
-  for file in ${result_files[@]}; do
-    if [[ -f $model_dir/$file ]]; then
-      echo "Saving $model_dir/$file $results_dir/${exp_name}_${file}"
-      mv $model_dir/$file $results_dir/${exp_name}_${file}
-    fi
-  done
-}
-
-run_experiment() {
+run_experiment(){
   local file=$1; shift
   local script_file="./src/mc-transformers/run_multiple_choice.py"
   if [[ ! -z ${DONT_DOCKERIZE} ]]; then
@@ -55,26 +43,15 @@ get_experiments(){
 ch_to_project_root(){
   # chdir to project root
   scriptdir=$(dirname -- "$(realpath -- "$0")")
-  rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments\).*/\1/')
+  rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments-v2\).*/\1/')
   cwd=$(pwd)
   cd $rootdir >/dev/null
 }
 
 ch_to_project_root
-
-result_files=(
-  "is_test_false_eval_results.txt"
-  "is_test_false_eval_nbest_predictions.json"
-  "is_test_true_eval_results.txt"
-  "is_test_true_eval_nbest_predictions.json"
-)
-
-results_dir='./results'
-[[ ! -d $results_dir ]] && mkdir $results_dir
-
-docker_img="quail-experiments"
-docker_args="--shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v `pwd`:/workspace $docker_img"
-json_as_args="./src/processing/json_to_program_args.py"
+docker_img="quail-experiments-v2"
+docker_args="--shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v `pwd`:/workspace -v /data:/data $docker_img"
+json_as_args="./src/processing/json_to_program_args.py -e params -x meta"
 
 echo "###### Starting experiments $(date)"
 total_start_time=$(date -u +%s)
@@ -88,11 +65,6 @@ for raw_exp in ${experiments[@]}; do
   exp=$(fix_experiment_path $raw_exp)
   echo "*********** $exp *************";
   run_experiment $exp
-  # backup experiment_data $exp
-  # ToDo := Review this step
-  # model_dir=$(sed -n 's/export OUTPUT_DIR=\(.*\)/\1/p' experiments/$exp);
-  # exp_name=${exp%.*}
-  # save_experiment_data $model_dir $results_dir $exp_name
   echo "********************************";
 done
 
