@@ -1,0 +1,43 @@
+stages:
+  setup_env:
+    cmd: ./scripts/setup.sh 1
+    deps:
+    - ./scripts/setup.sh
+    always_changed: true
+  dl_quail:
+    cmd: ./src/etl/dl_quail.sh
+    deps:
+    - src/etl/dl_quail.sh
+    outs:
+    - data/quail/dev.json
+    - data/quail/dev_answers.json
+    - data/quail/eval.py
+    - data/quail/train.json
+    - data/quail/train_answers.json
+  dl_models:
+    cmd: python ./src/etl/dl_models.py -m bert-large-uncased bert-base-uncased bert-base-multilingual-cased
+      --overwrite
+    deps:
+    - src/etl/dl_models.py
+    outs:
+    - data/models/bert-base-multilingual-cased
+    - data/models/bert-base-uncased
+    - data/models/bert-large-uncased
+  tr_quail_train_to_race:
+    cmd: src/etl/preprocess_quail_to_race.py data/quail/train.json data/quail/train_answers.json
+      -o data/quail/train_race_fmt.json
+    deps:
+    - data/quail/train.json
+    - data/quail/train_answers.json
+    - src/etl/preprocess_quail_to_race.py
+    outs:
+    - data/quail/train_race_fmt.json
+  tr_quail_dev_to_race:
+    cmd: src/etl/preprocess_quail_to_race.py data/quail/dev.json data/quail/dev_answers.json
+      -o data/quail/dev_race_fmt.json
+    deps:
+    - data/quail/dev.json
+    - data/quail/dev_answers.json
+    - src/etl/preprocess_quail_to_race.py
+    outs:
+    - data/quail/dev_race_fmt.json

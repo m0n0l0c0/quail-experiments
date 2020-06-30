@@ -16,7 +16,7 @@ fi
 if [[ "$dockerize" -eq 0 ]]; then
   ./install_packages.sh $dockerize
 else
-  docker build -t quail-experiments .
+  docker build -t quail-experiments-v2 .
 fi
 
 [[ ! -d data ]] && mkdir -p data

@@ -1,2 +1,4 @@
+git+git://github.com/huggingface/transformers@b1ff0b2ae7d368b7db3a8a8472a29cc195d278d8
+-f https://download.pytorch.org/whl/torch_stable.html
 torch==1.4.0
 torchvision==0.5.0

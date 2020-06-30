@@ -1,0 +1,60 @@
+setup_env:
+  cmd: ./scripts/setup.sh 1
+  deps:
+  - path: ./scripts/setup.sh
+    md5: 3a3e76685baf84c237412ba9e3a4f0c5
+dl_quail:
+  cmd: ./src/etl/dl_quail.sh
+  deps:
+  - path: src/etl/dl_quail.sh
+    md5: 35c895bd0b066481c8f7fba6dd57a0cb
+  outs:
+  - path: data/quail/dev.json
+    md5: 710c954716143d6d3c8c2ef2044f5c0c
+  - path: data/quail/dev_answers.json
+    md5: 1665e633ee7aa0183a45a3749e4e061b
+  - path: data/quail/eval.py
+    md5: cab53a1ed0c7248b036be788fa60ec3c
+  - path: data/quail/train.json
+    md5: 5409940d9b8479dc51fe56c9b5607344
+  - path: data/quail/train_answers.json
+    md5: c1b17d1e9bb8bbce4b28c253e5167001
+dl_models:
+  cmd: python ./src/etl/dl_models.py -m bert-large-uncased bert-base-uncased bert-base-multilingual-cased
+    --overwrite
+  deps:
+  - path: src/etl/dl_models.py
+    md5: c2ca665ea793afe968fff649f0e04717
+  outs:
+  - path: data/models/bert-base-multilingual-cased
+    md5: 670fbb9b45bd8600510f362bd8f3d12e.dir
+  - path: data/models/bert-base-uncased
+    md5: f2ad4af37921a985dc27c650ee39d8d8.dir
+  - path: data/models/bert-large-uncased
+    md5: defb07df7011fe80af3a1e6bc843eb2b.dir
+tr_quail_train_to_race:
+  cmd: src/etl/preprocess_quail_to_race.py data/quail/train.json data/quail/train_answers.json
+    -o data/quail/train_race_fmt.json
+  deps:
+  - path: data/quail/train.json
+    md5: 5409940d9b8479dc51fe56c9b5607344
+  - path: data/quail/train_answers.json
+    md5: c1b17d1e9bb8bbce4b28c253e5167001
+  - path: src/etl/preprocess_quail_to_race.py
+    md5: d85a3aa72f907adfdef52155b94d55b5
+  outs:
+  - path: data/quail/train_race_fmt.json
+    md5: 6c67d6a9e3c054cf471ef467fbf23e26
+tr_quail_dev_to_race:
+  cmd: src/etl/preprocess_quail_to_race.py data/quail/dev.json data/quail/dev_answers.json
+    -o data/quail/dev_race_fmt.json
+  deps:
+  - path: data/quail/dev.json
+    md5: 710c954716143d6d3c8c2ef2044f5c0c
+  - path: data/quail/dev_answers.json
+    md5: 1665e633ee7aa0183a45a3749e4e061b
+  - path: src/etl/preprocess_quail_to_race.py
+    md5: d85a3aa72f907adfdef52155b94d55b5
+  outs:
+  - path: data/quail/dev_race_fmt.json
+    md5: b2573225520d6ae103b7b1f899ebd433
