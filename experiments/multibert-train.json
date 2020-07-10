@@ -1,7 +1,8 @@
 {
   "inputs": [
-    "${DATA_DIR}/RACE",
-    "${MODELS_DIR}/bert-base-multilingual-cased"
+    "${DATA_DIR}/quail/train_race_fmt.json",
+    "${DATA_DIR}/quail/dev_race_fmt.json",
+    "${MODELS_DIR}/bert-base-uncased"
   ],
   "scripts": [
     "${CODE_DIR}/processing/run.sh"
