@@ -35,7 +35,7 @@
     "metrics_dir": "${METRICS_DIR}/${EXPERIMENT_DIR}",
     "results_dir": "${RESULTS_DIR}/${EXPERIMENT_DIR}",
     "model_type": "bert",
-    "task_name": "race",
+    "task_name": "generic",
     "do_train": true,
     "do_eval": true,
     "fp16": true,
