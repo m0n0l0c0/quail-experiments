@@ -1,2 +1,4 @@
 /*.pid
 /runs
+/*.log
+data/quail/cached_*
