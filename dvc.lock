@@ -58,3 +58,89 @@ tr_quail_dev_to_race:
   outs:
   - path: data/quail/dev_race_fmt.json
     md5: b2573225520d6ae103b7b1f899ebd433
+60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384:
+  cmd: ./src/processing/run.sh data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json
+  deps:
+  - path: data/models/bert-base-uncased
+    md5: f2ad4af37921a985dc27c650ee39d8d8.dir
+  - path: data/quail/dev_race_fmt.json
+    md5: b2573225520d6ae103b7b1f899ebd433
+  - path: data/quail/train_race_fmt.json
+    md5: 6c67d6a9e3c054cf471ef467fbf23e26
+  - path: src/processing/run.sh
+    md5: 64fb281369c593c6cffa775027afb04c
+  params:
+    data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json:
+      params.do_eval: true
+      params.do_train: true
+      params.fp16: true
+      params.fp16_opt_level: O1
+      params.gradient_accumulation_steps: 8
+      params.learning_rate: '5e-05'
+      params.max_seq_length: 484
+      params.meta: bert-train
+      params.model_type: bert
+      params.num_train_epochs: 2
+      params.task_name: generic
+  outs:
+  - path: data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_metrics.json
+    md5: c4c7d994bf2a16a6d73a4ac91f8d31f4
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/config.json
+    md5: fda1d82a923cf7ffd8b9da484296692f
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/pytorch_model.bin
+    md5: 40074d3d92250cf96f0b5281452d9bad
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/special_tokens_map.json
+    md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/tokenizer_config.json
+    md5: acaa1589c694bf6f6c146b3bac976f67
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/training_args.bin
+    md5: 819cc6ff7220f79736bcc0090f54f45c
+  - path: data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/vocab.txt
+    md5: 64800d5d8528ce344256daf115d4965e
+  - path: data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+    md5: 967895fe7e66ae66fa404106b49169b7
+  - path: data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_predictions.json
+    md5: fc8fb53b15b13f6d02915f620ccae9b2
+4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df:
+  cmd: ./src/processing/run.sh data/specs/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_experiment.json
+  deps:
+  - path: data/models/bert-base-uncased
+    md5: f2ad4af37921a985dc27c650ee39d8d8.dir
+  - path: data/quail/dev_race_fmt.json
+    md5: b2573225520d6ae103b7b1f899ebd433
+  - path: data/quail/train_race_fmt.json
+    md5: 6c67d6a9e3c054cf471ef467fbf23e26
+  - path: src/processing/run.sh
+    md5: 64fb281369c593c6cffa775027afb04c
+  params:
+    data/specs/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_experiment.json:
+      params.do_eval: true
+      params.do_train: true
+      params.fp16: true
+      params.fp16_opt_level: O1
+      params.gradient_accumulation_steps: 8
+      params.learning_rate: '5e-05'
+      params.max_seq_length: 484
+      params.meta: multibert-train
+      params.model_type: bert
+      params.num_train_epochs: 2
+      params.task_name: generic
+  outs:
+  - path: data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_metrics.json
+    md5: 3c0e781dbd46d7049321f331e888210a
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/config.json
+    md5: 26625e8e71f502488984908b8043b368
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/pytorch_model.bin
+    md5: 0c8810c2a465065fa44d136918d51928
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/special_tokens_map.json
+    md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/tokenizer_config.json
+    md5: bd2095a6f1895712b38f5c742a06e4cb
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/training_args.bin
+    md5: e01be806622db5b133e2358efe0ab7f6
+  - path: data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/vocab.txt
+    md5: d9d865138d17f1958502ed060ecfeeb6
+  - path: data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_nbest_predictions.json
+    md5: 0a92d28f6d4e774cd093f1321b5d68d8
+  - path: data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_predictions.json
+    md5: 7fa1e9a1736a94dfadc22bce7dbce4d1

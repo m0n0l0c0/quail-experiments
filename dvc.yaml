@@ -41,3 +41,65 @@ stages:
     - src/etl/preprocess_quail_to_race.py
     outs:
     - data/quail/dev_race_fmt.json
+  60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384:
+    cmd: ./src/processing/run.sh data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json
+    deps:
+    - data/models/bert-base-uncased
+    - data/quail/dev_race_fmt.json
+    - data/quail/train_race_fmt.json
+    - src/processing/run.sh
+    params:
+    - data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.task_name
+    outs:
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/config.json
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/pytorch_model.bin
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/special_tokens_map.json
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/tokenizer_config.json
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/training_args.bin
+    - data/models/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/vocab.txt
+    - data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+    - data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_predictions.json
+    metrics:
+    - data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_metrics.json
+  4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df:
+    cmd: ./src/processing/run.sh data/specs/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_experiment.json
+    deps:
+    - data/models/bert-base-uncased
+    - data/quail/dev_race_fmt.json
+    - data/quail/train_race_fmt.json
+    - src/processing/run.sh
+    params:
+    - data/specs/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.task_name
+    outs:
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/config.json
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/pytorch_model.bin
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/special_tokens_map.json
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/tokenizer_config.json
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/training_args.bin
+    - data/models/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/vocab.txt
+    - data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_nbest_predictions.json
+    - data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_predictions.json
+    metrics:
+    - data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_metrics.json

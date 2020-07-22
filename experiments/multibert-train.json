@@ -28,7 +28,7 @@
   ],
   "params": {
     "meta": "multibert-train",
-    "data_dir": "${DATA_DIR}/RACE",
+    "data_dir": "${DATA_DIR}/quail",
     "cache_dir": "/tmp",
     "model_name_or_path": "${MODELS_DIR}/bert-base-multilingual-cased",
     "output_dir": "${MODELS_DIR}/${EXPERIMENT_DIR}",
@@ -41,6 +41,7 @@
     "fp16": true,
     "fp16_opt_level": "O1",
     "save_total_limit": 0,
+    "save_steps": 0,
     "max_seq_length": 484,
     "num_train_epochs": 2,
     "per_device_eval_batch_size": 8,
