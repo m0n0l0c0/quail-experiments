@@ -68,7 +68,7 @@ tr_quail_dev_to_race:
   - path: data/quail/train_race_fmt.json
     md5: 6c67d6a9e3c054cf471ef467fbf23e26
   - path: src/processing/run.sh
-    md5: 64fb281369c593c6cffa775027afb04c
+    md5: a6e6451269520ba9cf5c4ad7752ba5c5
   params:
     data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json:
       params.do_eval: true
@@ -111,7 +111,7 @@ tr_quail_dev_to_race:
   - path: data/quail/train_race_fmt.json
     md5: 6c67d6a9e3c054cf471ef467fbf23e26
   - path: src/processing/run.sh
-    md5: 64fb281369c593c6cffa775027afb04c
+    md5: a6e6451269520ba9cf5c4ad7752ba5c5
   params:
     data/specs/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_experiment.json:
       params.do_eval: true
