@@ -25,22 +25,22 @@ stages:
     - data/models/bert-large-uncased
   tr_quail_train_to_race:
     cmd: src/etl/preprocess_quail_to_race.py data/quail/train.json data/quail/train_answers.json
-      -o data/quail/train_race_fmt.json
+      -o data/quail_race_fmt/train.json
     deps:
     - data/quail/train.json
     - data/quail/train_answers.json
     - src/etl/preprocess_quail_to_race.py
     outs:
-    - data/quail/train_race_fmt.json
+    - data/quail_race_fmt/train.json
   tr_quail_dev_to_race:
     cmd: src/etl/preprocess_quail_to_race.py data/quail/dev.json data/quail/dev_answers.json
-      -o data/quail/dev_race_fmt.json
+      -o data/quail_race_fmt/dev.json
     deps:
     - data/quail/dev.json
     - data/quail/dev_answers.json
     - src/etl/preprocess_quail_to_race.py
     outs:
-    - data/quail/dev_race_fmt.json
+    - data/quail_race_fmt/dev.json
   60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384:
     cmd: ./src/processing/run.sh data/specs/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_experiment.json
     deps:

@@ -28,7 +28,7 @@
   ],
   "params": {
     "meta": "multibert-train",
-    "data_dir": "${DATA_DIR}/quail",
+    "data_dir": "${DATA_DIR}/quail_race_fmt",
     "cache_dir": "/tmp",
     "model_name_or_path": "${MODELS_DIR}/bert-base-multilingual-cased",
     "output_dir": "${MODELS_DIR}/${EXPERIMENT_DIR}",
