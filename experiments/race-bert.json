@@ -1,0 +1,45 @@
+{
+  "inputs": [
+    "${DATA_DIR}/quail/dev_race_fmt.json",
+    "${MODELS_DIR}/eee4b9c4ecad29f96b656c5c85af637ab919d0ac561a95d0914203925d8f4561"
+  ],
+  "scripts": [
+    "${CODE_DIR}/processing/run.sh"
+  ],
+  "metrics": [
+    "eval_metrics.json"
+  ],
+  "outputs": [
+  ],
+  "results": [
+    "eval_predictions.json",
+    "eval_nbest_predictions.json"
+  ],
+  "command": [
+    "./src/processing/run.sh",
+    "${SPECS_DIR}/${EXPERIMENT_DIR}_experiment.json"
+  ],
+  "params": {
+    "meta": "race-bert",
+    "data_dir": "${DATA_DIR}/quail_race_fmt",
+    "cache_dir": "/tmp",
+    "model_name_or_path": "${MODELS_DIR}/eee4b9c4ecad29f96b656c5c85af637ab919d0ac561a95d0914203925d8f4561",
+    "output_dir": "${MODELS_DIR}/${EXPERIMENT_DIR}",
+    "metrics_dir": "${METRICS_DIR}/${EXPERIMENT_DIR}",
+    "results_dir": "${RESULTS_DIR}/${EXPERIMENT_DIR}",
+    "model_type": "bert",
+    "task_name": "generic",
+    "do_eval": true,
+    "fp16": true,
+    "fp16_opt_level": "O1",
+    "save_total_limit": 0,
+    "save_steps": 0,
+    "max_seq_length": 484,
+    "num_train_epochs": 2,
+    "per_device_eval_batch_size": 8,
+    "per_device_train_batch_size": 2,
+    "gradient_accumulation_steps": 8,
+    "learning_rate": 5.0e-05,
+    "warmup_steps": 500
+  }
+}
