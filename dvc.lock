@@ -144,17 +144,6 @@ tr_quail_dev_to_race:
     md5: e6b85a9a3140f4d1e288b736b712e287
   - path: data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_predictions.json
     md5: 0108b1c621b687e399dfb3e698f4580a
-60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_evaluation:
-  cmd: mcqa_utils -d data/quail_race_fmt -n data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
-    --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
-  deps:
-  - path: data/quail_race_fmt/dev.json
-    md5: b2573225520d6ae103b7b1f899ebd433
-  - path: data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
-    md5: 6dfd3979bd758e5eb98d17db22e44472
-  outs:
-  - path: data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
-    md5: 7a3bebc37ecfe59a540cec0f69ce4b89
 4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_evaluation:
   cmd: mcqa_utils -d data/quail_race_fmt -n data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/evaluation.json
@@ -165,4 +154,15 @@ tr_quail_dev_to_race:
     md5: e6b85a9a3140f4d1e288b736b712e287
   outs:
   - path: data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/evaluation.json
-    md5: 0e81150f9b539ceaf8a2045a75c2b3a1
+    md5: d8adda93e515117f0b0506e7d935d883
+60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_evaluation:
+  cmd: mcqa_utils -d data/quail_race_fmt -n data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+    --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
+  deps:
+  - path: data/quail_race_fmt/dev.json
+    md5: b2573225520d6ae103b7b1f899ebd433
+  - path: data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+    md5: 6dfd3979bd758e5eb98d17db22e44472
+  outs:
+  - path: data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
+    md5: ca06e202ba82b581a86913d450c51b04
