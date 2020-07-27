@@ -103,3 +103,19 @@ stages:
     - data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_predictions.json
     metrics:
     - data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_metrics.json
+  60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384_evaluation:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+      --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
+    deps:
+    - data/quail_race_fmt/dev.json
+    - data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
+  4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df_evaluation:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_nbest_predictions.json
+      --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/evaluation.json
+    deps:
+    - data/quail_race_fmt/dev.json
+    - data/results/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/4819225caddd2f92c878079d1b17e675eeb5d704de41996605ad6cdb7afc70df/evaluation.json
