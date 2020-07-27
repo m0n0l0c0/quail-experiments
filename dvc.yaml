@@ -119,3 +119,49 @@ stages:
     - data/results/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/eval_nbest_predictions.json
     metrics:
     - data/metrics/60d988dee30ae86536ee58ea2777c69747316251fb6a4e9d2623be788f4a6384/evaluation.json
+  4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482:
+    cmd: ./src/processing/run.sh data/specs/4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482_experiment.json
+    deps:
+    - data/models/eee4b9c4ecad29f96b656c5c85af637ab919d0ac561a95d0914203925d8f4561
+    - data/quail/dev_race_fmt.json
+    - src/processing/run.sh
+    params:
+    - data/specs/4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482_experiment.json:
+      - params.do_eval
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.task_name
+    outs:
+    - data/results/4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482/eval_nbest_predictions.json
+    - data/results/4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482/eval_predictions.json
+    metrics:
+    - data/metrics/4888f3b8bec2c7ea4eb89d07ac877fc0c19aa15bbfa74c1bc32c5170abcb8482/eval_metrics.json
+  94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021:
+    cmd: ./src/processing/run.sh data/specs/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021_experiment.json
+    deps:
+    - data/models/12942b9ce5eb231bd51d867a17ff9b243de813ae44de6056b5066ac67a7131b2
+    - data/quail/dev_race_fmt.json
+    - src/processing/run.sh
+    params:
+    - data/specs/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021_experiment.json:
+      - params.do_eval
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.task_name
+    outs:
+    - data/results/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021/eval_nbest_predictions.json
+    - data/results/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021/eval_predictions.json
+    metrics:
+    - data/metrics/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021/eval_metrics.json
