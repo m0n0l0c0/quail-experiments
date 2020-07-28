@@ -222,3 +222,111 @@ tr_quail_dev_to_race:
     md5: e3804480184f7893952caa4479f5e9fa
   - path: data/results/94348d79ad84fec361b4d7c5030331591ca70d07b26836691880ae1939f18021/eval_predictions.json
     md5: 9c01d8eb56a8a00bf11acd44585a5966
+2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a:
+  cmd: ./src/processing/run.sh data/specs/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a_experiment.json
+  deps:
+  - path: data/models/12942b9ce5eb231bd51d867a17ff9b243de813ae44de6056b5066ac67a7131b2
+    md5: b379cdb57a3ed0541bb2a370c2fede28.dir
+  - path: data/quail/dev_race_fmt.json
+    md5: b2573225520d6ae103b7b1f899ebd433
+  - path: data/quail/train_race_fmt.json
+    md5: 6c67d6a9e3c054cf471ef467fbf23e26
+  - path: src/processing/run.sh
+    md5: a6e6451269520ba9cf5c4ad7752ba5c5
+  params:
+    data/specs/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a_experiment.json:
+      params.do_eval: true
+      params.do_train: true
+      params.fp16: true
+      params.fp16_opt_level: O1
+      params.gradient_accumulation_steps: 8
+      params.learning_rate: '5e-05'
+      params.max_seq_length: 484
+      params.meta: race-multibert-train
+      params.model_type: bert
+      params.num_train_epochs: 2
+      params.task_name: generic
+  outs:
+  - path: data/metrics/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/eval_metrics.json
+    md5: 917032e6e1819c5310e933b30b10e2d5
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/config.json
+    md5: 26625e8e71f502488984908b8043b368
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/pytorch_model.bin
+    md5: 344c277503d9349be6bf99ba65758b5b
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/special_tokens_map.json
+    md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/tokenizer_config.json
+    md5: bd2095a6f1895712b38f5c742a06e4cb
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/training_args.bin
+    md5: b7c5025d960ba04f7cfb6cf81353f49d
+  - path: data/models/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/vocab.txt
+    md5: d9d865138d17f1958502ed060ecfeeb6
+  - path: data/results/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/eval_nbest_predictions.json
+    md5: dfc2b14472d42d7427e77d06f5e0f99e
+  - path: data/results/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/eval_predictions.json
+    md5: e524c4e934bd097677e21135ca20ebe8
+2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a_evaluation:
+  cmd: mcqa_utils -d data/quail_race_fmt -n data/results/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/eval_nbest_predictions.json
+    --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/evaluation.json
+  deps:
+  - path: data/quail_race_fmt
+    md5: 227a5d4eefb55b4ddd6b3bd7ec926c82.dir
+  - path: data/results/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/eval_nbest_predictions.json
+    md5: dfc2b14472d42d7427e77d06f5e0f99e
+  outs:
+  - path: data/metrics/2cd0dc7591d76c17f4094602343367798c5fab536dfce3c846cd7fedae2a129a/evaluation.json
+    md5: 0fc620de20cd9cb2440e57528aa4877f
+9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21:
+  cmd: ./src/processing/run.sh data/specs/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21_experiment.json
+  deps:
+  - path: data/models/eee4b9c4ecad29f96b656c5c85af637ab919d0ac561a95d0914203925d8f4561
+    md5: dca4d454a27a7f4b2448fb6729306933.dir
+  - path: data/quail/dev_race_fmt.json
+    md5: b2573225520d6ae103b7b1f899ebd433
+  - path: data/quail/train_race_fmt.json
+    md5: 6c67d6a9e3c054cf471ef467fbf23e26
+  - path: src/processing/run.sh
+    md5: a6e6451269520ba9cf5c4ad7752ba5c5
+  params:
+    data/specs/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21_experiment.json:
+      params.do_eval: true
+      params.do_train: true
+      params.fp16: true
+      params.fp16_opt_level: O1
+      params.gradient_accumulation_steps: 8
+      params.learning_rate: '5e-05'
+      params.max_seq_length: 484
+      params.meta: race-bert-train
+      params.model_type: bert
+      params.num_train_epochs: 2
+      params.task_name: generic
+  outs:
+  - path: data/metrics/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/eval_metrics.json
+    md5: b6bcbe249ec3943a4b7173efc7812fc4
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/config.json
+    md5: fda1d82a923cf7ffd8b9da484296692f
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/pytorch_model.bin
+    md5: a6765b39135b58ef6cdaa231c2db7e1f
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/special_tokens_map.json
+    md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/tokenizer_config.json
+    md5: acaa1589c694bf6f6c146b3bac976f67
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/training_args.bin
+    md5: be5637949e33b95bddf38e6ae2ebe9f8
+  - path: data/models/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/vocab.txt
+    md5: 64800d5d8528ce344256daf115d4965e
+  - path: data/results/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/eval_nbest_predictions.json
+    md5: 27b9550c52fcb80d8826f4b977f154d1
+  - path: data/results/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/eval_predictions.json
+    md5: b5988883dcc701ca074d84cb81776a3f
+9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21_evaluation:
+  cmd: mcqa_utils -d data/quail_race_fmt -n data/results/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/eval_nbest_predictions.json
+    --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/evaluation.json
+  deps:
+  - path: data/quail_race_fmt
+    md5: 205fdd412a3b1d6ecdd8399a6d52b323.dir
+  - path: data/results/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/eval_nbest_predictions.json
+    md5: 27b9550c52fcb80d8826f4b977f154d1
+  outs:
+  - path: data/metrics/9ac349bb26a9f7823eaaef6f1f15cf5f4461e1117379661cc648b7d2cb9e4d21/evaluation.json
+    md5: 4e20a8cfcc2a3606f173d80848f62876
