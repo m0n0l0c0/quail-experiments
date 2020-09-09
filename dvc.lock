@@ -377,12 +377,12 @@ tr_quail_dev_to_race:
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/eval_nbest_predictions.json
-    md5: 7f770d51a6b4542cb001bfb2e1343843
+    md5: 2dc0ed7c281268f27206b6f9f07bded2
   outs:
   - path: data/metrics/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/evaluation.json
-    md5: bb11695291080938f5eaa6324ccb2412
+    md5: 0ec8a399011cddac2e1d6563a36d8606
 ? bert_generic_bert-train_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
@@ -390,21 +390,21 @@ tr_quail_dev_to_race:
   - path: data/quail_race_fmt/dev.json
     md5: b2573225520d6ae103b7b1f899ebd433
   - path: data/results/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
-    md5: cfc30514b165c274930f23d012cba694
+    md5: f05f5a382cf753c84592bd91385c9302
   outs:
   - path: data/metrics/bert/generic/bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: 4413e2456548d9c946d5defb7292dceb
+    md5: 9920083ffc294d27f4a7ebc54eff754b
 ? bert_generic_multibert-train_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/eval_nbest_predictions.json
-    md5: e939d16a1a1a16ec7e5cc41f75bbfe5d
+    md5: 78cdbef3859503d08490de4131074083
   outs:
   - path: data/metrics/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_3/evaluation.json
-    md5: a413fab0206bafe9f5df44e2a841d124
+    md5: 62df5b2e2f0de230730923793d269646
 ? bert_generic_multibert-train_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
@@ -412,51 +412,51 @@ tr_quail_dev_to_race:
   - path: data/quail_race_fmt/dev.json
     md5: b2573225520d6ae103b7b1f899ebd433
   - path: data/results/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
-    md5: 19ef8fb32a9793bf45b99974f7e9bcda
+    md5: 865c5e0f6e7c458245eba066cf89cca2
   outs:
   - path: data/metrics/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: 50a9a9ac16179da54defb6494b79e755
+    md5: abfa607106a6fef79a599e3bd81d218f
 ? bert_generic_race-bert_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/race-bert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/race-bert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/race-bert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
-    md5: e14048def31f095f9068eafd209b2899
+    md5: ffb694e36ac47aba0a8f317410ff6de8
   outs:
   - path: data/metrics/bert/generic/race-bert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: 628057e70a99200267cc268e77b7ead3
+    md5: b05d0b0b08706c8e579814da850bbd84
 ? bert_generic_race-bert-train_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/race-bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/race-bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/race-bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
-    md5: 4434aa043245652a9b3f2c953fb542df
+    md5: 3fcf326e37d770bf38e1a4cb027e5fce
   outs:
   - path: data/metrics/bert/generic/race-bert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: b7bc8f589261bf369e8e3d8de1310e8d
+    md5: 5b6321b7805463f9df29a1bb09f8b254
 ? bert_generic_race-multibert_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/race-multibert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/race-multibert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/race-multibert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     md5: f9aea9ccdc887fc7ab7afb6dbfa42a34
   outs:
   - path: data/metrics/bert/generic/race-multibert/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: fd88ca5d4beff6bbeb5bc1f5a21bc08d
+    md5: 6b8716fb1a88d7ac84f728aa8a02b9fa
 ? bert_generic_race-multibert-train_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
 : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     --split dev --task generic -ft --metrics C_at_1 avg --output data/metrics/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
   deps:
   - path: data/quail_race_fmt
-    md5: ce5cb368b25c793c896b9d603f297e4e.dir
+    md5: b8fe9605284ebb03f362456ccbc143ad.dir
   - path: data/results/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
-    md5: 44dc4a22e771ad75bfa949fdd8024b6c
+    md5: b9b561b28f85137438d848e580da04b8
   outs:
   - path: data/metrics/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
-    md5: fdc4f4b2e5f95f33ccdc03751811468c
+    md5: f102dec7806532250105e3df0d33cb23
