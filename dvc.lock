@@ -660,6 +660,16 @@ tr_quail_dev_to_race:
     md5: 971ad4180bfd506f755673ef76dcb22c
 extract_metrics:
   cmd: ./src/etl/viz/extract_metrics.sh data/dumps/metrics.json
+  deps:
+  - path: ./src/etl/viz/extract_metrics.sh
+    md5: d2ef65f77eb4e45f60335297f9ac6a25
   outs:
   - path: data/dumps/metrics.json
-    md5: 634169fbe0915160e716611bd44e5dc0
+    md5: 5507dbb2a970d5052416bf8294b56e17
+viz_metrics:
+  cmd: python ./src/etl/viz/table_from_metrics.py -i ./data/dumps/metrics.json
+  deps:
+  - path: ./data/dumps/metrics.json
+    md5: 5507dbb2a970d5052416bf8294b56e17
+  - path: ./src/etl/viz/table_from_metrics.py
+    md5: b34caa8edfa098641088fe1526bac3fb

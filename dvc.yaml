@@ -485,3 +485,10 @@ stages:
     cmd: ./src/etl/viz/extract_metrics.sh data/dumps/metrics.json
     outs:
     - data/dumps/metrics.json
+    deps:
+    - ./src/etl/viz/extract_metrics.sh
+  viz_metrics:
+    cmd: python ./src/etl/viz/table_from_metrics.py -i ./data/dumps/metrics.json
+    deps:
+    - ./data/dumps/metrics.json
+    - ./src/etl/viz/table_from_metrics.py
