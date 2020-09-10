@@ -481,3 +481,7 @@ stages:
     - data/results/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_norm_logits.json
     metrics:
     - data/metrics/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/logits_evaluation.json
+  extract_metrics:
+    cmd: ./src/etl/viz/extract_metrics.sh data/dumps/metrics.json
+    outs:
+    - data/dumps/metrics.json

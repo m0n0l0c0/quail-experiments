@@ -658,3 +658,8 @@ tr_quail_dev_to_race:
   outs:
   - path: data/metrics/bert/generic/race-multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/logits_evaluation.json
     md5: 971ad4180bfd506f755673ef76dcb22c
+extract_metrics:
+  cmd: ./src/etl/viz/extract_metrics.sh data/dumps/metrics.json
+  outs:
+  - path: data/dumps/metrics.json
+    md5: 634169fbe0915160e716611bd44e5dc0
