@@ -40,7 +40,6 @@ def get_correct_answers(gold_answers, answers):
     return correct, incorrect
 
 
-
 def get_chosen_logits(gold_answers, answers):
     correct, incorrect = get_correct_answers(gold_answers, answers)
     correct_logits = [
@@ -52,12 +51,18 @@ def get_chosen_logits(gold_answers, answers):
     return correct_logits, incorrect_logits
 
 
-
-def plot_logits_from_answers(dataset, gold_answers, answers, mask, color):
+def get_divided_logits(dataset, gold_answers, answers, mask):
     gold_reduced = dataset.reduce_by_mask(gold_answers, mask)
     answ_reduced = dataset.reduce_by_mask(answers, mask)
     corr_logits, incorr_logits = get_chosen_logits(
         gold_reduced, answ_reduced
+    )
+    return corr_logits, incorr_logits
+
+
+def plot_logits_from_answers(dataset, gold_answers, answers, mask, color):
+    corr_logits, incorr_logits = get_divided_logits(
+        dataset, gold_answers, answers, mask
     )
     plt.plot(corr_logits, f'{color}o')
     plt.plot(incorr_logits, f'{color}x')
