@@ -80,7 +80,7 @@ def main(data_path, preds_path):
         no_answer_text=no_answer_text,
     )
     masks, prefix = get_masks_and_prefix(
-        dataset, no_answer_text, split
+        dataset, gold_answers, no_answer_text
     )
     assert(len(missing) == 0)
 
