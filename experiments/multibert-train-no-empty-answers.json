@@ -1,7 +1,7 @@
 {
   "inputs": [
-    "${DATA_DIR}/no_empty_answers/train.json",
-    "${DATA_DIR}/no_empty_answers/dev.json",
+    "${DATA_DIR}/quail_no_empty_answers/train.json",
+    "${DATA_DIR}/quail_no_empty_answers/dev.json",
     "${MODELS_DIR}/bert-base-uncased"
   ],
   "scripts": [
