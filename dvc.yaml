@@ -492,3 +492,19 @@ stages:
     deps:
     - ./data/dumps/metrics.json
     - ./src/etl/viz/table_from_metrics.py
+  tr_quail_train_no_empty_answers:
+    cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+      -s train --no_answer_text "not enough information"
+    deps:
+    - ./data/quail_race_fmt
+    - src/etl/dataset/reformat_dataset.py
+    outs:
+    - ./data/quail_no_empty_answers/train.json
+  tr_quail_dev_no_empty_answers:
+    cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+      -s dev --no_answer_text "not enough information"
+    deps:
+    - ./data/quail_race_fmt
+    - src/etl/dataset/reformat_dataset.py
+    outs:
+    - ./data/quail_no_empty_answers/dev.json

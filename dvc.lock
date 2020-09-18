@@ -673,3 +673,25 @@ viz_metrics:
     md5: 5507dbb2a970d5052416bf8294b56e17
   - path: ./src/etl/viz/table_from_metrics.py
     md5: b34caa8edfa098641088fe1526bac3fb
+tr_quail_train_no_empty_answers:
+  cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+    -s train --no_answer_text "not enough information"
+  deps:
+  - path: ./data/quail_race_fmt
+    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
+  - path: src/etl/dataset/reformat_dataset.py
+    md5: 2a342a04f64b81114bc8d304d90e4c91
+  outs:
+  - path: ./data/quail_no_empty_answers/train.json
+    md5: d3a6f28fa96f7431cee0ec4aa4193105
+tr_quail_dev_no_empty_answers:
+  cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+    -s dev --no_answer_text "not enough information"
+  deps:
+  - path: ./data/quail_race_fmt
+    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
+  - path: src/etl/dataset/reformat_dataset.py
+    md5: 2a342a04f64b81114bc8d304d90e4c91
+  outs:
+  - path: ./data/quail_no_empty_answers/dev.json
+    md5: e8c4ed4ea82859767ebbdd4bcec51d3f
