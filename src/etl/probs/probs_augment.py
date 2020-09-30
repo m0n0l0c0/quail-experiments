@@ -57,7 +57,7 @@ def main(preds_path, output_path, overwrite, size):
     output_path = setup_output_path(preds_path, output_path, overwrite)
     qa_system = QASystemForMCOffline(answers_path=preds_path)
     all_answers = qa_system.get_all_answers()
-    norm_answers = augment_probs(all_answers)
+    norm_answers = augment_probs(all_answers, size)
     output_predictions = qa_system.unparse_predictions(norm_answers)
 
     with open(output_path, 'w') as fout:
