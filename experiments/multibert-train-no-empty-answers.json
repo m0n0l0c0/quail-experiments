@@ -8,6 +8,7 @@
     "${CODE_DIR}/processing/run.sh"
   ],
   "metrics": [
+    "train_metrics.json",
     "eval_metrics.json"
   ],
   "outputs": [
@@ -19,6 +20,8 @@
     "${MODELS_DIR}/${EXPERIMENT_DIR}/vocab.txt"
   ],
   "results": [
+    "train_predictions.json",
+    "train_nbest_predictions",
     "eval_predictions.json",
     "eval_nbest_predictions.json"
   ],
@@ -48,6 +51,7 @@
     "per_device_train_batch_size": 2,
     "gradient_accumulation_steps": 8,
     "learning_rate": 5.0e-05,
-    "warmup_steps": 500
+    "warmup_steps": 500,
+    "save_logits": true
   }
 }

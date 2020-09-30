@@ -141,4 +141,4 @@ cython_debug/
 /*.pid
 /runs
 /*.log
-data/quail/cached_*
+data/*/cached_*
