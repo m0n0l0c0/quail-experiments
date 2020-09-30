@@ -4,16 +4,7 @@ import argparse
 import numpy as np
 
 from pathlib import Path
-from logits_utils import normalize
-
-from mcqa_utils import (
-    Answer,
-    Dataset,
-    QASystemForMCOffline,
-)
-
-from mcqa_utils.utils import label_to_id
-from mcqa_utils.mcqa_utils import get_masks_and_prefix
+from mcqa_utils import QASystemForMCOffline
 
 
 def parse_flags():
@@ -31,8 +22,8 @@ def parse_flags():
         help='Whether to overwrite the input file with the normalized logits'
     )
     parser.add_argument(
-        '-s', '--split', default='dev', required=False,
-        help='Split to evaluate from the dataset'
+        '-s', '--size', required=True, type=int,
+        help='Total size for probs field (new dimensions will be 0)'
     )
     return parser.parse_args()
 
@@ -56,11 +47,17 @@ def setup_output_path(preds_path, output_path, overwrite):
     return output_path
 
 
-def main(preds_path, output_path, overwrite, split):
+def augment_probs(answers, size):
+    for ans in answers:
+        ans.probs += [0.0] * (size - len(ans.probs))
+    return answers
+
+
+def main(preds_path, output_path, overwrite, size):
     output_path = setup_output_path(preds_path, output_path, overwrite)
     qa_system = QASystemForMCOffline(answers_path=preds_path)
     all_answers = qa_system.get_all_answers()
-    norm_answers = normalize(all_answers, max_prob=None, field='logits', exp=True)
+    norm_answers = augment_probs(all_answers)
     output_predictions = qa_system.unparse_predictions(norm_answers)
 
     with open(output_path, 'w') as fout:
@@ -69,4 +66,4 @@ def main(preds_path, output_path, overwrite, split):
 
 if __name__ == '__main__':
     args = parse_flags()
-    main(args.preds_path, args.output_path, args.overwrite, args.split)
+    main(args.preds_path, args.output_path, args.overwrite, args.size)
