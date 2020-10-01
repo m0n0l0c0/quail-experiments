@@ -1,6 +1,5 @@
 """Main module."""
 import argparse
-import numpy as np
 import matplotlib.pyplot as plt
 
 from mcqa_utils import (
@@ -87,7 +86,6 @@ def main(data_path, preds_path):
     for pref, mask, color in zip(prefix, masks, colors[:len(masks)]):
         plot_logits_from_answers(dataset, gold_answers, answers, mask, color)
         plt.show()
-
 
 
 if __name__ == '__main__':

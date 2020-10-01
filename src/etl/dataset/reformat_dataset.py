@@ -29,17 +29,21 @@ def parse_flags():
     return parser.parse_args()
 
 
-def remove_extra_option(examples, answer_text):
+def get_index_matching_text(sample, answer_text):
     match_text = answer_text.lower()
+    matching_idx = 0
+    while (
+        matching_idx < len(sample.endings) and
+        sample.endings[matching_idx].lower().find(match_text) == -1
+    ):
+        matching_idx += 1
+    return matching_idx
+
+
+def remove_extra_option(examples, answer_text):
     ret_examples = []
     for sample in examples:
-        matching_idx = 0
-        while (
-            matching_idx < len(sample.endings) and
-            sample.endings[matching_idx].lower().find(match_text) == -1
-        ):
-            matching_idx += 1
-
+        matching_idx = get_index_matching_text(sample, answer_text)
         ans_index = label_to_id(sample.label)
         if matching_idx < len(sample.endings):
             if ans_index == matching_idx:
