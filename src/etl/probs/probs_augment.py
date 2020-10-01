@@ -74,11 +74,10 @@ def augment_probs(gold_answers, answers, no_answer_text):
         if matching_idx > ans_idx:
             ans.probs += [0.0]
         else:
-            ans.probs.append(ans.probs[ans_idx])
-            ans.probs[matching_idx] = 0.0
-            ans.pred_label = id_to_label(label_to_id(ans.pred_label) + 1)
-            if ans.label is not None:
-                ans.label = id_to_label(label_to_id(ans.label) + 1)
+            ans.probs.insert(matching_idx, 0.0)
+            ans.pred_label = id_to_label(ans_idx - 1)
+        if ans.label is not None:
+            ans.label = id_to_label(label_to_id(gold.label))
 
     return answers
 
