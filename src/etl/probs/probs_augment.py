@@ -1,9 +1,10 @@
 """Main module."""
 import json
 import argparse
+import numpy as np
 
 from pathlib import Path
-from mcqa_utils import QASystemForMCOffline, Dataset
+from mcqa_utils import QASystemForMCOffline, Dataset, get_mask_matching_text
 from mcqa_utils.utils import label_to_id, id_to_label
 
 
@@ -72,13 +73,15 @@ def augment_probs(gold_answers, answers, no_answer_text):
         matching_idx = get_index_matching_text(gold, no_answer_text)
         ans_idx = label_to_id(ans.pred_label)
         if matching_idx > ans_idx:
-            ans.probs += [0.0]
+            ans.probs.append(0.0)
         else:
             ans.probs.insert(matching_idx, 0.0)
-            ans.pred_label = id_to_label(ans_idx - 1)
+            ans.pred_label = id_to_label(ans_idx + 1)
         if ans.label is not None:
             ans.label = id_to_label(label_to_id(gold.label))
 
+        # align ids
+        ans.example_id = gold.example_id
     return answers
 
 
@@ -86,13 +89,12 @@ def main(data_path, preds_path, output_path, split, no_answer_text, overwrite):
     output_path = setup_output_path(preds_path, output_path, overwrite)
     qa_system = QASystemForMCOffline(answers_path=preds_path)
     dataset = Dataset(data_path=data_path, task='generic')
+    answerable_mask = get_mask_matching_text(no_answer_text, match=False)
     gold_answers = dataset.get_gold_answers(split, with_text_values=True)
-    answers, _ = qa_system.get_answers(
-        gold_answers,
-        with_text_values=True,
-        no_answer_text=no_answer_text
-    )
-    norm_answers = augment_probs(gold_answers, answers, no_answer_text)
+    gold_reduced = dataset.reduce_by_mask(gold_answers, answerable_mask)
+    answers = qa_system.get_all_answers()
+    assert(len(gold_reduced) == len(answers))
+    norm_answers = augment_probs(gold_reduced, answers, no_answer_text)
     output_predictions = qa_system.unparse_predictions(norm_answers)
 
     with open(output_path, 'w') as fout:
