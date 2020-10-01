@@ -93,7 +93,7 @@ def main(data_path, preds_path, output_path, split, no_answer_text, overwrite):
         with_text_values=True,
         no_answer_text=no_answer_text
     )
-    norm_answers = augment_probs(gold_answers, answers)
+    norm_answers = augment_probs(gold_answers, answers, no_answer_text)
     output_predictions = qa_system.unparse_predictions(norm_answers)
 
     with open(output_path, 'w') as fout:
