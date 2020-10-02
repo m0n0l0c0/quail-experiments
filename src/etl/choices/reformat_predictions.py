@@ -95,7 +95,9 @@ def main(data_path, preds_path, output_path, split, no_answer_text, overwrite):
     answers = qa_system.get_all_answers()
     assert(len(gold_reduced) == len(answers))
     norm_answers = augment_probs(gold_reduced, answers, no_answer_text)
-    output_predictions = qa_system.unparse_predictions(norm_answers)
+    output_predictions = qa_system.unparse_predictions_with_alignment(
+        gold_answers, norm_answers
+    )
 
     with open(output_path, 'w') as fout:
         fout.write(json.dumps(output_predictions) + '\n')
