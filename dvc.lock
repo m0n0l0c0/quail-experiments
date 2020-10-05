@@ -674,15 +674,15 @@ viz_metrics:
   - path: ./src/etl/viz/table_from_metrics.py
     md5: b34caa8edfa098641088fe1526bac3fb
 tr_quail_train_no_empty_answers:
-  cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+  cmd: python src/etl/choices/reformat_dataset.py -d data/quail_race_fmt -o data/quail_no_empty_answers
     -s train --no_answer_text "not enough information"
   deps:
-  - path: ./data/quail_race_fmt
+  - path: data/quail_race_fmt
     md5: 60fe33e3251599a8703d640746cfc26c.dir
-  - path: src/etl/dataset/reformat_dataset.py
-    md5: 2a342a04f64b81114bc8d304d90e4c91
+  - path: src/etl/choices/reformat_dataset.py
+    md5: fe8433c85ca225efe38fd6d56b7104ef
   outs:
-  - path: ./data/quail_no_empty_answers/train.json
+  - path: data/quail_no_empty_answers/train.json
     md5: d3a6f28fa96f7431cee0ec4aa4193105
 tr_quail_dev_no_empty_answers:
   cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
@@ -690,7 +690,7 @@ tr_quail_dev_no_empty_answers:
     ./data/quail_no_empty_answers/dev_index_list.json
   deps:
   - path: data/quail_race_fmt
-    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
+    md5: 60fe33e3251599a8703d640746cfc26c.dir
   - path: src/etl/choices/reformat_dataset.py
     md5: fe8433c85ca225efe38fd6d56b7104ef
   outs:
@@ -704,7 +704,7 @@ tr_quail_dev_no_empty_answers:
   - path: data/models/bert-base-uncased
     md5: f2ad4af37921a985dc27c650ee39d8d8.dir
   - path: data/quail_no_empty_answers/dev.json
-    md5: e8c4ed4ea82859767ebbdd4bcec51d3f
+    md5: 476767952e209e1fbc8721addf0c2dcc
   - path: data/quail_no_empty_answers/train.json
     md5: d3a6f28fa96f7431cee0ec4aa4193105
   - path: src/processing/run.sh
@@ -730,13 +730,13 @@ tr_quail_dev_no_empty_answers:
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/config.json
     md5: fda1d82a923cf7ffd8b9da484296692f
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/pytorch_model.bin
-    md5: 936155d2210d51a043dada0d4f2a132c
+    md5: 38d441500187d2a6152a25748c6bbbc3
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/special_tokens_map.json
     md5: 8b3fb1023167bb4ab9d70708eb05f6ec
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/tokenizer_config.json
     md5: acaa1589c694bf6f6c146b3bac976f67
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/training_args.bin
-    md5: f5f04cbe54423224362416934ad2384b
+    md5: af1b4c08b50d9377cd9d273653d9c7f9
   - path: data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/vocab.txt
     md5: 64800d5d8528ce344256daf115d4965e
   - path: data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
@@ -775,3 +775,52 @@ tr_quail_dev_no_empty_answers:
   outs:
   - path: data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
     md5: dca0881c731ed7d939a6416956bf7761
+? bert_generic_multibert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2
+: cmd: ./src/processing/run.sh data/specs/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+  deps:
+  - path: data/models/bert-base-uncased
+    md5: f2ad4af37921a985dc27c650ee39d8d8.dir
+  - path: data/quail_no_empty_answers/dev.json
+    md5: 476767952e209e1fbc8721addf0c2dcc
+  - path: data/quail_no_empty_answers/train.json
+    md5: d3a6f28fa96f7431cee0ec4aa4193105
+  - path: src/processing/run.sh
+    md5: a6e6451269520ba9cf5c4ad7752ba5c5
+  params:
+    ? data/specs/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+    : params.do_eval: true
+      params.do_train: true
+      params.fp16: true
+      params.fp16_opt_level: O1
+      params.gradient_accumulation_steps: 8
+      params.learning_rate: 5e-05
+      params.max_seq_length: 484
+      params.meta: multibert-train-no-empty-answers
+      params.model_type: bert
+      params.num_train_epochs: 2
+      params.task_name: generic
+  outs:
+  - path: data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_metrics.json
+    md5: a12e6e8a3807f65326173c0a612ca093
+  - path: data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_metrics.json
+    md5: 84f19efac6ba00be91722aff88e5dd0f
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/config.json
+    md5: 26625e8e71f502488984908b8043b368
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/pytorch_model.bin
+    md5: 0a5e4e411cd33b1a3ef5fcc1929fd3d1
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/special_tokens_map.json
+    md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/tokenizer_config.json
+    md5: bd2095a6f1895712b38f5c742a06e4cb
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/training_args.bin
+    md5: 6f5fbc719baf8b850f74a1d3cb196926
+  - path: data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/vocab.txt
+    md5: d9d865138d17f1958502ed060ecfeeb6
+  - path: data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+    md5: 956e70244d91e5a7c6382c500ee0e970
+  - path: data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_predictions.json
+    md5: be72484eb7346fc8ebdf5ad7c40d4b57
+  - path: data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+    md5: cdb51798bb535cab18258ac521cedba0
+  - path: data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_predictions.json
+    md5: 44aa02ea991241ad3bda4c872231a46f

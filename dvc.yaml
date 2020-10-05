@@ -493,13 +493,13 @@ stages:
     - ./data/dumps/metrics.json
     - ./src/etl/viz/table_from_metrics.py
   tr_quail_train_no_empty_answers:
-    cmd: python src/etl/dataset/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
+    cmd: python src/etl/choices/reformat_dataset.py -d data/quail_race_fmt -o data/quail_no_empty_answers
       -s train --no_answer_text "not enough information"
     deps:
-    - ./data/quail_race_fmt
-    - src/etl/dataset/reformat_dataset.py
+    - data/quail_race_fmt
+    - src/etl/choices/reformat_dataset.py
     outs:
-    - ./data/quail_no_empty_answers/train.json
+    - data/quail_no_empty_answers/train.json
   tr_quail_dev_no_empty_answers:
     cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_no_empty_answers
       -s dev --no_answer_text "not enough information" --keep_matching_text --index_list_path
@@ -573,7 +573,7 @@ stages:
     - data/models/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/vocab.txt
     - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_predictions.json
-    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
     - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_predictions.json
     metrics:
     - data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_metrics.json
