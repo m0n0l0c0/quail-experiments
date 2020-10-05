@@ -26,6 +26,15 @@ def parse_flags():
         '--no_answer_text', type=str, required=True,
         help='Text of an unaswerable question answer'
     )
+    parser.add_argument(
+        '--index_list_path', type=str, required=False,
+        help='Where to save the index list of removed options'
+    )
+    parser.add_argument(
+        '--keep_matching_text', action='store_true',
+        help='Whether to keep the examples with the answer matching the given'
+        ' the given text (default is to remove those examples)'
+    )
     return parser.parse_args()
 
 
@@ -40,28 +49,34 @@ def get_index_matching_text(sample, answer_text):
     return matching_idx
 
 
-def remove_extra_option(examples, answer_text):
+def remove_extra_option(examples, answer_text, fix_label=True):
     ret_examples = []
+    remove_list = {}
     for sample in examples:
         matching_idx = get_index_matching_text(sample, answer_text)
-        ans_index = label_to_id(sample.label)
-        if matching_idx < len(sample.endings):
-            if ans_index == matching_idx:
-                print(sample)
-                raise ValueError(
-                    'Something went really wrong, the answer to delete '
-                    'is the correct one, did you masked the wrong way?'
-                )
+        remove_list[sample.example_id] = matching_idx
+        if not fix_label:
             del sample.endings[matching_idx]
-
-        if ans_index > matching_idx:
-            ans_index -= 1
-            ex = update_example(sample, label=ans_index)
-            ret_examples.append(ex)
-        else:
             ret_examples.append(sample)
+        else:
+            ans_index = label_to_id(sample.label)
+            if matching_idx < len(sample.endings):
+                if ans_index == matching_idx:
+                    print(sample)
+                    raise ValueError(
+                        'Something went really wrong, the answer to delete '
+                        'is the correct one, did you masked the wrong way?'
+                    )
+                del sample.endings[matching_idx]
 
-    return ret_examples
+            if ans_index > matching_idx:
+                ans_index -= 1
+                ex = update_example(sample, label=ans_index)
+                ret_examples.append(ex)
+            else:
+                ret_examples.append(sample)
+
+    return ret_examples, remove_list
 
 
 def dump_examples(dataset, examples, output_dir, split):
@@ -72,20 +87,46 @@ def dump_examples(dataset, examples, output_dir, split):
         fout.write(json_str)
 
 
-def main(data_path, output_dir, split, no_answer_text):
+def dump_index_list(index_list_path, index_list):
+    json_index_list = json.dumps(index_list) + '\n'
+    Path(index_list_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(index_list_path, 'w') as fout:
+        fout.write(json_index_list)
+
+
+def main(
+    data_path,
+    output_dir,
+    split,
+    no_answer_text,
+    keep_matching_text,
+    index_list_path,
+):
     dataset = Dataset(data_path=data_path, task='generic')
     answerable_mask = get_mask_matching_text(no_answer_text, match=False)
     examples = dataset.get_split(split)
-    answerable_examples = dataset.reduce_by_mask(
-        examples, answerable_mask
+    if not keep_matching_text:
+        answerable_examples = dataset.reduce_by_mask(
+            examples, answerable_mask
+        )
+        stats_str = f'({len(answerable_examples)}/{len(examples)}: '
+        stats_str += '{:.2f}%)'.format(
+            (len(answerable_examples)/len(examples)) * 100
+        )
+        print(f'{stats_str} of examples are valid')
+        examples = answerable_examples
+
+    mod_examples, index_list = remove_extra_option(
+        examples, no_answer_text, fix_label=(not keep_matching_text)
     )
-    stats_str = f'({len(answerable_examples)}/{len(examples)}: '
-    stats_str += '{:.2f}%)'.format(
-        (len(answerable_examples)/len(examples)) * 100
-    )
-    print(f'{stats_str} of examples are valid')
-    mod_examples = remove_extra_option(answerable_examples, no_answer_text)
     dump_examples(dataset, mod_examples, output_dir, split)
+    if index_list_path is not None:
+        # convert index list ids to standard ids
+        index_list = {
+            '-'.join(dataset.processor._decode_id(id)): value
+            for id, value in index_list.items()
+        }
+        dump_index_list(index_list_path, index_list)
 
 
 if __name__ == '__main__':
