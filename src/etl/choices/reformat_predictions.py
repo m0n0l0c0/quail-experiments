@@ -37,7 +37,7 @@ def parse_flags():
     parser.add_argument(
         '--keep_matching_text', action='store_true',
         help='Whether to keep the examples with the answer matching the given'
-        ' the given text (default is to remove those examples)'
+        ' text (default is to remove those examples)'
     )
     parser.add_argument(
         '--index_list_path', type=str, default=None, required=False,
