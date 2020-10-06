@@ -52,6 +52,8 @@ def get_index_matching_text(sample, answer_text):
 def remove_extra_option(examples, answer_text, fix_label=True):
     ret_examples = []
     remove_list = {}
+    # -1 for removal, -1 for 0'ed index
+    max_label_id = len(examples[0].endings) - 2
     for sample in examples:
         matching_idx = get_index_matching_text(sample, answer_text)
         remove_list[sample.example_id] = matching_idx
@@ -59,7 +61,7 @@ def remove_extra_option(examples, answer_text, fix_label=True):
             del sample.endings[matching_idx]
             ex = sample
             if sample.label is not None:
-                label = min(label_to_id(sample.label), len(sample.endings))
+                label = min(label_to_id(sample.label), max_label_id)
                 ex = update_example(sample, label=label)
             ret_examples.append(ex)
         else:
