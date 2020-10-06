@@ -57,7 +57,11 @@ def remove_extra_option(examples, answer_text, fix_label=True):
         remove_list[sample.example_id] = matching_idx
         if not fix_label:
             del sample.endings[matching_idx]
-            ret_examples.append(sample)
+            ex = sample
+            if sample.label is not None:
+                label = min(label_to_id(sample.label), len(sample.endings))
+                ex = update_example(sample, label=label)
+            ret_examples.append(ex)
         else:
             ans_index = label_to_id(sample.label)
             if matching_idx < len(sample.endings):

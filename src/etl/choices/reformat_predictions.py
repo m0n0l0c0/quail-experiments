@@ -101,6 +101,7 @@ def augment_probs(
             'Cannot fix labels when working with index lists '
             '(pass keep_matching_text=False) to correct this'
         )
+    assert(len(gold_answers) == len(answers))
     for gold, ans in zip(gold_answers, answers):
         if by_index_list:
             matching_idx = label_to_id(gold)
