@@ -690,9 +690,9 @@ tr_quail_dev_no_empty_answers:
     ./data/quail_no_empty_answers/dev_index_list.json
   deps:
   - path: data/quail_race_fmt
-    md5: 60fe33e3251599a8703d640746cfc26c.dir
+    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
   - path: src/etl/choices/reformat_dataset.py
-    md5: fe8433c85ca225efe38fd6d56b7104ef
+    md5: 1f884d659c7476bbaf5964a88bc19ce3
   outs:
   - path: ./data/quail_no_empty_answers/dev_index_list.json
     md5: df9910f3a043308666bffbeb9fcebe5e
