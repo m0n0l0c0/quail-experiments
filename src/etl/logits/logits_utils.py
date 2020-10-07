@@ -28,13 +28,17 @@ def normalize(answers, max_prob, field=None, exp=True):
     if field is None:
         field = 'probs'
     if max_prob is None:
-        max_prob = max([max(a.__getattribute__(field)) for a in out_answers])
+        max_prob = max([max(get_field(a, field)) for a in out_answers])
     if exp:
         max_prob = np.exp(max_prob)
     for ans in out_answers:
-        probs = np.array(ans.__getattribute__(field))
+        probs = np.array(get_field(ans, field))
         if exp:
-            probs = np.exp(ans.__getattribute__(field))
+            probs = np.exp(get_field(ans, field))
         norm = probs/max_prob
         ans.__setattr__(field, norm.tolist())
     return out_answers
+
+
+def get_field(answer, field):
+    return answer.__getattribute__(field)

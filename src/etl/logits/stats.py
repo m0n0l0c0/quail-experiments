@@ -2,7 +2,7 @@
 import argparse
 import numpy as np
 
-from logits_utils import normalize
+from logits_utils import normalize, get_field
 from mcqa_utils import (
     Dataset,
     QASystemForMCOffline,
@@ -22,6 +22,20 @@ def parse_flags():
         '-p', '--preds_path', required=True, type=str,
         help='Path to n_best_predictions file'
     )
+    parser.add_argument(
+        '-s', '--split', default='dev', choices=['train', 'dev', 'test'],
+        required=False, help='Split to evaluate from the dataset'
+    )
+    parser.add_argument(
+        '--no_answer_text', type=str, required=True,
+        help='Text of an unaswerable question answer'
+    )
+    parser.add_argument(
+        '-pf', '--probs_field', type=str, required=False, default='logits',
+        help='Field to use as `probs` field in prediction answers '
+        '(default logits, but can be anything parsed in the answer)'
+    )
+
     return parser.parse_args()
 
 
@@ -37,14 +51,14 @@ def get_correct_answers(gold_answers, answers):
     return correct, incorrect
 
 
-def stats_over_set(gold_answers, answers, chooser=None):
+def stats_over_set(gold_answers, answers, chooser=None, field='logits'):
     if chooser is None:
         chooser = max_chooser
 
-    probs = [chooser(a.logits) for a in answers]
+    probs = [chooser(get_field(a, field)) for a in answers]
     correct, incorrect = get_correct_answers(gold_answers, answers)
-    corr_probs = [chooser(a.logits) for a in correct]
-    incorr_probs = [chooser(a.logits) for a in incorrect]
+    corr_probs = [chooser(get_field(a, field)) for a in correct]
+    incorr_probs = [chooser(get_field(a, field)) for a in incorrect]
     return [[
         np.mean(probs),
         np.mean(corr_probs),
@@ -66,16 +80,22 @@ def print_stats(means, stds, prefixes):
         print('{:25}'.format(prefixes[row]) + f'\t{str_stats}')
 
 
-def do_stats(all_golds, all_sets, prefixes, max_value, chooser):
+def do_stats(
+    all_golds, all_sets, prefixes, max_value, chooser, field='logits'
+):
     for gold_set, ans_set, ans_prefix in zip(all_golds, all_sets, prefixes):
         stat_means = []
         stat_stds = []
-        means, stds = stats_over_set(gold_set, ans_set, chooser=chooser)
+        means, stds = stats_over_set(
+            gold_set, ans_set, chooser=chooser, field=field
+        )
         stat_means.append(means)
         stat_stds.append(stds)
 
-        norm_ans = normalize(ans_set, max_value, field='logits', exp=True)
-        means, stds = stats_over_set(gold_set, norm_ans, chooser=chooser)
+        norm_ans = normalize(ans_set, max_value, field=field, exp=True)
+        means, stds = stats_over_set(
+            gold_set, norm_ans, chooser=chooser, field=field
+        )
         stat_means.append(means)
         stat_stds.append(stds)
 
@@ -105,11 +125,9 @@ def max_chooser(array):
     return max(array)
 
 
-def main(data_path, preds_path):
-    split = 'dev'
+def main(data_path, preds_path, split, no_answer_text, probs_field):
     dataset = Dataset(data_path=data_path, task='generic')
     qa_system = QASystemForMCOffline(answers_path=preds_path)
-    no_answer_text = 'not enough information'
     gold_answers = dataset.get_gold_answers(split, with_text_values=True)
     answers, missing = qa_system.get_answers(
         gold_answers,
@@ -128,13 +146,22 @@ def main(data_path, preds_path):
 
     all_golds = [gold_answers, gold_answerable, gold_unanswerable]
     all_sets = [answers, answers_answerable, answers_unanswerable]
-    max_value = max([max(a.logits) for a in answers])
+    max_value = max([max(get_field(a, probs_field)) for a in answers])
     prefixes = ('global',) + prefix
-    do_stats(all_golds, all_sets, prefixes, max_value, chooser=max_chooser)
+    # print header
+    header = "avg\tstd\tnrm.avg\tnrm.std"
+    print('{:25}'.format("") + f'\t{header}')
+    do_stats(
+        all_golds, all_sets, prefixes, max_value,
+        chooser=max_chooser, field=probs_field
+    )
     prefixes = [f'Second-{pref}' for pref in prefixes]
-    do_stats(all_golds, all_sets, prefixes, max_value, chooser=second_chooser)
+    do_stats(
+        all_golds, all_sets, prefixes, max_value,
+        chooser=second_chooser, field=probs_field
+    )
 
 
 if __name__ == '__main__':
     args = parse_flags()
-    main(args.data_path, args.preds_path)
+    main(**vars(args))
