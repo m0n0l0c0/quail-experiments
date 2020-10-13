@@ -599,3 +599,59 @@ stages:
     - src/etl/choices/reformat_predictions.py
     outs:
     - data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+  ? bert_generic_bert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
+  : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+      --no_answer_text "not enough information" -t 0.48954540491104126 -m C_at_1 avg
+      --task generic --output data/metrics/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
+    deps:
+    - data/quail_race_fmt
+    - data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+    metrics:
+    - data/metrics/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
+  ? bert_generic_multibert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_fix_train_probs
+  : cmd: python src/etl/choices/reformat_predictions.py -d data/quail_race_fmt -p
+      data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+      -s train --overwrite --no_answer_text "not enough information" -o data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions_augmented.json
+    deps:
+    - data/quail_race_fmt
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+    - src/etl/choices/reformat_predictions.py
+    outs:
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions_augmented.json
+  ? bert_generic_multibert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_fix_eval_probs
+  : cmd: python src/etl/choices/reformat_predictions.py -p data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+      --index_list data/quail_no_empty_answers/dev_index_list.json --keep_matching_text
+      --no_answer_text "not enough information" -o data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+    deps:
+    - data/quail_no_empty_answers/dev_index_list.json
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+    - src/etl/choices/reformat_predictions.py
+    outs:
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+  ? bert_generic_multibert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
+  : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+      --no_answer_text "not enough information" -t 0.4965478479862213 -m C_at_1 avg
+      --task generic --output data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
+    deps:
+    - data/quail_race_fmt
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions_augmented.json
+    metrics:
+    - data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
+  ? bert_generic_bert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_train_evaluation
+  : cmd: mcqa_utils -d data/quail_no_empty_answers -n data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+      --no_answer_text "not enough information" -ft -m C_at_1 avg --task generic -s
+      train --output data/metrics/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_evaluation.json
+    deps:
+    - data/quail_no_empty_answers
+    - data/results/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+    metrics:
+    - data/metrics/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_evaluation.json
+  ? bert_generic_multibert-train-no-empty-answers_do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_train_evaluation
+  : cmd: mcqa_utils -d data/quail_no_empty_answers -n data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+      --no_answer_text "not enough information" -ft -m C_at_1 avg --task generic -s
+      train --output data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_evaluation.json
+    deps:
+    - data/quail_no_empty_answers
+    - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
+    metrics:
+    - data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_evaluation.json

@@ -5,3 +5,4 @@
 /train_nbest_predictions.json
 /train_nbest_predictions_augmented.json
 /eval_nbest_predictions_augmented.json
+/evaluation.json
