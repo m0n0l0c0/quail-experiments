@@ -18,6 +18,9 @@ def parse_args():
         '-x', '--exclude', help='Fields to exclude', nargs='*',
         required=False, type=str, default=None
     )
+    parser.add_argument(
+        '-j', '--json', help='Print as json', action='store_true',
+    )
     return parser.parse_args()
 
 
@@ -39,8 +42,11 @@ def main(args):
     if args.exclude is not None:
         for exclude in args.exclude:
             del json_args[exclude]
-    array_args = json_args_to_array_args(json_args)
-    print(' '.join(array_args))
+    if args.json:
+        print(json.dumps(json_args))
+    else:
+        array_args = json_args_to_array_args(json_args)
+        print(' '.join(array_args))
 
 
 if __name__ == "__main__":
