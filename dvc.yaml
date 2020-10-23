@@ -655,3 +655,44 @@ stages:
     - data/results/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_nbest_predictions.json
     metrics:
     - data/metrics/bert/generic/multibert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/train_evaluation.json
+  ? bert_generic_bert-eval-no-empty-answers_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2
+  : cmd: ./src/processing/run.sh data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+    deps:
+    - data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2
+    - data/quail_race_fmt/dev.json
+    - src/processing/run.sh
+    params:
+    - ? data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+      : - params.do_eval
+        - params.fp16
+        - params.fp16_opt_level
+        - params.gradient_accumulation_steps
+        - params.learning_rate
+        - params.max_seq_length
+        - params.meta
+        - params.model_type
+        - params.num_train_epochs
+        - params.task_name
+    outs:
+    - data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+    - data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_predictions.json
+    metrics:
+    - data/metrics/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_metrics.json
+  ? bert_generic_bert-eval-no-empty-answers_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_thrs_evaluation
+  : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+      --no_answer_text "not enough information" -m C_at_1 avg -t 0.48954540491104126
+      --task generic --output data/metrics/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/thrs_evaluation.json
+    deps:
+    - data/quail_race_fmt
+    - data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/thrs_evaluation.json
+  ? bert_generic_bert-eval-no-empty-answers_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_evaluation
+  : cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+      --no_answer_text "not enough information" -ft -m C_at_1 avg -t 0.48954540491104126
+      --task generic --output data/metrics/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
+    deps:
+    - data/quail_race_fmt
+    - data/results/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/evaluation.json
