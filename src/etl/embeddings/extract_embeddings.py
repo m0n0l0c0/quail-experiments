@@ -50,6 +50,10 @@ def parse_flags():
         "--single_items", action="store_true",
         help="Whether to store the embeddings and logits as separate files"
     )
+    parser.add_argument(
+        "-p", "--pool", action="store_true",
+        help="Whether to apply max pooling to the last layer of embeddings"
+    )
     return parser.parse_args()
 
 
@@ -116,7 +120,8 @@ def save_data(output_dir, prefix, single_items, **kwargs):
         pickle.dump(kwargs, fout)
 
 
-def embed_dataset(model, dataloader, device):
+def embed_dataset(model, dataloader, device, pool):
+    # ToDo := Partial dump of embeddings to avoid filling RAM
     embeddings = None
     logits = None
     labels = None
@@ -129,9 +134,11 @@ def embed_dataset(model, dataloader, device):
         with torch.no_grad():
             output = model(**inputs)
             last_hidden_state = output.hidden_states[-1]
-            pooled_output = last_hidden_state
-            # pooled_output = max_pooling(last_hidden_state)
-
+            pooled_output = (
+                max_pooling(last_hidden_state)
+                if pool
+                else last_hidden_state
+            )
             numpyfied_logits = output.logits.cpu().numpy()
             numpyfied_output = pooled_output.cpu().numpy()
             numpyfied_labels = None
@@ -153,11 +160,13 @@ def embed_dataset(model, dataloader, device):
     return embeddings, logits, labels
 
 
-def main(split, args_file, gpu, output_dir, single_items):
+def main(split, args_file, gpu, output_dir, single_items, pool):
     all_args, model, trainer, eval_dataset = mc_setup(args_file, split)
     eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
     device = torch.device("cuda", index=gpu)
-    embeddings, logits, labels = embed_dataset(model, eval_dataloader, device)
+    embeddings, logits, labels = embed_dataset(
+        model, eval_dataloader, device, pool
+    )
 
     # labels should not be null
     num_samples = logits.shape[0]
