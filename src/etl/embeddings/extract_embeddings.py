@@ -1,4 +1,5 @@
 import os
+import glob
 import torch
 import pickle
 import argparse
@@ -106,23 +107,40 @@ def get_model_results(logits, labels):
     return (preds == labels)
 
 
-def save_data(output_dir, prefix, single_items, **kwargs):
+def gather_embeddings(embedding_path, embedding_cursor):
+    embeddings = None
+    embedding_files = glob.glob(f"{embedding_path}/*_data.pkl")
+    embedding_files.sort()
+    assert(len(embedding_files) == embedding_cursor)
+    for emb_file in embedding_files:
+        with open(emb_file, "rb") as fin:
+            new_embeddings = pickle.load(fin)["embeddings"]
+            if embeddings is None:
+                embeddings = np.array(new_embeddings)
+            else:
+                embeddings = np.vstack([embeddings, new_embeddings])
+
+    return embeddings
+
+
+def save_data(output_dir, prefix, single_items=False, **kwargs):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     if single_items:
         for key, value in kwargs.items():
-            fpath = os.path.join(output_dir, f"{prefix}_{key}.pt")
+            fpath = os.path.join(output_dir, f"{prefix}_{key}.pkl")
             with open(fpath, "wb") as fout:
                 pickle.dump(value, fout)
 
-    fpath = os.path.join(output_dir, f"{prefix}_data.pt")
+    fpath = os.path.join(output_dir, f"{prefix}_data.pkl")
     with open(fpath, "wb") as fout:
         pickle.dump(kwargs, fout)
 
 
 def embed_dataset(model, dataloader, device, pool):
-    # ToDo := Partial dump of embeddings to avoid filling RAM
     embeddings = None
+    embedding_cursor = 0
+    embedding_path = '/tmp/embeddings'
     logits = None
     labels = None
 
@@ -151,11 +169,27 @@ def embed_dataset(model, dataloader, device, pool):
                 logits = np.array(numpyfied_logits)
                 if numpyfied_labels is not None:
                     labels = np.array(numpyfied_labels)
+                if not pool:
+                    embedding_cursor_str = str(embedding_cursor)
+                    # Up to 9999 embedding files
+                    prepend = "0" * (4 - len(embedding_cursor_str))
+                    embedding_cursor_str = f"{prepend}{embedding_cursor_str}"
+
+                    save_data(
+                        embedding_path,
+                        embedding_cursor_str,
+                        embeddings=embeddings
+                    )
+                    embeddings = None
+                    embedding_cursor += 1
             else:
                 embeddings = np.vstack([embeddings, numpyfied_output])
                 logits = np.vstack([logits, numpyfied_logits])
                 if numpyfied_labels is not None:
                     labels = np.hstack([labels, numpyfied_labels])
+
+    if pool and embeddings is None:
+        embeddings = gather_embeddings(embedding_path, embedding_cursor)
 
     return embeddings, logits, labels
 
