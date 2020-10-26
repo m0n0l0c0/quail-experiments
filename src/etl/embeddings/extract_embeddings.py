@@ -112,7 +112,7 @@ def save_data(output_dir, prefix, single_items, **kwargs):
                 pickle.dump(value, fout)
 
     fpath = os.path.join(output_dir, f"{prefix}_data.pt")
-    with open(fpath, "wb"):
+    with open(fpath, "wb") as fout:
         pickle.dump(kwargs, fout)
 
 
