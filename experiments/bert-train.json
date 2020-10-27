@@ -8,6 +8,7 @@
     "${CODE_DIR}/processing/run.sh"
   ],
   "metrics": [
+    "train_metrics.json",
     "eval_metrics.json"
   ],
   "outputs": [
@@ -19,6 +20,8 @@
     "${MODELS_DIR}/${EXPERIMENT_DIR}/vocab.txt"
   ],
   "results": [
+    "train_predictions.json",
+    "train_nbest_predictions.json",
     "eval_predictions.json",
     "eval_nbest_predictions.json"
   ],
