@@ -3,3 +3,4 @@
 /logits_evaluation.json
 /train_metrics.json
 /train_evaluation.json
+/thrs_evaluation.json
