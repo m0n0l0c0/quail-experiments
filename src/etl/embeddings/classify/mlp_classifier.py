@@ -48,22 +48,37 @@ class MLP(nn.Module):
 class MLPClassifier():
     def __init__(
         self,
-        input_size,
+        input_size=None,
         mlp_hidden_size: Discrete(64, 256) = 256,
         mlp_dropout: Continuous(0.0, 0.3) = 0.3,
         lr: Continuous(0.0001, 0.01) = 0.01,
         device=torch.device("cuda", index=1),
     ):
+        self.mlp_hidden_size = mlp_hidden_size
+        self.mlp_dropout = mlp_dropout
+        self.lr = lr
+        self.device = device
+
+        if input_size is None:
+            self.is_initiliazed = False
+        else:
+            self._initialize(input_size)
+
+    def _initialize(self, input_size):
+        self.input_size = input_size
         self.model = MLP(
-            input_size, hidden_size=mlp_hidden_size, dropout=mlp_dropout
+            self.input_size,
+            hidden_size=self.mlp_hidden_size,
+            dropout=self.mlp_dropout
         )
-        self.model.to(device)
+        self.model.to(self.device)
         self.criterion = nn.BCEWithLogitsLoss()
         self.optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=lr, weight_decay=1e-5
+            self.model.parameters(),
+            lr=self.lr,
+            weight_decay=1e-5
         )
-        self.input_size = input_size
-        self.device = device
+        self.is_initiliazed = True
 
     def _setup_input(self, in_data):
         if not torch.is_tensor(in_data):

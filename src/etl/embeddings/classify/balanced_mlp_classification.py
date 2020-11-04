@@ -81,6 +81,10 @@ def train_classifier(
     batch_size,
     print_result=True,
 ):
+    if not classifier.is_initiliazed:
+        hidden_size = get_hidden_size(train_dict, feature_set)
+        classifier._initialize(hidden_size)
+
     for epoch in range(1, train_epochs + 1):
         classifier.model.train()
         epoch_loss = 0
