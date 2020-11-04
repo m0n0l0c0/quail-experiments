@@ -2,6 +2,7 @@ import pickle
 import argparse
 import numpy as np
 
+from pathlib import Path
 from collections import Counter
 
 from sklearn.metrics import classification_report
@@ -217,6 +218,7 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
         )
         best_pipe, score = pipeline.run(args.epochs, logger=loggers)
         print(f"Pipe {best_pipe}")
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         classifier_fname = f"{args.output_dir}/classifier_{i}.pkl"
         with open(classifier_fname, "wb") as fout:
             pickle.dump(best_pipe, fout)
@@ -244,6 +246,7 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         )
         train_classifier(classifier, **train_data)
         eval_classifier(classifier, **test_data)
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         classifier_fname = f"{args.output_dir}/classifier_feature_{i}.pkl"
         with open(classifier_fname, "wb") as fout:
             pickle.dump(classifier, fout)

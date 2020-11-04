@@ -1,8 +1,14 @@
 import argparse
 
 from sklearn.decomposition import PCA
+
+import sys, os
+base_path = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(base_path)
+sys.path.append(os.path.join(base_path, "classify"))
+
 from extract_embeddings import save_data
-from classify.classification import (
+from classification import (
     get_dataset,
     get_splits,
     get_x_y_from_dict,
@@ -51,7 +57,7 @@ def main(data_path, n_components, normalize, output_dir):
     dataset["embeddings"] = X_pca
 
     save_data(
-        data_path,
+        output_dir,
         out_data_name,
         embeddings=X_pca,
         **untouched_features,
