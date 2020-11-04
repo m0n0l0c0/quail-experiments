@@ -21,6 +21,8 @@ from classification import (
     normalize_dataset,
 )
 
+default_feats = [["embeddings"], ["embeddings", "logits"]]
+
 
 def parse_flags():
     parser = argparse.ArgumentParser()
@@ -46,7 +48,8 @@ def parse_flags():
     )
     parser.add_argument(
         "-f", "--features", required=False, type=str, nargs="*", default=None,
-        help="Features used to train the classifier"
+        help=f"Features used to train the classifier (default: "
+        f"{default_feats})"
     )
     parser.add_argument(
         "-a", "--autogoal", action="store_true",
@@ -273,10 +276,7 @@ def main(args):
     print(f"Loading data from {args.data_path}")
 
     dataset = get_dataset(args.data_path)
-    features = [args.features] if args.features is not None else [
-        ["embeddings"],
-        ["embeddings", "logits"]
-    ]
+    features = [args.features] if args.features is not None else default_feats
 
     dataset = normalize_dataset(dataset, features[-1])
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)

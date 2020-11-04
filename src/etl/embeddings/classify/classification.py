@@ -83,26 +83,20 @@ def get_dataset(data_path):
 
 
 def get_splits(dataset, test_size=0.25):
-    X_train_embs, X_test_embs, y_train, y_test = train_test_split(
-        dataset["embeddings"], dataset["labels"], test_size=test_size
-    )
-
-    X_train_logs, X_test_logs, _, _ = train_test_split(
-        dataset["logits"], dataset["labels"], test_size=test_size
-    )
-
-    return (
-        dict(
-            embeddings=X_train_embs,
-            logits=X_train_logs,
-            labels=y_train
-        ),
-        dict(
-            embeddings=X_test_embs,
-            logits=X_test_logs,
-            labels=y_test
+    data_keys = [key for key in dataset.keys() if key not in ["labels"]]
+    train_dict, test_dict = {}, {}
+    for key in data_keys:
+        X_train, X_test, y_train, y_test = train_test_split(
+            dataset[key], dataset["labels"], test_size=test_size
         )
-    )
+        train_dict.update(**{key: X_train})
+        test_dict.update(**{key: X_test})
+
+        if "lebels" not in train_dict:
+            train_dict.update(labels=y_train)
+            test_dict.update(labels=y_test)
+
+    return (train_dict, test_dict)
 
 
 def get_x_y_from_dict(set_dict, **kwargs):

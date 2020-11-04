@@ -13,12 +13,15 @@ from transformers import is_tf_available
 from mcqa_utils import Dataset
 from mcqa_utils.utils import id_to_label
 from mc_transformers.mc_transformers import softmax
-from src.etl.embeddings.classify.pipeline import load_pipeline
-from src.etl.embeddings.classify.classification import get_x_y_from_dict
-from src.etl.embeddings.extract_embeddings import embed_dataset, mc_setup
 
-base_dir = os.path.dirname(os.path.dirname(__file__))
-sys.path.append(base_dir)
+base_path = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(base_path)
+sys.path.append(os.path.join(base_path, "classify"))
+sys.path.append(os.path.join(base_path, "extract"))
+
+from pipeline import load_pipeline  # noqa: E402
+from classification import get_x_y_from_dict  # noqa: E402
+from extract_embeddings import embed_dataset, mc_setup  # noqa: E402
 from choices.reformat_predictions import get_index_matching_text  # noqa: E402
 
 if is_tf_available():

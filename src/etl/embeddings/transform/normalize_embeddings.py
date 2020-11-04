@@ -1,20 +1,20 @@
+import os
+import sys
 import argparse
 
 from sklearn.decomposition import PCA
 
-import sys, os
 base_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, "classify"))
+sys.path.append(os.path.join(base_path, "extract"))
 
-from extract_embeddings import save_data
+from extract_embeddings import save_data  # noqa: E402
 from classification import (
     get_dataset,
-    get_splits,
     get_x_y_from_dict,
-    get_loggers,
     normalize_dataset
-)
+)  # noqa: E402
 
 
 def parse_flags():
@@ -47,11 +47,11 @@ def main(data_path, n_components, normalize, output_dir):
         for key in dataset.keys()
         if key not in feature_set
     }
-    
+
     if normalize:
         dataset = normalize_dataset(dataset, feature_set)
 
-    X, y = get_x_y_from_dict(dataset, features=feature_set)
+    X, y = get_x_y_from_dict(dataset, features=feature_set, dont_reshape=True)
     pca = PCA(n_components=n_components)
     X_pca = pca.fit_transform(X)
     dataset["embeddings"] = X_pca
