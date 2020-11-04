@@ -4,6 +4,7 @@ import numpy as np
 
 from pathlib import Path
 from collections import Counter
+from itertools import combinations
 
 from sklearn.metrics import classification_report
 
@@ -21,7 +22,7 @@ from classification import (
     normalize_dataset,
 )
 
-default_feats = [["embeddings"], ["embeddings", "logits"]]
+default_feats = [["embeddings", "logits", "contexts", "question", "endings"]]
 # separate normalization
 norm_feats = [["embeddings", "logits"], ["contexts", "question", "endings"]]
 
@@ -54,6 +55,10 @@ def parse_flags():
         f"{default_feats})"
     )
     parser.add_argument(
+        "-sf",  "--sweep_features", action="store_true",
+        help="Try all possible combinations of features"
+    )
+    parser.add_argument(
         "-a", "--autogoal", action="store_true",
         help="Whether to perform hyper search with autogoal (dafault False)"
     )
@@ -78,6 +83,47 @@ def get_dataset_rounds(train_dict):
 def get_hidden_size(train_dict, features=None):
     X_train, _ = get_x_y_from_dict(train_dict, features=features)
     return X_train.reshape(X_train.shape[0], -1).shape[-1]
+
+
+def get_flat_list(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
+
+
+def get_unique_features(features):
+    return list(Counter(get_flat_list(features)).keys())
+
+
+def normalize_dataset_by_features(dataset, features):
+    all_features = get_unique_features(features)
+    for norm_group in norm_feats:
+        to_norm = [feat for feat in norm_group if feat in all_features]
+        print(f"Normalizing feature_set: {to_norm}")
+        dataset = normalize_dataset(dataset, to_norm)
+
+    return dataset, features
+
+
+def get_normalized_dataset(data_path, features):
+    return normalize_dataset_by_features(get_dataset(data_path), features)
+
+
+def sweep_features(features):
+    feature_combinations = []
+    flat_features = get_flat_list(features)
+    for i in range(1, len(flat_features) + 1):
+        for combination in combinations(flat_features, i):
+            feature_combinations.append(list(combination))
+
+    return feature_combinations
+
+
+def save_classifier(classifier, output_dir, feature_set):
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    features_str = "_".join(feature_set)
+    classifier_fname = f"{output_dir}/classifier_{features_str}.pkl"
+    with open(classifier_fname, "wb") as fout:
+        pickle.dump(classifier, fout)
+    print(f"Saved model to: {classifier_fname}")
 
 
 def train_classifier(
@@ -228,7 +274,7 @@ def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
 
 def autogoal_train(args, train_dict, test_dict, features, score_fn):
     loggers = get_loggers(args.output_dir)
-    for i, feature_set in enumerate(features):
+    for feature_set in features:
         pipeline = setup_pipeline(
             args,
             train_dict,
@@ -238,26 +284,11 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
         )
         best_pipe, score = pipeline.run(args.iterations, logger=loggers)
         print(f"Pipe {best_pipe}")
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-        classifier_fname = f"{args.output_dir}/classifier_{i}.pkl"
-        with open(classifier_fname, "wb") as fout:
-            pickle.dump(best_pipe, fout)
-
-
-def get_normalized_dataset(data_path, features):
-    dataset = get_dataset(data_path)
-    features = [features] if features is not None else default_feats
-    all_features = [feat for feat_subset in features for feat in feat_subset]
-    for norm_group in norm_feats:
-        to_norm = [feat for feat in norm_group if feat in all_features]
-        print(f"Normalizing feature_set: {to_norm}")
-        dataset = normalize_dataset(dataset, to_norm)
-
-    return dataset, features
+        save_classifier(best_pipe, args.output_dir, feature_set)
 
 
 def std_train(args, train_dict, test_dict, features, score_fn):
-    for i, feature_set in enumerate(features):
+    for feature_set in features:
         print(f"Training with features: {feature_set}")
         dataset_rounds = get_dataset_rounds(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
@@ -279,19 +310,17 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         )
         train_classifier(classifier, **train_data)
         eval_classifier(classifier, **test_data)
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-        classifier_fname = f"{args.output_dir}/classifier_feature_{i}.pkl"
-        with open(classifier_fname, "wb") as fout:
-            pickle.dump(classifier, fout)
-
+        save_classifier(classifier, args.output_dir, feature_set)
         # ToDo := Save parameters
-        print(f"Saved model to: {classifier_fname}")
 
 
 def main(args):
     print(f"Loading data from {args.data_path}")
+    features = [args.features] if args.features is not None else default_feats
+    if args.sweep_features:
+        features = sweep_features(features)
 
-    dataset, features = get_normalized_dataset(args.data_path, args.features)
+    dataset, features = get_normalized_dataset(args.data_path, features)
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     train_fn = autogoal_train if args.autogoal else std_train

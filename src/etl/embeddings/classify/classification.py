@@ -4,7 +4,6 @@ import argparse
 import numpy as np
 
 from pathlib import Path
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 from pipeline import get_pipeline, save_pipeline
