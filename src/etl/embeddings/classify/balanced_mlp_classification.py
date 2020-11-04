@@ -33,6 +33,10 @@ def parse_flags():
         help="The batch size for train/predict"
     )
     parser.add_argument(
+        "--lr", required=False, type=float, default=0.01,
+        help="Learning rate for optimization algorithm"
+    )
+    parser.add_argument(
         "--epochs", required=False, type=int, default=50,
         help="Training epochs for MLP classifier"
     )
@@ -229,7 +233,7 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         print(f"Training with features: {feature_set}")
         dataset_rounds = get_dataset_rounds(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
-        classifier = MLPClassifier(input_size=hidden_size)
+        classifier = MLPClassifier(input_size=hidden_size, lr=args.lr)
         train_data = dict(
             train_epochs=args.epochs,
             dataset_rounds=dataset_rounds,
