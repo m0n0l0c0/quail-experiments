@@ -62,7 +62,7 @@ def main(data_dir, task, split, features, output_dir):
     examples = get_examples(processor, split, data_dir)
     save_dict = dict()
     save_name = "train_text_lengths"
-    save_fields = features if features is None else default_feats
+    save_fields = features if features is not None else default_feats
 
     for field in save_fields:
         field_lens = get_examples_len(examples, field=field)
