@@ -100,8 +100,8 @@ def get_splits(dataset, test_size=0.25):
 
 
 def get_x_y_from_dict(set_dict, **kwargs):
-    y_set = set_dict["labels"]
     X_set = None
+    y_set = set_dict["labels"]
     if kwargs.get("features", None) is None:
         kwargs["features"] = ["embeddings"]
 
@@ -112,10 +112,17 @@ def get_x_y_from_dict(set_dict, **kwargs):
             if len(feat_shape) > 2:
                 if not kwargs.get("dont_reshape", False):
                     feat_values = feat_values.reshape(feat_shape[0], -1)
+            elif len(feat_shape) == 1:
+                if not kwargs.get("dont_reshape", False):
+                    feat_values = feat_values.reshape(feat_shape[0], 1)
             if X_set is None:
                 X_set = feat_values
             else:
                 X_set = np.concatenate([X_set, feat_values], axis=1)
+
+    if "cast" in kwargs:
+        X_set = X_set.astype(kwargs["cast"])
+        y_set = y_set.astype(kwargs["cast"])
 
     return X_set, y_set
 
@@ -149,28 +156,6 @@ def get_automl(args):
     )
 
 
-def scale_dataset(dataset, features, copy=True):
-    scaler = StandardScaler()
-    out_dataset = {}
-    for feat in features:
-        orig_shape = list(dataset[feat].shape)
-        scaled_feature = scaler.fit_transform(
-            dataset[feat].reshape(orig_shape[0], -1)
-        )
-        scaled_feature = scaled_feature.reshape(orig_shape)
-        if copy:
-            out_dataset[feat] = scaled_feature
-        else:
-            dataset[feat] = scaled_feature
-
-    if copy:
-        rest_feats = [feat for feat in dataset.keys() if feat not in features]
-        for feat in rest_feats:
-            out_dataset[feat] = dataset[feat]
-
-    return out_dataset if copy else dataset
-
-
 def normalize_dataset(dataset, features):
     all_data = None
     shapes = []
@@ -179,6 +164,8 @@ def normalize_dataset(dataset, features):
         feat_shape = feat_values.shape
         if len(feat_shape) > 2:
             feat_values = feat_values.reshape(feat_shape[0], -1)
+        elif len(feat_shape) == 1:
+            feat_values = feat_values.reshape(feat_shape[0], 1)
 
         shapes.append((feat_shape, feat_values.shape))
 

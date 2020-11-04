@@ -22,6 +22,8 @@ from classification import (
 )
 
 default_feats = [["embeddings"], ["embeddings", "logits"]]
+# separate normalization
+norm_feats = [["embeddings", "logits"], ["contexts", "question", "endings"]]
 
 
 def parse_flags():
@@ -144,7 +146,9 @@ def eval_classifier(
 ):
     y_preds_list = None
     classifier.model.eval()
-    X_test, y_test = get_x_y_from_dict(test_dict, features=feature_set)
+    X_test, y_test = get_x_y_from_dict(
+        test_dict, features=feature_set, cast=np.float32
+    )
     embed_dataset = EmbeddingsDataset(X_test)
     test_loader = DataLoader(
         dataset=embed_dataset,
@@ -240,6 +244,18 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
             pickle.dump(best_pipe, fout)
 
 
+def get_normalized_dataset(data_path, features):
+    dataset = get_dataset(data_path)
+    features = [features] if features is not None else default_feats
+    all_features = [feat for feat_subset in features for feat in feat_subset]
+    for norm_group in norm_feats:
+        to_norm = [feat for feat in norm_group if feat in all_features]
+        print(f"Normalizing feature_set: {to_norm}")
+        dataset = normalize_dataset(dataset, to_norm)
+
+    return dataset, features
+
+
 def std_train(args, train_dict, test_dict, features, score_fn):
     for i, feature_set in enumerate(features):
         print(f"Training with features: {feature_set}")
@@ -275,10 +291,7 @@ def std_train(args, train_dict, test_dict, features, score_fn):
 def main(args):
     print(f"Loading data from {args.data_path}")
 
-    dataset = get_dataset(args.data_path)
-    features = [args.features] if args.features is not None else default_feats
-
-    dataset = normalize_dataset(dataset, features[-1])
+    dataset, features = get_normalized_dataset(args.data_path, args.features)
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     train_fn = autogoal_train if args.autogoal else std_train
