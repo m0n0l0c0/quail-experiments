@@ -45,6 +45,10 @@ def parse_flags():
         help="The percentage of examples to use for test"
     )
     parser.add_argument(
+        "-f", "--features", required=False, type=str, nargs="*", default=None,
+        help="Features used to train the classifier"
+    )
+    parser.add_argument(
         "-a", "--autogoal", action="store_true",
         help="Whether to perform hyper search with autogoal (dafault False)"
     )
@@ -263,10 +267,13 @@ def main(args):
     print(f"Loading data from {args.data_path}")
 
     dataset = get_dataset(args.data_path)
-    features = [
+    features = args.features if args.features is not None else [
         ["embeddings"],
         ["embeddings", "logits"]
     ]
+
+    if not isinstance(features, list):
+        features = [features]
 
     dataset = normalize_dataset(dataset, features[-1])
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
