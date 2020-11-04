@@ -267,13 +267,10 @@ def main(args):
     print(f"Loading data from {args.data_path}")
 
     dataset = get_dataset(args.data_path)
-    features = args.features if args.features is not None else [
+    features = [args.features] if args.features is not None else [
         ["embeddings"],
         ["embeddings", "logits"]
     ]
-
-    if not isinstance(features, list):
-        features = [features]
 
     dataset = normalize_dataset(dataset, features[-1])
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
