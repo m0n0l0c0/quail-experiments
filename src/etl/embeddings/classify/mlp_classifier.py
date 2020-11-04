@@ -50,7 +50,7 @@ class MLPClassifier():
         self,
         input_size,
         mlp_hidden_size: Discrete(64, 256) = 256,
-        mlp_dropout: Continuous(0.0, 0.3) = 0.1,
+        mlp_dropout: Continuous(0.0, 0.3) = 0.3,
         lr: Continuous(0.0001, 0.01) = 0.01,
         device=torch.device("cuda", index=1),
     ):
