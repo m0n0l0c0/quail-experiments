@@ -53,6 +53,10 @@ def parse_flags():
         help="Whether to perform hyper search with autogoal (dafault False)"
     )
     parser.add_argument(
+        "-i", "--iterations", required=False, type=int, default=100,
+        help="Iterations to run for autogoal training"
+    )
+    parser.add_argument(
         "-o", "--output_dir", required=True, type=str,
         help="Output directory to store the models"
     )
@@ -81,7 +85,7 @@ def train_classifier(
     batch_size,
     print_result=True,
 ):
-    if not classifier.is_initiliazed:
+    if not classifier.is_initialized:
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier._initialize(hidden_size)
 
@@ -163,48 +167,45 @@ def eval_classifier(
 
 
 def make_fn(
+    args,
     train_dict,
     test_dict,
     feature_set,
-    dataset_rounds,
-    batch_size,
     score_fn,
 ):
-    # train for 1 epoch because pipeline will be called many times
+    dataset_rounds = get_dataset_rounds(train_dict)
     train_data = dict(
-        train_epochs=1,
+        train_epochs=args.epochs,
         dataset_rounds=dataset_rounds,
         train_dict=train_dict,
         test_dict=test_dict,
         feature_set=feature_set,
-        batch_size=batch_size,
+        batch_size=args.batch_size,
         print_result=False,
     )
 
     eval_data = dict(
         test_dict=test_dict,
         feature_set=feature_set,
-        batch_size=batch_size,
+        batch_size=args.batch_size,
         score_fn=score_fn,
         print_result=False,
     )
 
     def fitness(pipeline):
-        train_classifier(pipeline, **train_data)
-        return eval_classifier(pipeline, **eval_data)
+        train_classifier(pipeline.classifier, **train_data)
+        return eval_classifier(pipeline.classifier, **eval_data)
 
     return fitness
 
 
 def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
-    dataset_rounds = get_dataset_rounds(train_dict)
     pipeline = get_pipeline(log_grammar=True)
     fitness_fn = make_fn(
+        args,
         train_dict,
         test_dict,
         feature_set,
-        dataset_rounds,
-        args.batch_size,
         score_fn,
     )
     return PESearch(
@@ -228,7 +229,7 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
             feature_set,
             score_fn,
         )
-        best_pipe, score = pipeline.run(args.epochs, logger=loggers)
+        best_pipe, score = pipeline.run(args.iterations, logger=loggers)
         print(f"Pipe {best_pipe}")
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         classifier_fname = f"{args.output_dir}/classifier_{i}.pkl"
@@ -241,7 +242,8 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         print(f"Training with features: {feature_set}")
         dataset_rounds = get_dataset_rounds(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
-        classifier = MLPClassifier(input_size=hidden_size, lr=args.lr)
+        classifier = MLPClassifier(lr=args.lr)
+        classifier._initialize(hidden_size)
         train_data = dict(
             train_epochs=args.epochs,
             dataset_rounds=dataset_rounds,
@@ -278,6 +280,7 @@ def main(args):
 
     dataset = normalize_dataset(dataset, features[-1])
     train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     train_fn = autogoal_train if args.autogoal else std_train
     train_fn(args, train_dict, test_dict, features, accuracy)
 

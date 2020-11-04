@@ -6,6 +6,7 @@ from sklearn.pipeline import Pipeline as SkPipeline
 from torch.utils.data.dataset import Dataset
 from autogoal.grammar import (
     Discrete,
+    Union,
     Continuous,
     generate_cfg,
 )
@@ -48,21 +49,15 @@ class MLP(nn.Module):
 class MLPClassifier():
     def __init__(
         self,
-        input_size=None,
         mlp_hidden_size: Discrete(64, 256) = 256,
         mlp_dropout: Continuous(0.0, 0.3) = 0.3,
         lr: Continuous(0.0001, 0.01) = 0.01,
-        device=torch.device("cuda", index=1),
     ):
         self.mlp_hidden_size = mlp_hidden_size
         self.mlp_dropout = mlp_dropout
         self.lr = lr
-        self.device = device
-
-        if input_size is None:
-            self.is_initiliazed = False
-        else:
-            self._initialize(input_size)
+        self.device = torch.device("cuda", index=1)
+        self.is_initialized = False
 
     def _initialize(self, input_size):
         self.input_size = input_size
@@ -78,7 +73,7 @@ class MLPClassifier():
             lr=self.lr,
             weight_decay=1e-5
         )
-        self.is_initiliazed = True
+        self.is_initialized = True
 
     def _setup_input(self, in_data):
         if not torch.is_tensor(in_data):
@@ -132,7 +127,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class MLPPipeline(SkPipeline):
-    def __init__(self, classifier: ("Classification", MLPClassifier)):
+    def __init__(self, classifier: Union("Classification", MLPClassifier)):
         self.classifier = classifier
         super(MLPPipeline, self).__init__([("class", classifier)])
 
