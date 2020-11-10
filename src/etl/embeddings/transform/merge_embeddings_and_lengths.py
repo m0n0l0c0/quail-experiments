@@ -30,7 +30,7 @@ def parse_flags():
 
 def main(embeddings_path, data_path, output_path):
     output_dir = os.path.dirname(output_path)
-    output_name = os.path.splitext(os.path.basename(output_path))
+    output_name = os.path.splitext(os.path.basename(output_path))[0]
     embeddings_data = get_dataset(embeddings_path)
     data = get_dataset(data_path)
     embeddings_data.update(data)
