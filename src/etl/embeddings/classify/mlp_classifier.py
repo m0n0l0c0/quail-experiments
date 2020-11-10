@@ -56,11 +56,11 @@ class MLPClassifier():
         self.mlp_hidden_size = mlp_hidden_size
         self.mlp_dropout = mlp_dropout
         self.lr = lr
-        self.device = torch.device("cuda", index=1)
         self.is_initialized = False
 
-    def _initialize(self, input_size):
+    def initialize(self, input_size, device=torch.device("cuda", index=0)):
         self.input_size = input_size
+        self.device = device
         self.model = MLP(
             self.input_size,
             hidden_size=self.mlp_hidden_size,

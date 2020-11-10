@@ -1,3 +1,4 @@
+import torch
 import pickle
 import argparse
 import numpy as np
@@ -22,9 +23,10 @@ from classification import (
     normalize_dataset,
 )
 
-default_feats = [["embeddings", "logits", "contexts", "question", "endings"]]
+DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
 # separate normalization
-norm_feats = [["embeddings", "logits"], ["contexts", "question", "endings"]]
+NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
+GPU_DEVICE = None
 
 
 def parse_flags():
@@ -50,9 +52,13 @@ def parse_flags():
         help="The percentage of examples to use for test"
     )
     parser.add_argument(
+        "-g", "--gpu", required=False, default=0, type=int,
+        help="GPU to use (default to 0)"
+    )
+    parser.add_argument(
         "-f", "--features", required=False, type=str, nargs="*", default=None,
         help=f"Features used to train the classifier (default: "
-        f"{default_feats})"
+        f"{DEFAULT_FEATS})"
     )
     parser.add_argument(
         "-sf",  "--sweep_features", action="store_true",
@@ -95,7 +101,7 @@ def get_unique_features(features):
 
 def normalize_dataset_by_features(dataset, features):
     all_features = get_unique_features(features)
-    for norm_group in norm_feats:
+    for norm_group in NORM_FEATS:
         to_norm = [feat for feat in norm_group if feat in all_features]
         print(f"Normalizing feature_set: {to_norm}")
         dataset = normalize_dataset(dataset, to_norm)
@@ -138,7 +144,7 @@ def train_classifier(
 ):
     if not classifier.is_initialized:
         hidden_size = get_hidden_size(train_dict, feature_set)
-        classifier._initialize(hidden_size)
+        classifier.initialize(hidden_size, device=GPU_DEVICE)
 
     for epoch in range(1, train_epochs + 1):
         classifier.model.train()
@@ -293,7 +299,7 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         dataset_rounds = get_dataset_rounds(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier = MLPClassifier(lr=args.lr)
-        classifier._initialize(hidden_size)
+        classifier.initialize(hidden_size, device=GPU_DEVICE)
         train_data = dict(
             train_epochs=args.epochs,
             dataset_rounds=dataset_rounds,
@@ -315,8 +321,10 @@ def std_train(args, train_dict, test_dict, features, score_fn):
 
 
 def main(args):
+    global GPU_DEVICE
     print(f"Loading data from {args.data_path}")
-    features = [args.features] if args.features is not None else default_feats
+    GPU_DEVICE = torch.device("cuda", index=args.gpu)
+    features = [args.features] if args.features is not None else DEFAULT_FEATS
     if args.sweep_features:
         features = sweep_features(features)
 
