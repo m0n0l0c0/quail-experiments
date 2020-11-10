@@ -38,7 +38,8 @@ def split_data(dataset):
         new_shape = [-1, *shape[2:]]
         dataset[feature] = dataset[feature].reshape(new_shape)
 
-    dataset["labels"] = dataset["labels"].repeat(n_choices)
+    if "labels" in dataset:
+        dataset["labels"] = dataset["labels"].repeat(n_choices)
     return dataset
 
 
