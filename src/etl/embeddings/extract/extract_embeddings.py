@@ -207,7 +207,7 @@ def main(split, args_file, gpu, output_dir, single_items, pool):
     # 1 Correct / 0 Incorrect
     pred_labels_correct = np.array([int(p) for p in pred_labels_correct])
     embeddings = embeddings.reshape(
-        num_samples, num_choices, *embeddings.shape[1:]
+        num_samples, num_choices, *embeddings.shape[2:]
     )
 
     save_data(
