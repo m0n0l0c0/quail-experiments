@@ -51,7 +51,7 @@ def main(data_path, n_components, normalize, output_dir):
     if normalize:
         dataset = normalize_dataset(dataset, feature_set)
 
-    X, y = get_x_y_from_dict(dataset, features=feature_set, dont_reshape=True)
+    X, y = get_x_y_from_dict(dataset, features=feature_set)
     pca = PCA(n_components=n_components)
     X_pca = pca.fit_transform(X)
     dataset["embeddings"] = X_pca
