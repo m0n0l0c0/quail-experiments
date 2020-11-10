@@ -45,7 +45,7 @@ def split_data(dataset):
 
 def main(data_path, output_path):
     output_dir = os.path.dirname(output_path)
-    output_name = os.path.basename(output_path)
+    output_name = os.path.splitext(os.path.basename(output_path))[0]
     dataset = split_data(get_dataset(data_path))
 
     save_data(

@@ -78,9 +78,7 @@ def mc_setup(args_file, split):
             max_seq_length=data_args.max_seq_length,
             overwrite_cache=data_args.overwrite_cache,
             mode=Split(split),
-            enable_windowing=window_args.enable_windowing,
-            stride=window_args.stride,
-            no_answer_text=window_args.no_answer_text,
+            enable_windowing=False,
         )
         if training_args.do_eval
         else None
