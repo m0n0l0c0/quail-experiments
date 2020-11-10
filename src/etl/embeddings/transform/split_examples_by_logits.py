@@ -37,7 +37,7 @@ def split_data(dataset):
         if len(shape) < 2:
             flat_features.append(feature)
             continue
-        elif len(shape) > 2 and n_choices is None:
+        elif n_choices is None:
             n_choices = shape[1]
         new_shape = [-1, *shape[2:]]
         dataset[feature] = dataset[feature].reshape(new_shape)
