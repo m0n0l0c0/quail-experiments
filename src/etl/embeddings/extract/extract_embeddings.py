@@ -110,7 +110,7 @@ def gather_embeddings(embedding_path, embedding_cursor):
     embedding_files = glob.glob(f"{embedding_path}/*_data.pkl")
     embedding_files.sort()
     assert(len(embedding_files) == embedding_cursor)
-    for emb_file in embedding_files:
+    for emb_file in tqdm(embedding_files, desc="Merging"):
         with open(emb_file, "rb") as fin:
             new_embeddings = pickle.load(fin)["embeddings"]
             if embeddings is None:
