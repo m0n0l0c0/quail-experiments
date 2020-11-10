@@ -274,7 +274,7 @@ def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
         selection=2,
         evaluation_timeout=1800,
         memory_limit=64 * (1024**3),
-        early_stop=True,
+        early_stop=False,
     )
 
 

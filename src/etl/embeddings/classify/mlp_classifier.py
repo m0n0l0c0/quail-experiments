@@ -51,7 +51,7 @@ class MLPClassifier():
         self,
         mlp_hidden_size: Discrete(64, 256) = 256,
         mlp_dropout: Continuous(0.0, 0.3) = 0.3,
-        lr: Continuous(0.0001, 0.01) = 0.01,
+        lr: Continuous(0.00005, 0.01) = 0.01,
     ):
         self.mlp_hidden_size = mlp_hidden_size
         self.mlp_dropout = mlp_dropout
