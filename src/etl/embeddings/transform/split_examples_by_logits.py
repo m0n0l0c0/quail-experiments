@@ -25,17 +25,26 @@ def parse_flags():
 
 
 def split_data(dataset):
-    feature_set = [key for key in dataset.keys() if key not in ["labels"]]
+    flat_features = []
+    if "embeddings" in dataset and len(dataset["embeddings"].shape) < 3:
+        raise ValueError(
+            "This dataset is already flatten, cannot split by example!"
+        )
+
     n_choices = None
-    for feature in feature_set:
+    for feature in dataset.keys():
         shape = dataset[feature].shape
-        if n_choices is None:
+        if len(shape) < 2:
+            flat_features.append(feature)
+            continue
+        elif len(shape) > 2 and n_choices is None:
             n_choices = shape[1]
         new_shape = [-1, *shape[2:]]
         dataset[feature] = dataset[feature].reshape(new_shape)
 
-    if "labels" in dataset:
-        dataset["labels"] = dataset["labels"].repeat(n_choices)
+    for feature in flat_features:
+        dataset[feature] = dataset[feature].repeat(n_choices)
+
     return dataset
 
 
