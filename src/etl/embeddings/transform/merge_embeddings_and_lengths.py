@@ -22,20 +22,21 @@ def parse_flags():
         help="Path to dataset of text lengths"
     )
     parser.add_argument(
-        "-o", "--output_dir", required=False, type=str,
-        help="Output directory to store embeddings and data file"
+        "-o", "--output_path", required=False, type=str,
+        help="Output path to store embeddings and data file"
     )
     return parser.parse_args()
 
 
-def main(embeddings_path, data_path, output_dir):
+def main(embeddings_path, data_path, output_path):
+    output_dir = os.path.dirname(output_path)
+    output_name = os.path.splitext(os.path.basename(output_path))
     embeddings_data = get_dataset(embeddings_path)
     data = get_dataset(data_path)
     embeddings_data.update(data)
-    save_name = "train_embeddings_with_text_lengths"
     save_data(
         output_dir,
-        save_name,
+        output_name,
         **embeddings_data
     )
 
