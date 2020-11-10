@@ -162,11 +162,17 @@ def embed_dataset(model, dataloader, device, pool):
             if "labels" in inputs:
                 numpyfied_labels = inputs["labels"].cpu().numpy()
 
-            if embeddings is None:
-                embeddings = np.array(numpyfied_output)
+            if logits is None:
                 logits = np.array(numpyfied_logits)
                 if numpyfied_labels is not None:
                     labels = np.array(numpyfied_labels)
+            else:
+                logits = np.vstack([logits, numpyfied_logits])
+                if numpyfied_labels is not None:
+                    labels = np.hstack([labels, numpyfied_labels])
+
+            if embeddings is None:
+                embeddings = np.array(numpyfied_output)
                 if not pool:
                     embedding_cursor_str = str(embedding_cursor)
                     # Up to 9999 embedding files
@@ -182,9 +188,6 @@ def embed_dataset(model, dataloader, device, pool):
                     embedding_cursor += 1
             else:
                 embeddings = np.vstack([embeddings, numpyfied_output])
-                logits = np.vstack([logits, numpyfied_logits])
-                if numpyfied_labels is not None:
-                    labels = np.hstack([labels, numpyfied_labels])
 
     if not pool and embeddings is None:
         embeddings = gather_embeddings(embedding_path, embedding_cursor)
