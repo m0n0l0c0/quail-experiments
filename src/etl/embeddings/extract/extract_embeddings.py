@@ -186,7 +186,7 @@ def embed_dataset(model, dataloader, device, pool):
                 if numpyfied_labels is not None:
                     labels = np.hstack([labels, numpyfied_labels])
 
-    if pool and embeddings is None:
+    if not pool and embeddings is None:
         embeddings = gather_embeddings(embedding_path, embedding_cursor)
 
     return embeddings, logits, labels
