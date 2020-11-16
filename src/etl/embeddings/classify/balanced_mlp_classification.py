@@ -1,3 +1,4 @@
+import os
 import torch
 import pickle
 import argparse
@@ -125,11 +126,19 @@ def sweep_features(features):
 
 def save_classifier(classifier, output_dir, feature_set):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    features_str = "_".join(feature_set)
-    classifier_fname = f"{output_dir}/classifier_{features_str}.pkl"
+    features_str = f"classifier_{'_'.join(feature_set)}.pkl"
+    classifier_fname = os.path.join(output_dir, features_str)
     with open(classifier_fname, "wb") as fout:
         pickle.dump(classifier, fout)
     print(f"Saved model to: {classifier_fname}")
+
+
+def save_args(args, output_dir):
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    args_fname = os.path.join(output_dir, "training_args.pkl")
+    with open(args_fname, "wb") as fout:
+        pickle.dump(args, fout)
+    print(f"Saved args to: {args_fname}")
 
 
 def train_classifier(
@@ -333,6 +342,7 @@ def main(args):
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     train_fn = autogoal_train if args.autogoal else std_train
     train_fn(args, train_dict, test_dict, features, accuracy)
+    save_args(args, args.output_dir)
 
 
 if __name__ == "__main__":
