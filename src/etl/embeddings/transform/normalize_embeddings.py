@@ -10,11 +10,11 @@ sys.path.append(os.path.join(base_path, "classify"))
 sys.path.append(os.path.join(base_path, "extract"))
 
 from extract_embeddings import save_data  # noqa: E402
-from classification import (
+from classification import (  # noqa: E402
     get_dataset,
     get_x_y_from_dict,
     normalize_dataset
-)  # noqa: E402
+)
 
 
 def parse_flags():

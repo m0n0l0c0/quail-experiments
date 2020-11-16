@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import torch
 import pickle
@@ -16,6 +17,12 @@ from mc_transformers.mc_transformers import (
     setup,
     softmax
 )
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(os.path.join(base_path, "transform"))
+
+from synthetic_embeddings import generate_synthetic_data  # noqa: E402
+
 
 if is_tf_available():
     # Force no unnecessary allocation
@@ -55,6 +62,11 @@ def parse_flags():
         "-p", "--pool", action="store_true",
         help="Whether to apply max pooling to the last layer of embeddings"
     )
+    parser.add_argument(
+        "-O", "--oversample", required=False, default=None, type=float,
+        help="Synthetize data until proportions are met, only "
+        "possible when imbalanced class is `incorrect` (e.g.: 0.5)"
+    )
     return parser.parse_args()
 
 
@@ -70,19 +82,7 @@ def mc_setup(args_file, split):
         all_args.values()
     )
     data_collator = DataCollatorWithIds()
-    eval_dataset = (
-        MultipleChoiceDataset(
-            data_dir=data_args.data_dir,
-            tokenizer=tokenizer,
-            task=data_args.task_name,
-            max_seq_length=data_args.max_seq_length,
-            overwrite_cache=data_args.overwrite_cache,
-            mode=Split(split),
-            enable_windowing=False,
-        )
-        if training_args.do_eval
-        else None
-    )
+    eval_dataset = get_dataset(data_args, tokenizer, split)
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -90,7 +90,7 @@ def mc_setup(args_file, split):
         compute_metrics=compute_metrics,
         data_collator=data_collator.collate,
     )
-    return all_args, model, trainer, eval_dataset
+    return all_args, model, tokenizer, trainer, eval_dataset
 
 
 def prepare_inputs(inputs, device):
@@ -195,32 +195,121 @@ def embed_dataset(model, dataloader, device, pool):
     return embeddings, logits, labels
 
 
-def main(split, args_file, gpu, output_dir, single_items, pool):
-    all_args, model, trainer, eval_dataset = mc_setup(args_file, split)
-    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-    device = torch.device("cuda", index=gpu)
+def embed_from_dataloader(dataloader, device, model, pool):
     embeddings, logits, labels = embed_dataset(
-        model, eval_dataloader, device, pool
+        model, dataloader, device, pool
     )
 
     # labels should not be null
     num_samples = logits.shape[0]
     num_choices = logits.shape[1]
-    pred_labels_correct = get_model_results(logits, labels).tolist()
-    # 1 Correct / 0 Incorrect
-    pred_labels_correct = np.array([int(p) for p in pred_labels_correct])
     embeddings = embeddings.reshape(
         num_samples, num_choices, *embeddings.shape[1:]
     )
 
-    save_data(
-        output_dir,
-        split,
-        single_items,
+    if labels is not None:
+        pred_labels_correct = get_model_results(logits, labels).tolist()
+        # 1 Correct / 0 Incorrect
+        pred_labels_correct = np.array([int(p) for p in pred_labels_correct])
+    else:
+        # No information about correct samples, synthetic data, set incorrect
+        pred_labels_correct = np.zeros(shape=logits.shape)
+
+    return dict(
         embeddings=embeddings,
         labels=pred_labels_correct,
-        logits=logits
+        logits=logits,
     )
+
+
+def get_num_samples(data, proportions):
+    labels = data["labels"]
+    total_samples = len(labels)
+    current_samples = len(labels[labels == 0])
+    if proportions > 1.0:
+        proportions /= 100
+    target_num_samples = round(total_samples * proportions)
+    needed_samples = target_num_samples - current_samples
+    if needed_samples < 0:
+        raise ValueError(
+            "Requested downsampling. \nCurrent samples for class 0 = "
+            f"{current_samples}.\nRequested {target_num_samples}"
+        )
+
+    return needed_samples
+
+
+def get_dataset(data_args, tokenizer, split, **kwargs):
+    args = dict(
+        data_dir=data_args.data_dir,
+        tokenizer=tokenizer,
+        task=data_args.task_name,
+        max_seq_length=data_args.max_seq_length,
+        overwrite_cache=data_args.overwrite_cache,
+        mode=Split(split),
+        enable_windowing=False,
+    )
+    args.update(**kwargs)
+    return MultipleChoiceDataset(**args)
+
+
+def oversample(data_args, num_samples, tokenizer, split):
+    # ToDo :=
+    #  - Add path to be able to import synthetic_embeddings
+    #  - Generate embeddings
+    #  - Save them
+    #  - Create dataloader with new embeddings
+    #  - Embed dataset
+    output_dir = "/tmp/oversample_embeddings"
+    generate_synthetic_data(
+        data_args.data_dir,
+        output_dir,
+        num_samples,
+        split,
+        task=data_args.task_name,
+        log=True
+    )
+
+    return output_dir
+
+
+def merge_embedded_data(data_src, data_extra):
+    for key in data_src.keys():
+        if key not in data_extra:
+            raise ValueError(
+                f"Extra data lacks a key: {key}"
+            )
+        if len(data_src[key].shape) == 1:
+            data_src[key] = np.hstack([data_src[key], data_extra[key]])
+        else:
+            data_src[key] = np.vstack([data_src[key], data_extra[key]])
+
+    return data_src
+
+
+def main(split, args_file, gpu, output_dir, single_items, pool, oversample):
+    all_args, model, trainer, tokenizer, eval_dataset = mc_setup(
+        args_file, split
+    )
+    _, data_args, _, _, _ = all_args.values()
+    device = torch.device("cuda", index=gpu)
+
+    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
+    embedded = embed_from_dataloader(eval_dataloader, device, model, pool)
+
+    if oversample is not None:
+        num_samples = get_num_samples(embedded, oversample)
+        oversample_data_dir = oversample(data_args, num_samples, split)
+        oversample_dataset = get_dataset(
+            data_args, tokenizer, split, data_dir=oversample_data_dir
+        )
+        oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
+        oversample_embedded = embed_from_dataloader(
+            oversample_dataloader, device, model, pool
+        )
+        embedded = merge_embedded_data(embedded, oversample_embedded)
+
+    save_data(output_dir, split, single_items, **embedded)
 
 
 if __name__ == "__main__":
