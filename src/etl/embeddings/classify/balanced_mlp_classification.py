@@ -4,7 +4,6 @@ import pickle
 import argparse
 
 from pathlib import Path
-from itertools import combinations
 
 from autogoal.search import PESearch
 from autogoal.ml.metrics import accuracy
@@ -19,9 +18,9 @@ from mlp_classifier import (
 from dataset import (
     get_splits,
     get_dataset,
-    get_flat_list,
     get_x_y_from_dict,
     get_dataset_rounds,
+    sweep_features,
     normalize_dataset_by_features,
 )
 
@@ -86,16 +85,6 @@ def get_hidden_size(train_dict, features=None):
 
 def get_normalized_dataset(data_path, features):
     return normalize_dataset_by_features(get_dataset(data_path), features)
-
-
-def sweep_features(features):
-    feature_combinations = []
-    flat_features = get_flat_list(features)
-    for i in range(1, len(flat_features) + 1):
-        for combination in combinations(flat_features, i):
-            feature_combinations.append(list(combination))
-
-    return feature_combinations
 
 
 def save_classifier(classifier, output_dir, feature_set):

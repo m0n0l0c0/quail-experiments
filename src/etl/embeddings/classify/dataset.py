@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 
 from pathlib import Path
+from itertools import combinations
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
@@ -73,6 +74,16 @@ def get_flat_list(list_of_lists):
 
 def get_unique_features(features):
     return list(Counter(get_flat_list(features)).keys())
+
+
+def sweep_features(features):
+    feature_combinations = []
+    flat_features = get_flat_list(features)
+    for i in range(1, len(flat_features) + 1):
+        for combination in combinations(flat_features, i):
+            feature_combinations.append(list(combination))
+
+    return feature_combinations
 
 
 def normalize_dataset_by_features(dataset, features):
