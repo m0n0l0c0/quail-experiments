@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 
 # separate normalization
 NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
+DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
 
 
 def get_dataset(data_path):
@@ -74,6 +75,10 @@ def get_flat_list(list_of_lists):
 
 def get_unique_features(features):
     return list(Counter(get_flat_list(features)).keys())
+
+
+def get_normalized_dataset(data_path, features):
+    return normalize_dataset_by_features(get_dataset(data_path), features)
 
 
 def sweep_features(features):

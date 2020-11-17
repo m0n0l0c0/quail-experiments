@@ -1,5 +1,7 @@
 import os
+import pickle
 
+from pathlib import Path
 from autogoal.search import (
     ConsoleLogger,
     MemoryLogger,
@@ -44,3 +46,11 @@ def get_loggers(output_dir):
         custom,
         logger
     ]
+
+
+def save_args(args, output_dir):
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    args_fname = os.path.join(output_dir, "training_args.pkl")
+    with open(args_fname, "wb") as fout:
+        pickle.dump(args, fout)
+    print(f"Saved args to: {args_fname}")

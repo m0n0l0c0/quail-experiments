@@ -8,7 +8,7 @@ from pathlib import Path
 from autogoal.search import PESearch
 from autogoal.ml.metrics import accuracy
 
-from utils import get_loggers
+from utils import get_loggers, save_args
 from mlp_classifier import (
     get_pipeline,
     MLPClassifier,
@@ -17,14 +17,13 @@ from mlp_classifier import (
 )
 from dataset import (
     get_splits,
-    get_dataset,
     get_x_y_from_dict,
     get_dataset_rounds,
+    get_normalized_dataset,
     sweep_features,
-    normalize_dataset_by_features,
+    DEFAULT_FEATS,
 )
 
-DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
 GPU_DEVICE = None
 
 
@@ -83,10 +82,6 @@ def get_hidden_size(train_dict, features=None):
     return X_train.reshape(X_train.shape[0], -1).shape[-1]
 
 
-def get_normalized_dataset(data_path, features):
-    return normalize_dataset_by_features(get_dataset(data_path), features)
-
-
 def save_classifier(classifier, output_dir, feature_set):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     features_str = f"classifier_{'_'.join(feature_set)}.pkl"
@@ -94,14 +89,6 @@ def save_classifier(classifier, output_dir, feature_set):
     with open(classifier_fname, "wb") as fout:
         pickle.dump(classifier, fout)
     print(f"Saved model to: {classifier_fname}")
-
-
-def save_args(args, output_dir):
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    args_fname = os.path.join(output_dir, "training_args.pkl")
-    with open(args_fname, "wb") as fout:
-        pickle.dump(args, fout)
-    print(f"Saved args to: {args_fname}")
 
 
 def make_fn(
@@ -196,7 +183,6 @@ def std_train(args, train_dict, test_dict, features, score_fn):
         train_classifier(classifier, **train_data)
         eval_classifier(classifier, **test_data)
         save_classifier(classifier, args.output_dir, feature_set)
-        # ToDo := Save parameters
 
 
 def main(args):

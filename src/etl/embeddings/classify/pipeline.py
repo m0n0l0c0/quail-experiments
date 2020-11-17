@@ -1,9 +1,5 @@
 import pickle
 
-from classifiers import (
-    # DECOMPOSERS,
-    CLASSIFIERS
-)
 from sklearn.pipeline import Pipeline as SkPipeline
 
 from autogoal.ml import AutoML
@@ -11,28 +7,63 @@ from autogoal.grammar import (
     Union,
     generate_cfg,
 )
+from classifiers import (
+    LR,
+    NORMALIZERS,
+    CLASSIFIERS,
+)
+
+pipeline_map = {
+    "full": FullPipeline,
+    "logreg": LogRegPipeline,
+    "tree": TreePipeline,
+}
 
 
-class Pipeline(SkPipeline):
+class FullPipeline(SkPipeline):
     def __init__(
         self,
-        # decomposer: Union("Decomposer", *DECOMPOSERS),
+        normalizer: Union("Normalize", *NORMALIZERS),
         classifier: Union("Classifier", *CLASSIFIERS),
     ):
-        # self.decomposer = decomposer
+        self.normalizer = normalizer
         self.classifier = classifier
-
-        # super().__init__(
-        #     [("decomp", decomposer), ("class", classifier), ]
-        # )
-
-        super().__init__(
-            [("class", classifier), ]
-        )
+        super(Pipeline, self).__init__([
+            ("norm", normalizer),
+            ("class", classifier),
+        ])
 
 
-def get_pipeline(log_grammar=True):
-    grammar = generate_cfg(Pipeline)
+class LogRegPipeline(SkPipeline):
+    def __init__(
+        self,
+        normalizer: Union("Normalize", NoOp, MinMaxScaler),
+        classifier: Union("Classifier", LR),
+    ):
+        self.normalizer = normalizer
+        self.classifier = classifier
+        super(Pipeline, self).__init__([
+            ("norm", normalizer),
+            ("class", classifier),
+        ])
+
+
+class TreePipeline(SkPipeline):
+    def __init__(
+        self,
+        normalizer: Union("Normalize", NoOp, MinMaxScaler),
+        classifier: Union("Classifier", RandomForest, DT, SGD, KNN),
+    ):
+        self.normalizer = normalizer
+        self.classifier = classifier
+        super(Pipeline, self).__init__([
+            ("norm", normalizer),
+            ("class", classifier),
+        ])
+
+
+def get_pipeline(pipe_type="full", log_grammar=True):
+    grammar = generate_cfg(pipeline_map[pipe_type])
     if log_grammar:
         print(grammar)
     return grammar

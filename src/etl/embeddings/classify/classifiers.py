@@ -1,7 +1,9 @@
+from sklearn.preprocessing import MinMaxScaler as SkMinMaxScaler
+from sklearn.ensemble import RandomForestClassifier as SkRandomForestClassifier
+from autogoal.contrib.sklearn import DecisionTreeClassifier as DT
 from autogoal.contrib.sklearn import (
     TruncatedSVD,
     ComplementNB,
-    # DecisionTreeClassifier,
     SVC,
     LogisticRegression,
     OneClassSVM,
@@ -26,6 +28,12 @@ sgd_avail_losses = [
     'squared_hinge',
     'squared_loss',
 ]
+
+
+# normalizers
+class MinMaxScaler(SkMinMaxScaler):
+    def __init__(self):
+        super(MinMaxScaler, self).__init__(feature_range=(0, 1))
 
 
 # decomposers
@@ -93,6 +101,15 @@ class LR(LogisticRegression):
         self.reg = reg
 
 
+class RandomForest(SkRandomForestClassifier):
+    def __init__(
+        self,
+        n_estimators: Discrete(100, 200),
+    ):
+        super(RandomForest, self).__init__(n_estimators=n_estimators)
+        self.n_estimators = n_estimators
+
+
 class SVM(SVC):
     def __init__(
         self,
@@ -102,12 +119,6 @@ class SVM(SVC):
         super(SVM, self).__init__(C=reg, kernel=kernel)
         self.kernel = kernel
         self.reg = reg
-
-
-# class DT(DecisionTreeClassifier):
-#     def __init__(self, criterion: Categorical("gini", "entropy")):
-#         super(DT, self).__init__(criterion=criterion)
-#         self.criterion = criterion
 
 
 class ComplBN(ComplementNB):
@@ -219,6 +230,11 @@ class KNN(KNeighborsClassifier):
         self.metric = metric
 
 
+NORMALIZERS = [
+    NoOp,
+    MinMaxScaler,
+]
+
 DECOMPOSERS = [
     NoOp,
     SVD,
@@ -227,8 +243,9 @@ DECOMPOSERS = [
 
 CLASSIFIERS = [
     LR,
+    RandomForest,
     SVM,
-    # DT,
+    DT,
     ComplBN,
     OCSVM,
     SGD,
