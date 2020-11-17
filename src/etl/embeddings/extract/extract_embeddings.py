@@ -288,7 +288,7 @@ def merge_embedded_data(data_src, data_extra):
 
 
 def main(split, args_file, gpu, output_dir, single_items, pool, oversample):
-    all_args, model, trainer, tokenizer, eval_dataset = mc_setup(
+    all_args, model, tokenizer, trainer, eval_dataset = mc_setup(
         args_file, split
     )
     _, data_args, _, _, _ = all_args.values()
