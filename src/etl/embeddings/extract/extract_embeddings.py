@@ -6,6 +6,7 @@ import pickle
 import argparse
 import numpy as np
 
+from pathlib import Path
 from tqdm import tqdm
 
 from transformers import is_tf_available, Trainer
@@ -23,6 +24,7 @@ sys.path.append(os.path.join(base_path, "classify"))
 
 from synthetic_embeddings import generate_synthetic_data  # noqa: E402
 from dataset import save_data  # noqa: E402
+from dataset import get_dataset as load_data  # noqa: E402
 
 
 if is_tf_available():
@@ -295,17 +297,23 @@ def main(
     _, data_args, _, _, _ = all_args.values()
     device = torch.device("cuda", index=gpu)
 
-    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-    embedded = embed_from_dataloader(
-        eval_dataloader, device, model, pool, tmp_dir
-    )
-
-    # temporary save, just in case...
-    save_data(output_dir, split, single_items, **embedded)
+    dataset_file = os.path.join(output_dir, f"{split}_data.pkl")
+    if not Path(dataset_file).exists():
+        eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
+        embedded = embed_from_dataloader(
+            eval_dataloader, device, model, pool, tmp_dir
+        )
+        # temporary save, just in case...
+        save_data(output_dir, split, single_items, **embedded)
+    else:
+        print(f"Loading cached data from {dataset_file}")
+        embedded = load_data(dataset_file)
 
     if oversample is not None:
         num_samples = get_num_samples(embedded, oversample)
-        oversample_data_dir = oversampling(data_args, num_samples, split)
+        oversample_data_dir = oversampling(
+            data_args, num_samples, tokenizer, split, tmp_dir
+        )
         oversample_dataset = get_dataset(
             data_args, tokenizer, split, data_dir=oversample_data_dir
         )
