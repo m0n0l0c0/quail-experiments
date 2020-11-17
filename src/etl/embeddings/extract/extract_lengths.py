@@ -35,8 +35,8 @@ def parse_flags():
         f"{default_feats})"
     )
     parser.add_argument(
-        "-o", "--output_dir", required=False, type=str,
-        help="Output directory to store predictions and embeddings"
+        "-o", "--output_path", required=True, type=str,
+        help="Output path to store predictions and embeddings"
     )
     return parser.parse_args()
 
@@ -64,11 +64,12 @@ def get_examples_len(examples, field):
     return np.array(lens)
 
 
-def main(data_dir, task, split, features, output_dir):
+def main(data_dir, task, split, features, output_path):
+    output_dir = os.path.dirname(output_path)
+    output_name = os.path.splitext(os.path.basename(output_path))[0]
     processor = processors[task]()
     examples = get_examples(processor, split, data_dir)
     save_dict = dict()
-    save_name = "train_text_lengths"
     save_fields = features if features is not None else default_feats
 
     for field in save_fields:
@@ -77,7 +78,7 @@ def main(data_dir, task, split, features, output_dir):
 
     save_data(
         output_dir,
-        save_name,
+        output_name,
         **save_dict
     )
 

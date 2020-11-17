@@ -31,7 +31,7 @@ def parse_flags():
         help="Wheter to normalize dataset before applying PCA"
     )
     parser.add_argument(
-        "-o", "--output_path", required=False, type=str,
+        "-o", "--output_path", required=True, type=str,
         help="Output path to store embeddings and data file"
     )
     return parser.parse_args()
