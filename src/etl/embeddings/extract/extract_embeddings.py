@@ -74,6 +74,7 @@ def parse_flags():
         "--tmp_dir", required=False, default="/tmp", type=str,
         help="Temporary directory to catch embeddings"
     )
+    parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
 
@@ -289,7 +290,8 @@ def main(
     gpu,
     single_items,
     pool,
-    oversample
+    oversample,
+    overwrite,
 ):
     all_args, model, tokenizer, trainer, eval_dataset = mc_setup(
         args_file, split
@@ -298,18 +300,26 @@ def main(
     device = torch.device("cuda", index=gpu)
 
     dataset_file = os.path.join(output_dir, f"{split}_data.pkl")
-    if not Path(dataset_file).exists():
+    oversampled_name = f"{split}_oversample"
+    oversampled_file = f"{oversampled_name}_data.pkl"
+    oversampled_file = os.path.join(output_dir, oversampled_name)
+
+    embedded = None
+    if overwrite or not Path(dataset_file).exists():
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
         embedded = embed_from_dataloader(
             eval_dataloader, device, model, pool, tmp_dir
         )
-        # temporary save, just in case...
         save_data(output_dir, split, single_items, **embedded)
-    else:
-        print(f"Loading cached data from {dataset_file}")
-        embedded = load_data(dataset_file)
-
+    
     if oversample is not None:
+        # avoid unnecesary loading
+        if not overwrite and Path(oversampled_file).exists():
+            print("Nothing to do")
+        elif embedded is None:
+            print(f"Loading cached data from {dataset_file}")
+            embedded = load_data(dataset_file)
+
         num_samples = get_num_samples(embedded, oversample)
         oversample_data_dir = oversampling(
             data_args, num_samples, tokenizer, split, tmp_dir
@@ -323,7 +333,7 @@ def main(
         )
         embedded = merge_embedded_data(embedded, oversample_embedded)
 
-    save_data(output_dir, split, single_items, **embedded)
+        save_data(output_dir, oversampled_name, single_items, **embedded)
 
 
 if __name__ == "__main__":

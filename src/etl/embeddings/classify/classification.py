@@ -8,8 +8,7 @@ from sklearn.metrics import f1_score, accuracy_score
 
 from balanced_sampling import balanced_resample
 from utils import get_loggers, save_args
-from pipeline import get_pipeline, save_pipeline
-from classifiers import pipeline_map
+from pipeline import get_pipeline, save_pipeline, pipeline_map
 from dataset import (
     get_splits,
     get_x_y_from_dict,
@@ -45,7 +44,7 @@ def parse_flags():
         help="Allowed memory in GB"
     )
     parser.add_argument(
-        "-d", "--data_path", required=False, default=None, type=str,
+        "-d", "--data_path", required=True, default=None, type=str,
         help="File containing the dataset"
     )
     parser.add_argument(
@@ -76,7 +75,7 @@ def parse_flags():
         help="The percentage of examples to use for test"
     )
     parser.add_argument(
-        "-o", "--output_dir", required=False, type=str,
+        "-o", "--output_dir", required=True, type=str,
         help="Output directory to store k-top best pipelines and logs"
     )
     return parser.parse_args()
@@ -129,9 +128,9 @@ def make_fn(train_dict, test_dict, feature_set, score_metric):
 def setup_pipeline(args, train_dict, test_dict, feature_set, score_metric):
     pipeline = get_pipeline(pipe_type=args.pipeline, log_grammar=True)
     if args.balanced:
-        fitness_fn = make_balanced_fn(train_dict, test_dict, score_metric)
+        fitness_fn = make_balanced_fn(train_dict, test_dict, feature_set, score_metric)
     else:
-        fitness_fn = make_fn(train_dict, test_dict, score_metric)
+        fitness_fn = make_fn(train_dict, test_dict, feature_set, score_metric)
 
     return PESearch(
         pipeline,
@@ -150,7 +149,7 @@ def setup_automl(args, train_dict, test_dict, feature_set, score_metric):
     return dict(classifier=classifier, fitness_fn=fitness_fn)
 
 
-def fit_classifier(args, classifier, train_dict, test_dict):
+def fit_classifier(args, classifier):
     loggers = get_loggers(args.output_dir)
     if isinstance(classifier, dict):
         classifier, fitness_fn = classifier.values()

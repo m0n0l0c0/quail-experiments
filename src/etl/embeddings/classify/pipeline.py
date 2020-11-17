@@ -8,16 +8,16 @@ from autogoal.grammar import (
     generate_cfg,
 )
 from classifiers import (
+    DT,
     LR,
+    SGD,
+    KNN,
+    NoOp,
     NORMALIZERS,
     CLASSIFIERS,
+    RandomForest,
+    MinMaxScaler,
 )
-
-pipeline_map = {
-    "full": FullPipeline,
-    "logreg": LogRegPipeline,
-    "tree": TreePipeline,
-}
 
 
 class FullPipeline(SkPipeline):
@@ -28,7 +28,7 @@ class FullPipeline(SkPipeline):
     ):
         self.normalizer = normalizer
         self.classifier = classifier
-        super(Pipeline, self).__init__([
+        super(FullPipeline, self).__init__([
             ("norm", normalizer),
             ("class", classifier),
         ])
@@ -42,7 +42,7 @@ class LogRegPipeline(SkPipeline):
     ):
         self.normalizer = normalizer
         self.classifier = classifier
-        super(Pipeline, self).__init__([
+        super(LogRegPipeline, self).__init__([
             ("norm", normalizer),
             ("class", classifier),
         ])
@@ -56,7 +56,7 @@ class TreePipeline(SkPipeline):
     ):
         self.normalizer = normalizer
         self.classifier = classifier
-        super(Pipeline, self).__init__([
+        super(TreePipeline, self).__init__([
             ("norm", normalizer),
             ("class", classifier),
         ])
@@ -86,3 +86,10 @@ def load_pipeline(file_path, autogoal_pipe=True):
             pipeline.load(fin)
 
     return pipeline
+
+
+pipeline_map = {
+    "full": FullPipeline,
+    "logreg": LogRegPipeline,
+    "tree": TreePipeline,
+}

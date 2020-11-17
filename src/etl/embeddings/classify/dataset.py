@@ -95,7 +95,8 @@ def normalize_dataset_by_features(dataset, features):
     all_features = get_unique_features(features)
     for norm_group in NORM_FEATS:
         to_norm = [feat for feat in norm_group if feat in all_features]
-        dataset = normalize_dataset(dataset, to_norm)
+        if len(to_norm) > 0:
+            dataset = normalize_dataset(dataset, to_norm)
 
     return dataset, features
 

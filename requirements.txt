@@ -3,3 +3,9 @@ torchvision==0.5.0
 tensorflow
 mc_transformers
 mcqa_utils
+imbalanced-learn==0.7.0
+imblearn
+scikit-learn==0.23.2
+numpy==1.18.2
+Cython --install-option="--no-cython-compile"
+autogoal[contrib]
