@@ -311,9 +311,6 @@ def main(
     device = torch.device("cuda", index=gpu)
 
     dataset_file = os.path.join(output_dir, f"{split}_data.pkl")
-    oversampled_name = f"{split}_oversample"
-    oversampled_file = f"{oversampled_name}_data.pkl"
-    oversampled_file = os.path.join(output_dir, oversampled_name)
 
     embedded = None
     if overwrite or not Path(dataset_file).exists():
@@ -324,6 +321,9 @@ def main(
         save_data(output_dir, split, single_items, **embedded)
 
     if oversample is not None:
+        oversampled_name = f"{split}_oversample_{str(oversample)}"
+        oversampled_file = f"{oversampled_name}_data.pkl"
+        oversampled_file = os.path.join(output_dir, oversampled_name)
         # avoid unnecesary loading
         if not overwrite and Path(oversampled_file).exists():
             print("Nothing to do")
