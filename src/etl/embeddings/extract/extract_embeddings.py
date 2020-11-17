@@ -67,6 +67,10 @@ def parse_flags():
         help="Synthetize data until proportions are met, only "
         "possible when imbalanced class is `incorrect` (e.g.: 0.5)"
     )
+    parser.add_argument(
+        "--tmp_dir", required=False, default="/tmp", type=str,
+        help="Temporary directory to catch embeddings"
+    )
     return parser.parse_args()
 
 
@@ -117,7 +121,7 @@ def gather_embeddings(embedding_path, embedding_cursor):
                 embeddings = np.array(new_embeddings)
             else:
                 embeddings = np.vstack([embeddings, new_embeddings])
-
+        os.remove(emb_file)
     return embeddings
 
 
@@ -135,10 +139,10 @@ def save_data(output_dir, prefix, single_items=False, **kwargs):
         pickle.dump(kwargs, fout)
 
 
-def embed_dataset(model, dataloader, device, pool):
+def embed_dataset(model, dataloader, device, pool, tmp_dir):
     embeddings = None
     embedding_cursor = 0
-    embedding_path = '/tmp/embeddings'
+    embedding_path = os.path.join(tmp_dir, "embeddings")
     logits = None
     labels = None
 
@@ -195,9 +199,9 @@ def embed_dataset(model, dataloader, device, pool):
     return embeddings, logits, labels
 
 
-def embed_from_dataloader(dataloader, device, model, pool):
+def embed_from_dataloader(dataloader, device, model, pool, tmp_dir):
     embeddings, logits, labels = embed_dataset(
-        model, dataloader, device, pool
+        model, dataloader, device, pool, tmp_dir
     )
 
     # labels should not be null
@@ -287,7 +291,16 @@ def merge_embedded_data(data_src, data_extra):
     return data_src
 
 
-def main(split, args_file, gpu, output_dir, single_items, pool, oversample):
+def main(
+    args_file,
+    split,
+    output_dir,
+    tmp_dir,
+    gpu,
+    single_items,
+    pool,
+    oversample
+):
     all_args, model, tokenizer, trainer, eval_dataset = mc_setup(
         args_file, split
     )
@@ -295,7 +308,9 @@ def main(split, args_file, gpu, output_dir, single_items, pool, oversample):
     device = torch.device("cuda", index=gpu)
 
     eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-    embedded = embed_from_dataloader(eval_dataloader, device, model, pool)
+    embedded = embed_from_dataloader(
+        eval_dataloader, device, model, pool, tmp_dir
+    )
 
     if oversample is not None:
         num_samples = get_num_samples(embedded, oversample)
@@ -305,7 +320,7 @@ def main(split, args_file, gpu, output_dir, single_items, pool, oversample):
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
         oversample_embedded = embed_from_dataloader(
-            oversample_dataloader, device, model, pool
+            oversample_dataloader, device, model, pool, tmp_dir
         )
         embedded = merge_embedded_data(embedded, oversample_embedded)
 
