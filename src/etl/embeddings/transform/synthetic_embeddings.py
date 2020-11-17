@@ -73,7 +73,7 @@ def synthesize_data(examples):
             example_id=ex.example_id,
             question=ex.question,
             contexts=ex.contexts,
-            endings=all_endings[cursor:cursor+len(ex.contexts)],
+            endings=all_endings[cursor:cursor + len(ex.contexts)],
             label=ex.label
         )
         data.append(new_example)
@@ -82,7 +82,7 @@ def synthesize_data(examples):
     return data
 
 
-def save_data(dataset, data, output_dir, split):
+def save_dataset(dataset, data, output_dir, split):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     file_name = f"{split}.json"
     file_path = os.path.join(output_dir, file_name)
@@ -104,7 +104,7 @@ def generate_synthetic_data(
     examples = dataset.get_split(split)
     chosen = pick_random_examples(examples, num_samples)
     data = synthesize_data(chosen)
-    save_data(dataset, data, output_dir, split)
+    save_dataset(dataset, data, output_dir, split)
 
 
 if __name__ == '__main__':

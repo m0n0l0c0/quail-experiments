@@ -7,13 +7,13 @@ from collections import Counter
 from autogoal.search import PESearch
 from autogoal.ml.metrics import accuracy
 
+from utils import get_loggers
 from balanced_pipeline import get_pipeline
 from balanced_sampling import balanced_resample
-from classification import (
+from dataset import (
     get_dataset,
     get_splits,
     get_x_y_from_dict,
-    get_loggers,
 )
 
 

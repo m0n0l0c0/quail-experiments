@@ -7,7 +7,6 @@ import argparse
 import numpy as np
 
 from tqdm import tqdm
-from pathlib import Path
 
 from transformers import is_tf_available, Trainer
 from mc_transformers.utils_mc import MultipleChoiceDataset, Split
@@ -20,8 +19,10 @@ from mc_transformers.mc_transformers import (
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(os.path.join(base_path, "transform"))
+sys.path.append(os.path.join(base_path, "classify"))
 
 from synthetic_embeddings import generate_synthetic_data  # noqa: E402
+from dataset import save_data  # noqa: E402
 
 
 if is_tf_available():
@@ -122,21 +123,8 @@ def gather_embeddings(embedding_path, embedding_cursor):
             else:
                 embeddings = np.vstack([embeddings, new_embeddings])
         os.remove(emb_file)
+
     return embeddings
-
-
-def save_data(output_dir, prefix, single_items=False, **kwargs):
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-    if single_items:
-        for key, value in kwargs.items():
-            fpath = os.path.join(output_dir, f"{prefix}_{key}.pkl")
-            with open(fpath, "wb") as fout:
-                pickle.dump(value, fout)
-
-    fpath = os.path.join(output_dir, f"{prefix}_data.pkl")
-    with open(fpath, "wb") as fout:
-        pickle.dump(kwargs, fout)
 
 
 def embed_dataset(model, dataloader, device, pool, tmp_dir):

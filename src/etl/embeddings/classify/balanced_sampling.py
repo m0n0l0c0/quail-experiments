@@ -1,6 +1,6 @@
 import numpy as np
 
-from classification import get_x_y_from_dict
+from dataset import get_x_y_from_dict
 from imblearn.under_sampling import RandomUnderSampler
 
 

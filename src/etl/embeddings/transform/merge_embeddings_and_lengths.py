@@ -5,10 +5,8 @@ import argparse
 base_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, "classify"))
-sys.path.append(os.path.join(base_path, "extract"))
 
-from extract_embeddings import save_data  # noqa: E402
-from classification import get_dataset  # noqa: E402
+from dataset import get_dataset, save_data  # noqa: E402
 
 
 def parse_flags():

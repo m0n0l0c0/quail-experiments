@@ -20,7 +20,7 @@ sys.path.append(os.path.join(base_path, "classify"))
 sys.path.append(os.path.join(base_path, "extract"))
 
 from pipeline import load_pipeline  # noqa: E402
-from classification import get_x_y_from_dict  # noqa: E402
+from dataset import get_x_y_from_dict  # noqa: E402
 from extract_embeddings import embed_dataset, mc_setup  # noqa: E402
 from choices.reformat_predictions import get_index_matching_text  # noqa: E402
 
@@ -83,7 +83,7 @@ def parse_flags():
     return args
 
 
-def save_data(output_path, predictions):
+def save_predictions(output_path, predictions):
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as fout:
         fout.write(json.dumps(predictions) + "\n")
@@ -168,7 +168,7 @@ def main(
     full_predictions = correct_model_with_classifier(
         all_args, predictions_dict, strategy_dict, split
     )
-    save_data(output_path, full_predictions)
+    save_predictions(output_path, full_predictions)
 
 
 if __name__ == "__main__":

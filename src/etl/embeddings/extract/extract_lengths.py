@@ -1,8 +1,15 @@
+import os
+import sys
 import argparse
 import numpy as np
 
 from mc_transformers.utils_mc import processors, Split
-from extract_embeddings import save_data
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(os.path.join(base_path, "classify"))
+
+from dataset import save_data  # noqa: E402
+
 
 default_feats = ["contexts", "question", "endings"]
 

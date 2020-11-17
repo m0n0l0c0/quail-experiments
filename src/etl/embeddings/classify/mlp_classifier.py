@@ -1,9 +1,13 @@
 import torch
+import numpy as np
 import torch.nn as nn
 
+from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline as SkPipeline
 
+from balanced_sampling import balanced_sampling_iter
 from torch.utils.data.dataset import Dataset
+from torch.utils.data.dataloader import DataLoader
 from autogoal.grammar import (
     Discrete,
     Union,
@@ -84,7 +88,7 @@ class MLPClassifier():
         y_pred_tag = torch.round(torch.sigmoid(y_pred))
 
         correct_results_sum = (y_pred_tag == y_test).sum().float()
-        acc = correct_results_sum/y_test.shape[0]
+        acc = correct_results_sum / y_test.shape[0]
         acc = torch.round(acc * 100)
 
         return acc
@@ -130,6 +134,99 @@ class MLPPipeline(SkPipeline):
     def __init__(self, classifier: Union("Classification", MLPClassifier)):
         self.classifier = classifier
         super(MLPPipeline, self).__init__([("class", classifier)])
+
+
+def train_classifier(
+    classifier,
+    train_epochs,
+    dataset_rounds,
+    train_dict,
+    test_dict,
+    feature_set,
+    batch_size,
+    print_result=True,
+):
+    if not classifier.is_initialized:
+        hidden_size = get_hidden_size(train_dict, feature_set)
+        classifier.initialize(hidden_size, device=GPU_DEVICE)
+
+    for epoch in range(1, train_epochs + 1):
+        classifier.model.train()
+        epoch_loss = 0
+        epoch_acc = 0
+        for X_train, y_train in balanced_sampling_iter(
+            dataset_rounds,
+            train_dict,
+            feature_set,
+            dont_reshape=False
+        ):
+            embed_dataset = EmbeddingsDataset(X_train, y_train)
+            train_loader = DataLoader(
+                dataset=embed_dataset,
+                batch_size=batch_size,
+                shuffle=True
+            )
+            for batch in train_loader:
+                X_train, y_train = batch
+                loss, acc = classifier.fit(X_train, y_train)
+                epoch_loss += (loss / dataset_rounds)
+                epoch_acc += (acc / dataset_rounds)
+
+        if print_result:
+            eval_acc, y_test, y_preds = eval_classifier(
+                classifier,
+                test_dict,
+                feature_set,
+                batch_size,
+                print_result=False,
+                return_y=True
+            )
+            status = f"Epoch {epoch+0:03}: | "
+            status += f"Loss: {epoch_loss/len(train_loader):.5f} | "
+            status += f"Acc: {epoch_acc/len(train_loader):.3f} | "
+            status += f"Eval Acc: {eval_acc:.3f} | "
+            print(status)
+
+            if epoch % 20 == 0:
+                print(classification_report(y_test, y_preds))
+
+
+def eval_classifier(
+    classifier,
+    test_dict,
+    feature_set,
+    batch_size,
+    score_fn=accuracy,
+    print_result=True,
+    return_y=False,
+):
+    y_preds_list = None
+    classifier.model.eval()
+    X_test, y_test = get_x_y_from_dict(
+        test_dict, features=feature_set, cast=np.float32
+    )
+    embed_dataset = EmbeddingsDataset(X_test)
+    test_loader = DataLoader(
+        dataset=embed_dataset,
+        batch_size=batch_size,
+        shuffle=False
+    )
+    for batch in test_loader:
+        y_preds = classifier.predict(batch)
+        if y_preds_list is None:
+            y_preds_list = y_preds
+        else:
+            y_preds_list = np.concatenate([y_preds_list, y_preds], axis=0)
+
+    y_preds_list = y_preds_list.squeeze()
+    if print_result:
+        print(classification_report(y_test, y_preds_list))
+
+    output = score_fn(y_test, y_preds_list)
+    if return_y:
+        output = (output, y_test, y_preds_list)
+
+    return output
 
 
 def get_pipeline(log_grammar=True):

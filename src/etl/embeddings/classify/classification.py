@@ -1,12 +1,15 @@
 import os
-import pickle
 import argparse
-import numpy as np
 
 from pathlib import Path
-from sklearn.model_selection import train_test_split
 
+from utils import get_loggers
 from pipeline import get_pipeline, save_pipeline
+from dataset import (
+    get_splits,
+    get_dataset,
+    get_x_y_from_dict,
+)
 
 from autogoal.ml.metrics import accuracy
 from autogoal.utils import Gb
@@ -15,39 +18,7 @@ from autogoal.kb import (
     MatrixContinuousDense,
     CategoricalVector,
 )
-from autogoal.search import (
-    PESearch,
-    ConsoleLogger,
-    MemoryLogger,
-    ProgressLogger,
-    Logger,
-)
-
-
-class CustomLogger(Logger):
-    def error(self, e: Exception, solution):
-        out_file = os.path.join(
-            self.get_prefix(), "embeddings_classifier_errors.log"
-        )
-        if e and solution:
-            with open(out_file, "a") as fp:
-                fp.write(f"solution={repr(solution)}\nerror={e}\n\n")
-
-    def update_best(self, new_best, new_fn, *args):
-        out_file = os.path.join(
-            self.get_prefix(), "embeddings_classifier.log"
-        )
-        with open(out_file, "a") as fp:
-            fp.write(f"solution={repr(new_best)}\nfitness={new_fn}\n\n")
-
-    def set_prefix(self, prefix):
-        self.prefix = prefix
-
-    def get_prefix(self):
-        prefix = ""
-        if hasattr(self, "prefix"):
-            prefix = self.prefix
-        return prefix
+from autogoal.search import PESearch
 
 
 def parse_flags():
@@ -76,68 +47,6 @@ def parse_flags():
     return parser.parse_args()
 
 
-def get_dataset(data_path):
-    dataset = pickle.load(open(data_path, "rb"))
-    return dataset
-
-
-def get_splits(dataset, test_size=0.25):
-    data_keys = [key for key in dataset.keys() if key not in ["labels"]]
-    train_dict, test_dict = {}, {}
-    for key in data_keys:
-        X_train, X_test, y_train, y_test = train_test_split(
-            dataset[key], dataset["labels"], test_size=test_size
-        )
-        train_dict.update(**{key: X_train})
-        test_dict.update(**{key: X_test})
-
-        if "lebels" not in train_dict:
-            train_dict.update(labels=y_train)
-            test_dict.update(labels=y_test)
-
-    return (train_dict, test_dict)
-
-
-def get_x_y_from_dict(set_dict, **kwargs):
-    X_set = None
-    y_set = set_dict["labels"]
-    if kwargs.get("features", None) is None:
-        kwargs["features"] = ["embeddings"]
-
-    if "features" in kwargs:
-        for feature in kwargs["features"]:
-            feat_values = set_dict[feature]
-            feat_shape = feat_values.shape
-            if len(feat_shape) > 2:
-                if not kwargs.get("dont_reshape", False):
-                    feat_values = feat_values.reshape(feat_shape[0], -1)
-            elif len(feat_shape) == 1:
-                if not kwargs.get("dont_reshape", False):
-                    feat_values = feat_values.reshape(feat_shape[0], 1)
-            if X_set is None:
-                X_set = feat_values
-            else:
-                X_set = np.concatenate([X_set, feat_values], axis=1)
-
-    if "cast" in kwargs:
-        X_set = X_set.astype(kwargs["cast"])
-        y_set = y_set.astype(kwargs["cast"])
-
-    return X_set, y_set
-
-
-def get_loggers(output_dir):
-    logger = MemoryLogger()
-    custom = CustomLogger()
-    custom.set_prefix(output_dir)
-    return [
-        ProgressLogger(),
-        ConsoleLogger(),
-        custom,
-        logger
-    ]
-
-
 def get_automl(args):
     return AutoML(
         input=MatrixContinuousDense(),
@@ -153,36 +62,6 @@ def get_automl(args):
             early_stop=10,
         ),
     )
-
-
-def normalize_dataset(dataset, features):
-    all_data = None
-    shapes = []
-    for feature in features:
-        feat_values = dataset[feature]
-        feat_shape = feat_values.shape
-        if len(feat_shape) > 2:
-            feat_values = feat_values.reshape(feat_shape[0], -1)
-        elif len(feat_shape) == 1:
-            feat_values = feat_values.reshape(feat_shape[0], 1)
-
-        shapes.append((feat_shape, feat_values.shape))
-
-        if all_data is None:
-            all_data = feat_values
-        else:
-            all_data = np.concatenate([all_data, feat_values], axis=1)
-
-    # mean along rows
-    all_data = (all_data.T - all_data.mean(axis=1)).T
-    all_data = (all_data.T / all_data.std()).T
-
-    for shape, feature in zip(shapes, features):
-        orig_shape, reshaped = shape
-        dataset[feature] = all_data[:, :reshaped[-1]]
-        dataset[feature] = dataset[feature].reshape(orig_shape)
-
-    return dataset
 
 
 def setup_pipeline(train_dict, test_dict, score_metric):
