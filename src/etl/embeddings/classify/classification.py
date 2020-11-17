@@ -128,9 +128,11 @@ def make_fn(train_dict, test_dict, feature_set, score_metric):
 def setup_pipeline(args, train_dict, test_dict, feature_set, score_metric):
     pipeline = get_pipeline(pipe_type=args.pipeline, log_grammar=True)
     if args.balanced:
-        fitness_fn = make_balanced_fn(train_dict, test_dict, feature_set, score_metric)
+        maker = make_balanced_fn
     else:
-        fitness_fn = make_fn(train_dict, test_dict, feature_set, score_metric)
+        maker = make_fn
+
+    fitness_fn = maker(train_dict, test_dict, feature_set, score_metric)
 
     return PESearch(
         pipeline,

@@ -31,14 +31,15 @@ def parse_flags():
         help="Wheter to normalize dataset before applying PCA"
     )
     parser.add_argument(
-        "-o", "--output_dir", type=str, required=True,
-        help="Output directory path to store the normalized dataset"
+        "-o", "--output_path", required=False, type=str,
+        help="Output path to store embeddings and data file"
     )
     return parser.parse_args()
 
 
-def main(data_path, n_components, normalize, output_dir):
-    out_data_name = f"pca_{n_components}_comps"
+def main(data_path, n_components, normalize, output_path):
+    output_dir = os.path.dirname(output_path)
+    output_name = os.path.splitext(os.path.basename(output_path))[0]
     dataset = get_dataset(data_path)
     feature_set = ["embeddings"]
     untouched_features = {
@@ -57,7 +58,7 @@ def main(data_path, n_components, normalize, output_dir):
 
     save_data(
         output_dir,
-        out_data_name,
+        output_name,
         embeddings=X_pca,
         **untouched_features,
     )

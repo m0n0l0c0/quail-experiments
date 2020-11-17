@@ -57,7 +57,7 @@ def pick_random_examples(examples, num_samples):
     return picked
 
 
-def synthesize_data(examples):
+def synthesize_data(processor, examples):
     data = []
     # swap endings between examples
     all_endings = [end for ex in examples for end in ex.endings]
@@ -67,10 +67,10 @@ def synthesize_data(examples):
     random.shuffle(all_endings)
     cursor = 0
     progress = tqdm(examples, disable=not LOG, desc="Generate samples")
-    for ex in progress:
+    for ex_idx, ex in enumerate(progress):
         # do not add labels
         new_example = InputExample(
-            example_id=ex.example_id,
+            example_id=processor._encode_id("synth", ex_idx),
             question=ex.question,
             contexts=ex.contexts,
             endings=all_endings[cursor:cursor + len(ex.contexts)],
@@ -86,7 +86,9 @@ def save_dataset(dataset, data, output_dir, split):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     file_name = f"{split}.json"
     file_path = os.path.join(output_dir, file_name)
-    str_data = json.dumps(dataset.to_json(data))
+    examples = dataset.get_split(split)
+    examples.extend(data)
+    str_data = json.dumps(dataset.to_json(examples))
     if LOG:
         print(f"Saving data to '{file_path}'")
     with open(file_path, "w") as fout:
@@ -103,7 +105,7 @@ def generate_synthetic_data(
     dataset = Dataset(data_path=data_dir, task=task)
     examples = dataset.get_split(split)
     chosen = pick_random_examples(examples, num_samples)
-    data = synthesize_data(chosen)
+    data = synthesize_data(dataset.processor, chosen)
     save_dataset(dataset, data, output_dir, split)
 
 
