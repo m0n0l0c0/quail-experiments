@@ -321,7 +321,7 @@ def main(
         save_data(output_dir, split, single_items, **embedded)
 
     if oversample is not None:
-        oversampled_name = f"{split}_oversample_{str(oversample)}"
+        oversampled_name = f"{split}_oversample_{str(oversample).replace('.', '')}"
         oversampled_file = f"{oversampled_name}_data.pkl"
         oversampled_file = os.path.join(output_dir, oversampled_name)
         # avoid unnecesary loading
