@@ -666,7 +666,7 @@ stages:
   : cmd: ./src/processing/run.sh data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
     deps:
     - data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2
-    - data/quail_race_fmt/dev.json
+    - data/quail_no_empty_answers/dev.json
     - src/processing/run.sh
     params:
     - ? data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json

@@ -1,6 +1,6 @@
 {
   "inputs": [
-    "${DATA_DIR}/quail_race_fmt/dev.json",
+    "${DATA_DIR}/quail_no_empty_answers/dev.json",
     "${MODELS_DIR}/$find_experiment(bert-train-no-empty-answers.json)"
   ],
   "scripts": [
@@ -19,7 +19,7 @@
   ],
   "params": {
     "meta": "bert-eval-no-empty-answers",
-    "data_dir": "${DATA_DIR}/quail_race_fmt",
+    "data_dir": "${DATA_DIR}/quail_no_empty_answers",
     "cache_dir": "/tmp",
     "model_name_or_path": "${MODELS_DIR}/$find_experiment(bert-train-no-empty-answers.json)",
     "output_dir": "${MODELS_DIR}/${EXPERIMENT_DIR}",
