@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import glob
 import torch
 import pickle
@@ -50,6 +51,10 @@ def parse_flags():
         help="Arguments in json used to work with the model"
     )
     parser.add_argument(
+        "-x", "--extract", required=False, default=None, type=str,
+        help="Field to extract from the json args file"
+    )
+    parser.add_argument(
         "-g", "--gpu", required=False, default=0, type=int,
         help="GPU to use (default to 0)"
     )
@@ -78,13 +83,18 @@ def parse_flags():
     return parser.parse_args()
 
 
-def mc_setup(args_file, split):
+def mc_setup(args_file, extract, split):
+    if extract is not None:
+        args_file = json.load(open(args_file, 'r'))[extract]
+    else:
+        args_file = [args_file]
+
     config_kwargs = {
         "return_dict": True,
         "output_hidden_states": True,
     }
     all_args, processor, config, tokenizer, model = setup(
-        [args_file], config_kwargs=config_kwargs
+        args_file, config_kwargs=config_kwargs
     )
     model_args, data_args, dir_args, training_args, window_args = (
         all_args.values()
@@ -284,6 +294,7 @@ def merge_embedded_data(data_src, data_extra):
 
 def main(
     args_file,
+    extract,
     split,
     output_dir,
     tmp_dir,
@@ -294,7 +305,7 @@ def main(
     overwrite,
 ):
     all_args, model, tokenizer, trainer, eval_dataset = mc_setup(
-        args_file, split
+        args_file, extract, split
     )
     _, data_args, _, _, _ = all_args.values()
     device = torch.device("cuda", index=gpu)
