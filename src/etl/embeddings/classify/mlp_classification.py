@@ -18,7 +18,7 @@ from mlp_classifier import (
 from dataset import (
     get_splits,
     get_x_y_from_dict,
-    get_dataset_rounds,
+    get_dataset_class_proportions,
     get_normalized_dataset,
     sweep_features,
     DEFAULT_FEATS,
@@ -98,7 +98,7 @@ def make_fn(
     feature_set,
     score_fn,
 ):
-    dataset_rounds = get_dataset_rounds(train_dict)
+    dataset_rounds = get_dataset_class_proportions(train_dict)
     train_data = dict(
         train_epochs=args.epochs,
         dataset_rounds=dataset_rounds,
@@ -162,7 +162,7 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
 def std_train(args, train_dict, test_dict, features, score_fn):
     for feature_set in features:
         print(f"Training with features: {feature_set}")
-        dataset_rounds = get_dataset_rounds(train_dict)
+        dataset_rounds = get_dataset_class_proportions(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier = MLPClassifier(lr=args.lr)
         classifier.initialize(hidden_size, device=GPU_DEVICE)

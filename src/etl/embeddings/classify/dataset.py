@@ -62,7 +62,7 @@ def get_x_y_from_dict(set_dict, **kwargs):
     return X_set, y_set
 
 
-def get_dataset_rounds(train_dict):
+def get_dataset_class_proportions(train_dict):
     y_train = train_dict["labels"]
     props = list(Counter(y_train).values())
     max_nof, min_nof = max(props), min(props)
