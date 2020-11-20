@@ -691,7 +691,7 @@ tr_quail_train_no_empty_answers:
     -s train --no_answer_text "not enough information"
   deps:
   - path: data/quail_race_fmt
-    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
+    md5: 97b36e1a806fb22353b455b65f78cad5.dir
   - path: src/etl/choices/reformat_dataset.py
     md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
   outs:
@@ -703,7 +703,7 @@ tr_quail_dev_no_empty_answers:
     ./data/quail_no_empty_answers/dev_index_list.json
   deps:
   - path: data/quail_race_fmt
-    md5: 9262efd959cbf9d3db14a81d4fdb12e0.dir
+    md5: 97b36e1a806fb22353b455b65f78cad5.dir
   - path: src/etl/choices/reformat_dataset.py
     md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
   outs:

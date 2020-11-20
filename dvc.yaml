@@ -739,3 +739,69 @@ stages:
     - data/results/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/eval_nbest_predictions.json
     metrics:
     - data/metrics/bert/generic/multibert-train/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2/thrs_evaluation.json
+  extract_no_empty_answers_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+      --extract params -o /data/gblanco/datasets/embeddings/quail_no_empty_answers
+      --oversample 0.5 --tmp_dir /data/gblanco/datasets/embeddings/quail_no_empty_answers
+    deps:
+    - data/models/bert/generic/bert-train-no-empty-answers/do_train_do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2
+    - data/quail_no_empty_answers/train.json
+    - data/specs/bert/generic/bert-eval-no-empty-answers/do_eval_learning_rate_5e_05_max_seq_length_484_fp16_fp16_opt_level_O1_gradient_accumulation_steps_8_num_train_epochs_2_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/train.json
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_data.pkl
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_oversample_05_data.pkl
+  extract_no_empty_answers_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths
+    deps:
+    - data/quail_no_empty_answers/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_data.pkl
+  extract_no_empty_answers_lengths_oversample_05:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_oversample_05
+    deps:
+    - data/quail_no_empty_answers/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_oversample_05_data.pkl
+  normalize_no_emtpy_answers_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_data.pkl
+      -n 50 -o /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_data.pkl
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_data.pkl
+  normalize_no_emtpy_answers_embeddings_oversample_05:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_data.pkl
+      -n 50 -o /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_oversmple_05
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_oversample_05_data.pkl
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_oversample_05_data.pkl
+  merge_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_data.pkl
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_50_comps_with_lengths
+    deps:
+    - /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_data.pkl
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_50_comps_with_lengths_data.pkl
+  merge_norm_with_lengths_oversample_05:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_oversample_05_data.pkl
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_oversample_05_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_50_comps_with_lengths_oversample_05
+    deps:
+    - /data/gblanco/data/embeddings/quail_no_empty_answers/train_50_comps_oversample_05_data.pkl
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_text_lengths_oversample_05_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/train_50_comps_with_lengths_oversample_05_data.pkl
