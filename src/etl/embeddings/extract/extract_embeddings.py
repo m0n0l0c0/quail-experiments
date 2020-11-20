@@ -340,7 +340,7 @@ def main(
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
         oversample_embedded = embed_from_dataloader(
-            oversample_dataloader, device, model, pool, tmp_dir
+            oversample_dataloader, device, model, pool, oversample_data_dir
         )
         embedded = merge_embedded_data(embedded, oversample_embedded)
 
