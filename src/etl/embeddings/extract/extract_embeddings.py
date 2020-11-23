@@ -71,6 +71,11 @@ def parse_flags():
         help="Whether to apply max pooling to the last layer of embeddings"
     )
     parser.add_argument(
+        "--scatter_dataset", action="store_false",
+        help="Whether to store the dataset scattered across multiple files or "
+        "in a single file"
+    )
+    parser.add_argument(
         "-O", "--oversample", required=False, default=None, type=float,
         help="Synthetize data until proportions are met, only "
         "possible when imbalanced class is `incorrect` (e.g.: 0.5)"
@@ -301,6 +306,7 @@ def main(
     gpu,
     single_items,
     pool,
+    scatter_dataset,
     oversample,
     overwrite,
 ):
@@ -316,7 +322,7 @@ def main(
     if overwrite or not Path(dataset_file).exists():
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
         embedded = embed_from_dataloader(
-            eval_dataloader, device, model, pool, tmp_dir
+            eval_dataloader, device, model, pool, scatter_dataset, tmp_dir
         )
         save_data(output_dir, split, single_items, **embedded)
 
@@ -340,7 +346,12 @@ def main(
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
         oversample_embedded = embed_from_dataloader(
-            oversample_dataloader, device, model, pool, oversample_data_dir
+            oversample_dataloader,
+            device,
+            model,
+            pool,
+            scatter_dataset,
+            oversample_data_dir,
         )
         embedded = merge_embedded_data(embedded, oversample_embedded)
 
