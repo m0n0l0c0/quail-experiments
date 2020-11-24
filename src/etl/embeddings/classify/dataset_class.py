@@ -195,7 +195,7 @@ class Dataset(object):
         self._index_name = "index.csv"
         self._index_file = os.path.join(self.data_path, self._index_name)
         if data_frame is None:
-            self.data_frame = pd.read_csv(self.index_file)
+            self.data_frame = pd.read_csv(self._index_file)
         self.cast = cast
         self.features = features
         self._ret_x = ret_x
