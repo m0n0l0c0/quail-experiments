@@ -280,6 +280,9 @@ def embed_from_dataloader(
                 logits.append(sample["logits"])
 
             pred_labels_correct = get_model_results(np.array(logits), labels)
+            pred_labels_correct = np.array([
+                int(p) for p in pred_labels_correct
+            ])
             dataset.set_labels(pred_labels_correct)
             return dataset
     else:
