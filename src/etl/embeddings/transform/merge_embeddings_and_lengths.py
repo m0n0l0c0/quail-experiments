@@ -20,7 +20,7 @@ def parse_flags():
         help="Path to dataset of text lengths"
     )
     parser.add_argument(
-        "--scatter_dataset", action="store_false",
+        "--scatter_dataset", action="store_true",
         help="Whether to store the dataset scattered across multiple files or "
         "in a single file"
     )
@@ -49,7 +49,7 @@ def scatter_dataset_merge(embeddings_path, data_path, output_dir):
 def main(embeddings_path, data_path, scatter_dataset, output_path):
     output_dir = os.path.dirname(output_path)
     output_name = os.path.splitext(os.path.basename(output_path))[0]
-    if scatter_dataset:
+    if not scatter_dataset:
         embeddings_data = single_dataset_merge(embeddings_path, data_path)
         save_data(output_dir, output_name, **embeddings_data)
     else:

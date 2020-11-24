@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
+from tqdm import tqdm
 from shutil import rmtree
 from pathlib import Path
 from collections import Counter, OrderedDict
@@ -149,7 +150,6 @@ class NormalizeFeaturesOp(DatasetOperation):
             data[feat] = data[feat].reshape(o_shape)
 
         return data
-
 
 class Dataset(object):
     def __init__(
@@ -332,6 +332,62 @@ class Dataset(object):
     def get_class_proportions(self):
         props = list(Counter(self.data_frame.y.values).values())
         return round(max(props) / min(props))
+
+    def gather(self, features=None):
+        _X = None
+        _y = None
+        self.ret_x = True
+        self.ret_y = True
+        if features is not None:
+            bar = tqdm(
+                self.iter_features(), desc="Loading examples", total=len(self)
+            )
+        else:
+            bar = tqdm(self, desc="Loading examples", total=len(self))
+        for X, y in bar:
+            if _X is None:
+                if features is not None:
+                    _X = dict()
+                    for feat in features:
+                        X_data = np.array(X[feat])
+                        X_data = X_data.reshape(1, *X_data.shape)
+                        _X.update(**{feat: X_data})
+                    _y = {"labels": np.array(y["label"])}
+                else:
+                    _X = np.array(X)
+            else:
+                if features is not None:
+                    for feat in features:
+                        _X[feat] = np.concatenate([
+                            _X[feat], X[feat].reshape(1, *X[feat].shape)
+                        ], axis=0)
+                    _y["labels"] = np.vstack([_y["labels"], y["label"]])
+                else:
+                    _X = np.concatenate([_X, X], axis=0)
+                    _y = np.vstack([_y, y])
+
+        return dict(X=_X, y=_y)
+
+    def iter_features(self):
+        iter_options = dict(collate=False, unshape=True)
+        self.n = 0
+        while self.n < len(self):
+            iter_dict = dict()
+            X_dict, y_dict = dict(), dict()
+            if self.ret_x:
+                X_dict.update(**self._get_x(self.n, **iter_options))
+            if self.ret_y:
+                y_dict.update(dict(label=self._get_y(self.n)))
+            
+            if self._ret_xy:
+                ret = (X_dict, y_dict)
+            elif self._ret_x:
+                ret = X_dict
+            else:
+                ret = y_dict
+            yield  ret
+
+            self.n += 1
 
     def normalize_dataset_by_features(self, features):
         return Dataset(
