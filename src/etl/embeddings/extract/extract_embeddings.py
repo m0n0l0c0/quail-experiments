@@ -72,7 +72,7 @@ def parse_flags():
         help="Whether to apply max pooling to the last layer of embeddings"
     )
     parser.add_argument(
-        "--scatter_dataset", action="store_false",
+        "--scatter_dataset", action="store_true",
         help="Whether to store the dataset scattered across multiple files or "
         "in a single file"
     )
