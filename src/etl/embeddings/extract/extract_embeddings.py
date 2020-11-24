@@ -81,10 +81,6 @@ def parse_flags():
         help="Synthetize data until proportions are met, only "
         "possible when imbalanced class is `incorrect` (e.g.: 0.5)"
     )
-    parser.add_argument(
-        "--tmp_dir", required=False, default="/tmp", type=str,
-        help="Temporary directory to catch embeddings"
-    )
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
@@ -146,10 +142,10 @@ def gather_embeddings(embedding_path, embedding_cursor):
     return embeddings
 
 
-def embed_dataset(model, dataloader, device, pool, tmp_dir):
+def embed_dataset(model, dataloader, device, pool, output_dir):
     embeddings = None
     embedding_cursor = 0
-    embedding_path = os.path.join(tmp_dir, "embeddings")
+    embedding_path = os.path.join(output_dir, "embeddings")
     logits = None
     labels = None
 
@@ -206,8 +202,8 @@ def embed_dataset(model, dataloader, device, pool, tmp_dir):
     return embeddings, logits, labels
 
 
-def scatter_embed_dataset(model, dataloader, device, pool, tmp_dir):
-    embedding_path = os.path.join(tmp_dir, "embeddings")
+def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
+    embedding_path = os.path.join(output_dir, "embeddings")
     max_pooling = torch.nn.MaxPool1d(model.config.hidden_size)
     model = model.to(device)
 
@@ -245,9 +241,9 @@ def scatter_embed_dataset(model, dataloader, device, pool, tmp_dir):
     return Dataset(data_path=embedding_path)
 
 
-def embed_from_dataloader(dataloader, device, model, pool, tmp_dir):
+def embed_from_dataloader(dataloader, device, model, pool, output_dir):
     embeddings, logits, labels = embed_dataset(
-        model, dataloader, device, pool, tmp_dir
+        model, dataloader, device, pool, output_dir
     )
 
     # labels should not be null
@@ -303,14 +299,14 @@ def get_dataset(data_args, tokenizer, split, **kwargs):
     return MultipleChoiceDataset(**args)
 
 
-def oversampling(data_args, num_samples, tokenizer, split, tmp_dir):
+def oversampling(data_args, num_samples, tokenizer, split, output_dir):
     # ToDo :=
     #  - Add path to be able to import synthetic_embeddings
     #  - Generate embeddings
     #  - Save them
     #  - Create dataloader with new embeddings
     #  - Embed dataset
-    output_dir = os.path.join(tmp_dir, "oversample_embeddings")
+    output_dir = os.path.join(output_dir, "oversample_embeddings")
     generate_synthetic_data(
         data_args.data_dir,
         output_dir,
@@ -342,7 +338,6 @@ def main(
     extract,
     split,
     output_dir,
-    tmp_dir,
     gpu,
     single_items,
     pool,
@@ -363,11 +358,11 @@ def main(
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
         if scatter_dataset:
             embedded = scatter_embed_dataset(
-                model, eval_dataloader, device, pool, tmp_dir
+                model, eval_dataloader, device, pool, output_dir
             )
         else:
             embedded = embed_from_dataloader(
-                eval_dataloader, device, model, pool, tmp_dir
+                eval_dataloader, device, model, pool, output_dir
             )
             save_data(output_dir, split, single_items, **embedded)
 
@@ -388,7 +383,7 @@ def main(
 
         num_samples = get_num_samples(embedded, oversample)
         oversample_data_dir = oversampling(
-            data_args, num_samples, tokenizer, split, tmp_dir
+            data_args, num_samples, tokenizer, split, output_dir
         )
         oversample_dataset = get_dataset(
             data_args, tokenizer, split, data_dir=oversample_data_dir
