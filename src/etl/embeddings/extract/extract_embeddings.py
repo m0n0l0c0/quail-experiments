@@ -229,7 +229,7 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
                 else:
                     labels = np.hstack([labels, numpyfied_labels])
 
-            for idx in numpyfied_output:
+            for idx in range(len(numpyfied_output)):
                 save_data(
                     embedding_path,
                     idx,
