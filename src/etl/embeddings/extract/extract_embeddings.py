@@ -207,6 +207,8 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
     max_pooling = torch.nn.MaxPool1d(model.config.hidden_size)
     model = model.to(device)
 
+    embeddings_cursor = 0
+    num_choices = None
     labels = None
     for inputs in tqdm(dataloader, desc="Embedding"):
         inputs = prepare_inputs(inputs, device)
@@ -220,10 +222,18 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
             )
             numpyfied_logits = output.logits.cpu().numpy()
             numpyfied_output = pooled_output.cpu().numpy()
-            numpyfied_output = numpyfied_output.reshape(
-                (dataloader.batch_size, -1, *numpyfied_output.shape[1:])
-            )
+            if num_choices is None:
+                out_shape = (
+                    dataloader.batch_size, -1, *numpyfied_output.shape[1:]
+                )
+            else:
+                out_shape = (-1, num_choices, *numpyfied_output.shape[1:])
+                    
+            numpyfied_output = numpyfied_output.reshape(out_shape)
             numpyfied_labels = None
+
+            if num_choices is None:
+                num_choices = numpyfied_output.shape[1]
 
             if "labels" in inputs:
                 numpyfied_labels = inputs["labels"].cpu().numpy()
@@ -235,10 +245,12 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
             for idx in range(len(numpyfied_output)):
                 save_data(
                     embedding_path,
-                    idx,
+                    embedding_cursor + idx,
                     embeddings=numpyfied_output[idx],
                     logits=numpyfied_logits[idx],
                 )
+
+            embedding_cursor += len(numpyfied_output)
 
     Dataset.build_index(embedding_path, labels)
     return Dataset(data_path=embedding_path)
@@ -354,7 +366,10 @@ def main(
     _, data_args, _, _, _ = all_args.values()
     device = torch.device("cuda", index=gpu)
 
-    dataset_file = os.path.join(output_dir, f"{split}_data.pkl")
+    if scatter_dataset:
+        dataset_file = os.path.join(output_dir, "embeddings", "index.csv")
+    else:
+        dataset_file = os.path.join(output_dir, f"{split}_data.pkl")
 
     embedded = None
     if overwrite or not Path(dataset_file).exists():
@@ -372,7 +387,12 @@ def main(
     if oversample is not None:
         oversample_rate = str(oversample).replace('.', '')
         oversampled_name = f"{split}_oversample_{oversample_rate}"
-        oversampled_file = f"{oversampled_name}_data.pkl"
+        if scatter_dataset:
+            oversampled_file = os.path.join(
+                "oversample_embeddings", "index.csv"
+            )
+        else:
+            oversampled_file = f"{oversampled_name}_data.pkl"
         oversampled_file = os.path.join(output_dir, oversampled_name)
         # avoid unnecesary loading
         if not overwrite and Path(oversampled_file).exists():
