@@ -207,7 +207,7 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
     max_pooling = torch.nn.MaxPool1d(model.config.hidden_size)
     model = model.to(device)
 
-    embeddings_cursor = 0
+    embedding_cursor = 0
     num_choices = None
     labels = None
     for inputs in tqdm(dataloader, desc="Embedding"):
