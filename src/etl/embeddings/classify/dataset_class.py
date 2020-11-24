@@ -10,6 +10,8 @@ from tqdm import tqdm
 from pathlib import Path
 from shutil import rmtree, copyfile
 from collections import Counter, OrderedDict
+from multiprocessing import cpu_count
+from concurrent.futures import ProcessPoolExecutor
 from sklearn.model_selection import train_test_split
 
 # separate normalization
@@ -77,6 +79,30 @@ def setup_data_dir(data_dir, overwrite):
 
     data_dir.mkdir(parents=True, exist_ok=overwrite)
     return data_dir
+
+
+def copy_file(src_dst):
+    src, dst = src_dst
+    copyfile(src, dst)
+    return True
+
+
+def parallel_copy(files):
+    with ProcessPoolExecutor(max_workers=cpu_count()) as pool:
+        with tqdm(desc="Copy files", total=len(files)) as progress:
+            futures = []
+            for src_dst in files:
+                future = pool.submit(copy_file, src_dst)
+                future.add_done_callback(lambda p: progress.update())
+                futures.append(future)
+
+            results = []
+            for future in futures:
+                result = future.result()
+                results.append(result)
+
+            progress.close()
+            return results
 
 
 class DatasetOperation(object):
@@ -323,19 +349,16 @@ class Dataset(object):
         data_dir = Path(data_dir)
         if not data_dir.exists():
             data_dir.mkdir(parents=True)
-        bar = tqdm(
-            enumerate(self.data_frame.X.values),
-            desc="Copy files",
-            total=len(self)
-        )
-        for idx, path in bar:
+        files = []
+        for idx, path in enumerate(self.data_frame.X.values):
             if start_idx > 0:
                 out_fname = f"{start_idx + idx}_data.pkl"
             else:
                 out_fname = os.path.basename(path)
             out_path = os.path.join(data_dir, out_fname)
-            # ToDo:= Multithread copy
-            copyfile(path, out_path)
+            files.append((path, out_path))
+
+        parallel_copy(files)
         self.data_frame.to_csv(os.path.join(data_dir, "index.csv"))
 
     def get_x_y_from_dict(self, features=None):
@@ -514,7 +537,6 @@ class Dataset(object):
     def extend(
         self,
         feature_dict,
-        features,
         in_file=True,
         in_place=True,
         data_dir=None,
@@ -526,15 +548,15 @@ class Dataset(object):
         else:
             data_dir = self.data_path
 
-        _X = self.data_frame.X.values
-        _y = self.data_frame.y.values
+        _X = self.data_frame.X.to_list()
+        _y = self.data_frame.y.to_list()
 
-        for path in feature_dict.X.values:
+        for path in feature_dict.data_frame.X.values:
             out_fname = os.path.basename(path)
             out_path = os.path.join(data_dir, out_fname)
             _X.append(out_path)
 
-        _y.extend(feature_dict.y.values)
+        _y.extend(feature_dict.data_frame.y.to_list())
 
         feature_dict.copy_to_dir(data_dir, start_idx=len(self))
 

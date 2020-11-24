@@ -7,7 +7,8 @@ sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, "classify"))
 
 from dataset import get_dataset, save_data  # noqa: E402
-from dataset_class import Dataset
+from dataset_class import Dataset  # noqa: E402
+
 
 def parse_flags():
     parser = argparse.ArgumentParser()

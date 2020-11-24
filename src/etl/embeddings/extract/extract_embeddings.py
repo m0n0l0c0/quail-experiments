@@ -7,8 +7,9 @@ import pickle
 import argparse
 import numpy as np
 
-from pathlib import Path
 from tqdm import tqdm
+from shutil import rmtree
+from pathlib import Path
 
 from transformers import is_tf_available, Trainer
 from mc_transformers.utils_mc import MultipleChoiceDataset, Split
@@ -278,7 +279,7 @@ def embed_from_dataloader(
             for sample in dataset.iter_features():
                 logits.append(sample["logits"])
 
-            pred_labels_correct = get_model_results(logits, labels)
+            pred_labels_correct = get_model_results(np.array(logits), labels)
             dataset.set_labels(pred_labels_correct)
             return dataset
     else:
@@ -315,7 +316,7 @@ def get_num_samples(data, proportions, scatter_dataset):
     if scatter_dataset:
         data.ret_x = False
         data.ret_y = True
-        labels = [y for y in data]
+        labels = np.array([y for y in data])
     else:
         labels = data["labels"]
     total_samples = len(labels)
@@ -355,7 +356,7 @@ def oversampling(data_args, num_samples, tokenizer, split, output_dir):
     #  - Create dataloader with new embeddings
     #  - Embed dataset
     output_dir = os.path.join(output_dir, "oversample_embeddings")
-    generate_synthetic_data(
+    synthetic_dir = generate_synthetic_data(
         data_args.data_dir,
         output_dir,
         num_samples,
@@ -364,7 +365,7 @@ def oversampling(data_args, num_samples, tokenizer, split, output_dir):
         log=True
     )
 
-    return output_dir
+    return output_dir, synthetic_dir
 
 
 def merge_embedded_data(data_src, data_extra):
@@ -429,16 +430,17 @@ def main(
         elif embedded is None:
             print(f"Loading cached data from {dataset_file}")
             if scatter_dataset:
-                embedded = Dataset(data_path=output_dir)
+                scatter_dir = os.path.join(output_dir, "embeddings")
+                embedded = Dataset(data_path=scatter_dir)
             else:
                 embedded = load_data(dataset_file)
 
         num_samples = get_num_samples(embedded, oversample, scatter_dataset)
-        oversample_data_dir = oversampling(
+        oversample_data_dir, oversample_synthetic_dir = oversampling(
             data_args, num_samples, tokenizer, split, output_dir
         )
         oversample_dataset = get_dataset(
-            data_args, tokenizer, split, data_dir=oversample_data_dir
+            data_args, tokenizer, split, data_dir=oversample_synthetic_dir
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
         oversample_embedded = embed_from_dataloader(
@@ -454,6 +456,8 @@ def main(
         else:
             embedded = merge_embedded_data(embedded, oversample_embedded)
             save_data(output_dir, oversampled_name, single_items, **embedded)
+
+        rmtree(oversample_synthetic_dir)
 
 
 if __name__ == "__main__":

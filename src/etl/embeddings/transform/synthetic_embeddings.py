@@ -82,12 +82,15 @@ def synthesize_data(processor, examples):
     return data
 
 
-def save_dataset(dataset, data, output_dir, split):
+def save_dataset(dataset, data, output_dir, split, extend=True):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     file_name = f"{split}.json"
     file_path = os.path.join(output_dir, file_name)
-    examples = dataset.get_split(split)
-    examples.extend(data)
+    if extend:
+        examples = dataset.get_split(split)
+        examples.extend(data)
+    else:
+        examples = data
     str_data = json.dumps(dataset.to_json(examples))
     if LOG:
         print(f"Saving data to '{file_path}'")
@@ -107,6 +110,9 @@ def generate_synthetic_data(
     chosen = pick_random_examples(examples, num_samples)
     data = synthesize_data(dataset.processor, chosen)
     save_dataset(dataset, data, output_dir, split)
+    synthetic_out = os.path.join(output_dir, "synthetic")
+    save_dataset(dataset, data, synthetic_out, split, extend=False)
+    return synthetic_out
 
 
 if __name__ == '__main__':
