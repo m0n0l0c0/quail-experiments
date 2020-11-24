@@ -1,13 +1,14 @@
 import os
 import sys
+import glob
 import torch
 import pickle
 import numpy as np
 import pandas as pd
 
 from tqdm import tqdm
-from shutil import rmtree
 from pathlib import Path
+from shutil import rmtree, copyfile
 from collections import Counter, OrderedDict
 from sklearn.model_selection import train_test_split
 
@@ -34,6 +35,15 @@ def get_data_size_gb(feature_dict):
     return total_size_gb
 
 
+def get_item_from_data(features, idx):
+    if isinstance(features, Dataset):
+        return features._get_x(idx, collate=False, unshape=True)
+    else:
+        return {
+            f: np.array(features[f][idx]) for f in features.keys()
+        }
+
+
 def save_data(output_dir, prefix, single_items=False, **kwargs):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -51,6 +61,22 @@ def save_data(output_dir, prefix, single_items=False, **kwargs):
 def load_dataset(data_path):
     data = pickle.load(open(data_path, "rb"))
     return data
+
+
+def setup_data_dir(data_dir, overwrite):
+    if data_dir is None:
+        raise ValueError(
+            "A 'data_dir' must be provided to save the dataset!"
+        )
+    data_dir = Path(data_dir)
+    if (
+        (overwrite and data_dir.exists()) or
+        (data_dir.exists() and len(list(data_dir.iterdir())) == 0)
+    ):
+        rmtree(data_dir)
+
+    data_dir.mkdir(parents=True, exist_ok=overwrite)
+    return data_dir
 
 
 class DatasetOperation(object):
@@ -150,6 +176,7 @@ class NormalizeFeaturesOp(DatasetOperation):
             data[feat] = data[feat].reshape(o_shape)
 
         return data
+
 
 class Dataset(object):
     def __init__(
@@ -274,7 +301,7 @@ class Dataset(object):
     def ret_x(self, value):
         self._ret_x = value
         self._ret_xy = self._ret_x and self.ret_y
-    
+
     @property
     def ret_y(self):
         return self._ret_y
@@ -283,6 +310,33 @@ class Dataset(object):
     def ret_y(self, value):
         self._ret_y = value
         self._ret_xy = self._ret_x and self.ret_y
+
+    @staticmethod
+    def build_index(data_dir, y):
+        embedding_files = glob.glob(f"{data_dir}/*_data.pkl")
+        embedding_files.sort()
+        index_path = os.path.join(data_dir, "index.csv")
+        index = pd.DataFrame.from_dict(dict(X=embedding_files, y=y))
+        index.to_csv(index_path)
+
+    def copy_to_dir(self, data_dir, start_idx=0, overwrite=False):
+        data_dir = Path(data_dir)
+        if not data_dir.exists():
+            data_dir.mkdir(parents=True)
+        bar = tqdm(
+            enumerate(self.data_frame.X.values),
+            desc="Copy files",
+            total=len(self)
+        )
+        for idx, path in bar:
+            if start_idx > 0:
+                out_fname = f"{start_idx + idx}_data.pkl"
+            else:
+                out_fname = os.path.basename(path)
+            out_path = os.path.join(data_dir, out_fname)
+            # ToDo:= Multithread copy
+            copyfile(path, out_path)
+        self.data_frame.to_csv(os.path.join(data_dir, "index.csv"))
 
     def get_x_y_from_dict(self, features=None):
         X_dataset = Dataset(
@@ -372,20 +426,19 @@ class Dataset(object):
         iter_options = dict(collate=False, unshape=True)
         self.n = 0
         while self.n < len(self):
-            iter_dict = dict()
             X_dict, y_dict = dict(), dict()
             if self.ret_x:
                 X_dict.update(**self._get_x(self.n, **iter_options))
             if self.ret_y:
                 y_dict.update(dict(label=self._get_y(self.n)))
-            
+
             if self._ret_xy:
                 ret = (X_dict, y_dict)
             elif self._ret_x:
                 ret = X_dict
             else:
                 ret = y_dict
-            yield  ret
+            yield ret
 
             self.n += 1
 
@@ -427,28 +480,8 @@ class Dataset(object):
         #         )
         #     self._add_features_to_index(feature_dict)
         # else:
-        def get_item(features, idx):
-            if isinstance(features, Dataset):
-                return dataset._get_x(idx, collate=False, unshape=True)
-            else:
-                return {
-                    f: np.array(feature_dict[f][idx]) for f in feature_dict.keys()
-                }
-
         if not in_place:
-            if data_dir is None:
-                raise ValueError(
-                    "A 'data_dir' must be provided to save the dataset with"
-                    " new features when 'in_place=False'!"
-                )
-            data_dir = Path(data_dir)
-            if (
-                (overwrite and data_dir.exists()) or
-                (data_dir.exists() and len(list(data_dir.iterdir())) == 0)
-            ):
-                rmtree(data_dir)
-
-            Path(data_dir).mkdir(parents=True, exist_ok=overwrite)
+            data_dir = setup_data_dir(data_dir, overwrite)
             _X = []
             _y = []
 
@@ -462,7 +495,7 @@ class Dataset(object):
 
         for idx, path in enumerate(self.data_frame.X):
             X = self._get_x(idx, collate=False, unshape=True)
-            features = get_item(feature_dict, idx)
+            features = get_item_from_data(feature_dict, idx)
             X.update(features)
             if not in_place:
                 out_fname = os.path.basename(path)
@@ -477,6 +510,38 @@ class Dataset(object):
             pd.DataFrame.from_dict(dict(X=_X, y=_y)).to_csv(
                 os.path.join(data_dir, "index.csv")
             )
+
+    def extend(
+        self,
+        feature_dict,
+        features,
+        in_file=True,
+        in_place=True,
+        data_dir=None,
+        overwrite=False,
+    ):
+        if not in_place:
+            data_dir = setup_data_dir(data_dir, overwrite)
+            self.copy_to_dir(data_dir)
+        else:
+            data_dir = self.data_path
+
+        _X = self.data_frame.X.values
+        _y = self.data_frame.y.values
+
+        for path in feature_dict.X.values:
+            out_fname = os.path.basename(path)
+            out_path = os.path.join(data_dir, out_fname)
+            _X.append(out_path)
+
+        _y.extend(feature_dict.y.values)
+
+        feature_dict.copy_to_dir(data_dir, start_idx=len(self))
+
+        index_file = pd.DataFrame.from_dict(dict(X=_X, y=_y))
+        index_file.to_csv(os.path.join(data_dir, "index.csv"))
+        if not in_place:
+            self.data_frame = index_file
 
     def list_features(self):
         first_sample = self._get_x(0, collate=False, unshape=True)

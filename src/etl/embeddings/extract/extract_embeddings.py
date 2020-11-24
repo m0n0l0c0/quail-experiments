@@ -26,6 +26,7 @@ sys.path.append(os.path.join(base_path, "classify"))
 from synthetic_embeddings import generate_synthetic_data  # noqa: E402
 from dataset import save_data  # noqa: E402
 from dataset import get_dataset as load_data  # noqa: E402
+from dataset_class import Dataset  # noqa: E402
 
 
 if is_tf_available():
@@ -205,6 +206,45 @@ def embed_dataset(model, dataloader, device, pool, tmp_dir):
     return embeddings, logits, labels
 
 
+def scatter_embed_dataset(model, dataloader, device, pool, tmp_dir):
+    embedding_path = os.path.join(tmp_dir, "embeddings")
+    max_pooling = torch.nn.MaxPool1d(model.config.hidden_size)
+    model = model.to(device)
+
+    labels = None
+    for inputs in tqdm(dataloader, desc="Embedding"):
+        inputs = prepare_inputs(inputs, device)
+        with torch.no_grad():
+            output = model(**inputs)
+            last_hidden_state = output.hidden_states[-1]
+            pooled_output = (
+                max_pooling(last_hidden_state)
+                if pool
+                else last_hidden_state
+            )
+            numpyfied_logits = output.logits.cpu().numpy()
+            numpyfied_output = pooled_output.cpu().numpy()
+            numpyfied_labels = None
+
+            if "labels" in inputs:
+                numpyfied_labels = inputs["labels"].cpu().numpy()
+                if labels is None:
+                    labels = np.array(numpyfied_labels)
+                else:
+                    labels = np.hstack([labels, numpyfied_labels])
+
+            for idx in numpyfied_output:
+                save_data(
+                    embedding_path,
+                    idx,
+                    embeddings=numpyfied_output[idx],
+                    logits=numpyfied_logits[idx],
+                )
+
+    Dataset.build_index(embedding_path, labels)
+    return Dataset(data_path=embedding_path)
+
+
 def embed_from_dataloader(dataloader, device, model, pool, tmp_dir):
     embeddings, logits, labels = embed_dataset(
         model, dataloader, device, pool, tmp_dir
@@ -321,13 +361,19 @@ def main(
     embedded = None
     if overwrite or not Path(dataset_file).exists():
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-        embedded = embed_from_dataloader(
-            eval_dataloader, device, model, pool, scatter_dataset, tmp_dir
-        )
-        save_data(output_dir, split, single_items, **embedded)
+        if scatter_dataset:
+            embedded = scatter_embed_dataset(
+                model, eval_dataloader, device, pool, tmp_dir
+            )
+        else:
+            embedded = embed_from_dataloader(
+                eval_dataloader, device, model, pool, tmp_dir
+            )
+            save_data(output_dir, split, single_items, **embedded)
 
     if oversample is not None:
-        oversampled_name = f"{split}_oversample_{str(oversample).replace('.', '')}"
+        oversample_rate = str(oversample).replace('.', '')
+        oversampled_name = f"{split}_oversample_{oversample_rate}"
         oversampled_file = f"{oversampled_name}_data.pkl"
         oversampled_file = os.path.join(output_dir, oversampled_name)
         # avoid unnecesary loading
@@ -335,7 +381,10 @@ def main(
             print("Nothing to do")
         elif embedded is None:
             print(f"Loading cached data from {dataset_file}")
-            embedded = load_data(dataset_file)
+            if scatter_dataset:
+                embedded = Dataset(data_path=output_dir)
+            else:
+                embedded = load_data(dataset_file)
 
         num_samples = get_num_samples(embedded, oversample)
         oversample_data_dir = oversampling(
@@ -345,17 +394,25 @@ def main(
             data_args, tokenizer, split, data_dir=oversample_data_dir
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
-        oversample_embedded = embed_from_dataloader(
-            oversample_dataloader,
-            device,
-            model,
-            pool,
-            scatter_dataset,
-            oversample_data_dir,
-        )
-        embedded = merge_embedded_data(embedded, oversample_embedded)
-
-        save_data(output_dir, oversampled_name, single_items, **embedded)
+        if scatter_dataset:
+            oversample_embedded = scatter_embed_dataset(
+                oversample_dataloader,
+                device,
+                model,
+                pool,
+                oversample_data_dir,
+            )
+            oversample_embedded.extend(embedded)
+        else:
+            oversample_embedded = embed_from_dataloader(
+                oversample_dataloader,
+                device,
+                model,
+                pool,
+                oversample_data_dir,
+            )
+            embedded = merge_embedded_data(embedded, oversample_embedded)
+            save_data(output_dir, oversampled_name, single_items, **embedded)
 
 
 if __name__ == "__main__":
