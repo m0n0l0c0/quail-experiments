@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
+from shutil import rmtree
 from pathlib import Path
 from collections import Counter, OrderedDict
 from sklearn.model_selection import train_test_split
@@ -246,6 +247,10 @@ class Dataset(object):
     def _get_x(self, idx, **kwargs):
         idx = self._iter_idx_to_df_idx(idx)
         emb_data = pickle.load(open(self.data_frame.X[idx], "rb"))
+        if isinstance(emb_data, dict):
+            emb_data = {k: np.array(v) for k, v in emb_data.items()}
+        elif isinstance(emb_data, list):
+            emb_data = np.array(emb_data)
         # ToDo := Aggregate features from data_frame
         emb_data = self._get_features_from_data(emb_data, **kwargs)
         return emb_data
@@ -260,27 +265,6 @@ class Dataset(object):
 
     def _iter_idx_to_df_idx(self, idx):
         return self.data_frame.index[idx]
-
-    def _add_features_dict_to_disk(self, feature_dict):
-        # check dimensions match
-        for feature in feature_dict.values():
-            assert(feature.shape[0] == len(self))
-        for idx, path in enumerate(self.data_frame.X):
-            X = self._get_x(idx, collate=False, unshape=True)
-            features = {
-                f: np.array(feature_dict[f][idx]) for f in feature_dict.keys()
-            }
-            X.update(features)
-            pickle.dump(X, open(path, "wb"))
-
-    def _add_features_dataset_to_disk(self, dataset):
-        # check dimensions match
-        assert(len(dataset) == len(self))
-        for idx, path in enumerate(self.data_frame.X):
-            X = self._get_x(idx, collate=False, unshape=True)
-            features = dataset._get_x(idx, collate=False, unshape=True)
-            X.update(features)
-            pickle.dump(X, open(path, "wb"))
 
     @property
     def ret_x(self):
@@ -369,7 +353,14 @@ class Dataset(object):
             pickle.dump(X, open(output_path/data_name, "wb"))
         self.data_frame.to_csv(output_path/self._index_name)
 
-    def add_features(self, feature_dict, in_file=True):
+    def add_features(
+        self,
+        feature_dict,
+        in_file=True,
+        in_place=True,
+        data_dir=None,
+        overwrite=False,
+    ):
         # ToDo := Pass on this, gathering features could be a pain
         # if in_file == False:
         #     total_size_gb = get_data_size_gb(feature_dict)
@@ -380,11 +371,56 @@ class Dataset(object):
         #         )
         #     self._add_features_to_index(feature_dict)
         # else:
+        def get_item(features, idx):
+            if isinstance(features, Dataset):
+                return dataset._get_x(idx, collate=False, unshape=True)
+            else:
+                return {
+                    f: np.array(feature_dict[f][idx]) for f in feature_dict.keys()
+                }
+
+        if not in_place:
+            if data_dir is None:
+                raise ValueError(
+                    "A 'data_dir' must be provided to save the dataset with"
+                    " new features when 'in_place=False'!"
+                )
+            data_dir = Path(data_dir)
+            if (
+                (overwrite and data_dir.exists()) or
+                (data_dir.exists() and len(list(data_dir.iterdir())) == 0)
+            ):
+                rmtree(data_dir)
+
+            Path(data_dir).mkdir(parents=True, exist_ok=overwrite)
+            _X = []
+            _y = []
+
         if isinstance(feature_dict, Dataset):
+            # check dimensions match
             assert(len(feature_dict) == len(self))
-            self._add_features_dataset_to_disk((feature_dict))
         else:
-            self._add_features_dict_to_disk(feature_dict)
+            # check dimensions match
+            for feature in feature_dict.values():
+                assert(feature.shape[0] == len(self))
+
+        for idx, path in enumerate(self.data_frame.X):
+            X = self._get_x(idx, collate=False, unshape=True)
+            features = get_item(feature_dict, idx)
+            X.update(features)
+            if not in_place:
+                out_fname = os.path.basename(path)
+                out_path = os.path.join(data_dir, out_fname)
+                _X.append(out_path)
+                _y.append(self._get_y(idx))
+            else:
+                out_path = path
+            pickle.dump(X, open(out_path, "wb"))
+
+        if not in_place:
+            pd.DataFrame.from_dict(dict(X=_X, y=_y)).to_csv(
+                os.path.join(data_dir, "index.csv")
+            )
 
     def list_features(self):
         first_sample = self._get_x(0, collate=False, unshape=True)
