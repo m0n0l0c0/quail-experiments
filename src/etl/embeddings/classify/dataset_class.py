@@ -193,9 +193,9 @@ class Dataset(object):
         self.data_path = data_path
         self.data_frame = data_frame
         self._index_name = "index.csv"
+        self._index_file = os.path.join(self.data_path, self._index_name)
         if data_frame is None:
-            index_file = os.path.join(self.data_path, self._index_name)
-            self.data_frame = pd.read_csv(index_file)
+            self.data_frame = pd.read_csv(self.index_file)
         self.cast = cast
         self.features = features
         self._ret_x = ret_x
@@ -542,6 +542,11 @@ class Dataset(object):
         index_file.to_csv(os.path.join(data_dir, "index.csv"))
         if not in_place:
             self.data_frame = index_file
+
+    def set_labels(self, labels):
+        assert(len(self) == len(labels))
+        self.data_frame.y.update(labels)
+        self.data_frame.to_csv(self._index_file)
 
     def list_features(self):
         first_sample = self._get_x(0, collate=False, unshape=True)

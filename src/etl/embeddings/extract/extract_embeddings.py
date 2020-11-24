@@ -228,7 +228,7 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
                 )
             else:
                 out_shape = (-1, num_choices, *numpyfied_output.shape[1:])
-                    
+
             numpyfied_output = numpyfied_output.reshape(out_shape)
             numpyfied_labels = None
 
@@ -252,39 +252,72 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
 
             embedding_cursor += len(numpyfied_output)
 
-    Dataset.build_index(embedding_path, labels)
-    return Dataset(data_path=embedding_path)
+    return embedding_path, labels, embedding_cursor - 1
 
 
-def embed_from_dataloader(dataloader, device, model, pool, output_dir):
-    embeddings, logits, labels = embed_dataset(
-        model, dataloader, device, pool, output_dir
-    )
+def embed_from_dataloader(
+    dataloader, device, model, pool, scatter_dataset, output_dir
+):
+    if scatter_dataset:
+        embedding_path, labels, nof_samples = scatter_embed_dataset(
+            model, dataloader, device, pool, output_dir
+        )
+        if labels is None:
+            synth_labels = np.zeros(shape=(nof_samples, 1))
+        else:
+            synth_labels = None
 
-    # labels should not be null
-    num_samples = logits.shape[0]
-    num_choices = logits.shape[1]
-    embeddings = embeddings.reshape(
-        num_samples, num_choices, *embeddings.shape[1:]
-    )
+        Dataset.build_index(
+            embedding_path,
+            synth_labels if labels is None else labels
+        )
+        dataset = Dataset(data_path=embedding_path)
 
-    if labels is not None:
-        pred_labels_correct = get_model_results(logits, labels).tolist()
-        # 1 Correct / 0 Incorrect
-        pred_labels_correct = np.array([int(p) for p in pred_labels_correct])
+        if synth_labels is None:
+            logits = []
+            for sample in dataset.iter_features():
+                logits.append(sample["logits"])
+
+            pred_labels_correct = get_model_results(logits, labels)
+            dataset.set_labels(pred_labels_correct)
+            return dataset
     else:
-        # No information about correct samples, synthetic data, set incorrect
-        pred_labels_correct = np.zeros(shape=logits.shape)
+        embeddings, logits, labels = embed_dataset(
+            model, dataloader, device, pool, output_dir
+        )
 
-    return dict(
-        embeddings=embeddings,
-        labels=pred_labels_correct,
-        logits=logits,
-    )
+        # labels should not be null
+        num_samples = logits.shape[0]
+        num_choices = logits.shape[1]
+        embeddings = embeddings.reshape(
+            num_samples, num_choices, *embeddings.shape[1:]
+        )
+
+        if labels is not None:
+            pred_labels_correct = get_model_results(logits, labels).tolist()
+            # 1 Correct / 0 Incorrect
+            pred_labels_correct = np.array([
+                int(p) for p in pred_labels_correct
+            ])
+        else:
+            # No information about correct samples,
+            # synthetic data, set incorrect
+            pred_labels_correct = np.zeros(shape=logits.shape)
+
+        return dict(
+            embeddings=embeddings,
+            labels=pred_labels_correct,
+            logits=logits,
+        )
 
 
-def get_num_samples(data, proportions):
-    labels = data["labels"]
+def get_num_samples(data, proportions, scatter_dataset):
+    if scatter_dataset:
+        data.ret_x = False
+        data.ret_y = True
+        labels = [y for y in data]
+    else:
+        labels = data["labels"]
     total_samples = len(labels)
     current_samples = len(labels[labels == 0])
     if proportions > 1.0:
@@ -374,14 +407,10 @@ def main(
     embedded = None
     if overwrite or not Path(dataset_file).exists():
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-        if scatter_dataset:
-            embedded = scatter_embed_dataset(
-                model, eval_dataloader, device, pool, output_dir
-            )
-        else:
-            embedded = embed_from_dataloader(
-                eval_dataloader, device, model, pool, output_dir
-            )
+        embedded = embed_from_dataloader(
+            eval_dataloader, device, model, pool, scatter_dataset, output_dir
+        )
+        if not scatter_dataset:
             save_data(output_dir, split, single_items, **embedded)
 
     if oversample is not None:
@@ -404,7 +433,7 @@ def main(
             else:
                 embedded = load_data(dataset_file)
 
-        num_samples = get_num_samples(embedded, oversample)
+        num_samples = get_num_samples(embedded, oversample, scatter_dataset)
         oversample_data_dir = oversampling(
             data_args, num_samples, tokenizer, split, output_dir
         )
@@ -412,23 +441,17 @@ def main(
             data_args, tokenizer, split, data_dir=oversample_data_dir
         )
         oversample_dataloader = trainer.get_eval_dataloader(oversample_dataset)
+        oversample_embedded = embed_from_dataloader(
+            oversample_dataloader,
+            device,
+            model,
+            pool,
+            scatter_dataset,
+            oversample_data_dir,
+        )
         if scatter_dataset:
-            oversample_embedded = scatter_embed_dataset(
-                oversample_dataloader,
-                device,
-                model,
-                pool,
-                oversample_data_dir,
-            )
             oversample_embedded.extend(embedded)
         else:
-            oversample_embedded = embed_from_dataloader(
-                oversample_dataloader,
-                device,
-                model,
-                pool,
-                oversample_data_dir,
-            )
             embedded = merge_embedded_data(embedded, oversample_embedded)
             save_data(output_dir, oversampled_name, single_items, **embedded)
 
