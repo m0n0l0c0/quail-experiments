@@ -220,6 +220,9 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
             )
             numpyfied_logits = output.logits.cpu().numpy()
             numpyfied_output = pooled_output.cpu().numpy()
+            numpyfied_output = numpyfied_output.reshape(
+                (dataloader.batch_size, -1, *numpyfied_output.shape[1:])
+            )
             numpyfied_labels = None
 
             if "labels" in inputs:
