@@ -65,13 +65,13 @@ def scatter_dataset_normalize(data_path, normalize, n_components):
     if normalize:
         dataset = dataset.normalize_dataset_by_features(features=feature_set)
 
-    batch_size = 200
-    n_samples = len(dataset)
+    batch_size = 20
+    total = len(dataset) // batch_size
     pca = IncrementalPCA(n_components=n_components, batch_size=batch_size)
     iterator = dataset.iter(
         return_dict=True, x=True, y=False, batch_size=batch_size
     )
-    for batch in tqdm(iterator, total=n_samples, desc="Normalize embeddings"):
+    for batch in tqdm(iterator, total=total, desc="Normalize embeddings"):
         samples = np.array([s["embeddings"] for s in batch])
         pca.partial_fit(samples.reshape(samples.shape[0], -1))
 
