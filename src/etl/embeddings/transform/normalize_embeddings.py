@@ -91,12 +91,10 @@ def main(data_path, n_components, normalize, scatter_dataset, output_dir):
             **dataset,
         )
     else:
-        dataset, X_pca = scatter_dataset_normalize(
+        dataset = scatter_dataset_normalize(
             data_path, normalize, n_components
         )
-        dataset.add_features(
-            dict(embeddings=X_pca), in_place=False, data_dir=output_dir
-        )
+        dataset.save(output_dir=output_dir)
 
 
 if __name__ == "__main__":
