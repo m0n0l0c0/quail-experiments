@@ -3,6 +3,7 @@ import sys
 import argparse
 import numpy as np
 
+from tqdm import tqdm
 from sklearn.decomposition import PCA, IncrementalPCA
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -65,16 +66,14 @@ def scatter_dataset_normalize(data_path, normalize, n_components):
         dataset = dataset.normalize_dataset_by_features(features=feature_set)
 
     batch_size = 200
-    num_samples = len(dataset)
+    n_samples = len(dataset)
     pca = IncrementalPCA(n_components=n_components, batch_size=batch_size)
-    X_data = []
-    for idx, sample in enumerate(dataset.iter_features()):
-        if (idx + 1) % batch_size == 0 or (idx - 1) == num_samples:
-            X_data = np.array(X_data)
-            pca.partial_fit(X_data.reshape(X_data.shape[0], -1))
-            X_data = []
-        else:
-            X_data.append(sample["embeddings"])
+    iterator = dataset.iter(
+        return_dict=True, x=True, y=False, batch_size=batch_size
+    )
+    for batch in tqdm(iterator, total=n_samples, desc="Normalize embeddings"):
+        samples = np.array([s["embeddings"] for s in batch])
+        pca.partial_fit(samples.reshape(samples.shape[0], -1))
 
     dataset.add_op(
         lambda x: pca.transform(x.reshape(1, -1)),

@@ -474,9 +474,9 @@ class Dataset(object):
 
         return dict(X=_X, y=_y)
 
-    def iter_features(self):
+    def iter_features(self, start=None):
         iter_options = dict(collate=False, unshape=True)
-        self.n = 0
+        self.n = 0 if start is None else max(min(start, len(self)), 0)
         while self.n < len(self):
             X_dict, y_dict = dict(), dict()
             if self.ret_x:
@@ -493,6 +493,26 @@ class Dataset(object):
             yield ret
 
             self.n += 1
+
+    def iter(self, return_dict=False, x=True, y=True, batch_size=None):
+        self.ret_x = x
+        self.ret_y = y
+        if batch_size is None:
+            batch_size = 1
+
+        if return_dict:
+            iterator = self.iter_features()
+        else:
+            iterator = iter(self)
+
+        batch = []
+        for idx, sample in enumerate(iterator):
+            batch.append(sample)
+            if (idx + 1) % batch_size == 0 or idx == (len(self) - 1):
+                if batch_size == 1:
+                    batch = batch[0]
+                yield batch
+                batch = []
 
     def normalize_dataset_by_features(self, features):
         return Dataset(
