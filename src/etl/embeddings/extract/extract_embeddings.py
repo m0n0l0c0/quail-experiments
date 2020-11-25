@@ -245,7 +245,7 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
 
             for idx in range(len(numpyfied_output)):
                 fname = str(embedding_cursor + idx)
-                fname = '0' * (6 - len(fname)) + fname
+                fname = "0" * (6 - len(fname)) + fname
                 save_data(
                     embedding_path,
                     fname,
@@ -259,13 +259,13 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
 
 
 def embed_from_dataloader(
-    dataloader, device, model, pool, scatter_dataset, output_dir
+    dataloader, device, model, pool, scatter_dataset, synthetic, output_dir
 ):
     if scatter_dataset:
         embedding_path, labels, nof_samples = scatter_embed_dataset(
             model, dataloader, device, pool, output_dir
         )
-        if labels is None:
+        if synthetic or labels is None:
             synth_labels = np.zeros(shape=(nof_samples, 1))
         else:
             synth_labels = None
@@ -414,7 +414,13 @@ def main(
     if overwrite or not Path(dataset_file).exists():
         eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
         embedded = embed_from_dataloader(
-            eval_dataloader, device, model, pool, scatter_dataset, output_dir
+            eval_dataloader,
+            device,
+            model,
+            pool,
+            scatter_dataset,
+            synthetic=False,
+            output_dir=output_dir,
         )
         if not scatter_dataset:
             save_data(output_dir, split, single_items, **embedded)
@@ -454,7 +460,8 @@ def main(
             model,
             pool,
             scatter_dataset,
-            oversample_data_dir,
+            synthetic=True,
+            output_dir=oversample_data_dir,
         )
         if scatter_dataset:
             oversample_embedded.extend(embedded)
