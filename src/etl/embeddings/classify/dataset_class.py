@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 
 from tqdm import tqdm
-from pathlib import Path
 from shutil import rmtree, copyfile
+from pathlib import Path
+from functools import reduce
 from collections import Counter, OrderedDict
 from multiprocessing import cpu_count
 from concurrent.futures import ProcessPoolExecutor
@@ -19,12 +20,20 @@ NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
 DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
 
 
-def get_flat_list(list_of_lists):
-    return [item for sublist in list_of_lists for item in sublist]
+def flatten(array):
+    ret = []
+    if not isinstance(array, list):
+        return array
+    for item in array:
+        if isinstance(item, list):
+            ret.extend(flatten(item))
+        else:
+            ret.append(item)
+    return ret
 
 
 def get_unique_features(features):
-    return list(Counter(get_flat_list(features)).keys())
+    return list(Counter(flatten(features)).keys())
 
 
 def get_data_size_gb(feature_dict):
@@ -32,7 +41,7 @@ def get_data_size_gb(feature_dict):
     gb = 1024 ** 3
     float_size = sys.getsizeof(np.float32())
     total_size_gb = sum([
-        ((float_size * e) / gb) for e in get_flat_list(n_elems)
+        ((float_size * e) / gb) for e in flatten(n_elems)
     ])
     return total_size_gb
 
@@ -85,6 +94,10 @@ def copy_file(src_dst):
     src, dst = src_dst
     copyfile(src, dst)
     return True
+
+
+def nelems_from_shape(shape):
+    return reduce(lambda a, b: a * b, shape)
 
 
 def parallel_copy(files):
@@ -294,7 +307,11 @@ class Dataset(object):
         elif orig_shapes is not None:
             # cant collate and unshape
             for shape, feat in zip(orig_shapes, data.keys()):
-                data[feat] = data[feat].reshape(shape)
+                orig_size = nelems_from_shape(shape)
+                new_size = nelems_from_shape(data[feat].shape)
+                # op may have reduce data (decomposition, etc)
+                if orig_size == new_size:
+                    data[feat] = data[feat].reshape(shape)
         return data
 
     def _get_x(self, idx, **kwargs):
@@ -344,6 +361,16 @@ class Dataset(object):
         index_path = os.path.join(data_dir, "index.csv")
         index = pd.DataFrame.from_dict(dict(X=embedding_files, y=y))
         index.to_csv(index_path)
+
+    def add_op(self, op_fn, features, name=None):
+        if name is None:
+            name = f"user_op_{len(self.ops)}"
+        operation = DatasetOperation(
+            name=name,
+            fn=op_fn,
+            feature_set=features,
+        )
+        self.ops.update(**{name: operation})
 
     def copy_to_dir(self, data_dir, start_idx=0, overwrite=False):
         data_dir = Path(data_dir)
@@ -478,14 +505,24 @@ class Dataset(object):
             ret_y=self._ret_y,
         )
 
-    def save(self, output_dir, overwrite=False, **kwargs):
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=overwrite)
+    def save(self, output_dir=None, overwrite=False):
+        if output_dir is None:
+            output_path = Path(self.data_path)
+        else:
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=overwrite)
+
+        _X = []
         for idx, path in enumerate(self.data_frame.X):
             data_name = path.split("/")[-1]
             X = self._get_x(idx, collate=False, unshape=True)
-            pickle.dump(X, open(output_path/data_name, "wb"))
-        self.data_frame.to_csv(output_path/self._index_name)
+            output_data_path = output_path/data_name
+            pickle.dump(X, open(output_data_path, "wb"))
+            _X.append(output_data_path)
+
+        index_data = dict(X=_X, y=self.data_frame.y.to_list())
+        index = pd.DataFrame.from_dict(index_data)
+        index.to_csv(output_path/self._index_name)
 
     def add_features(
         self,

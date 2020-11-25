@@ -1,8 +1,9 @@
 import os
 import sys
 import argparse
+import numpy as np
 
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, IncrementalPCA
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(base_path)
@@ -63,12 +64,23 @@ def scatter_dataset_normalize(data_path, normalize, n_components):
     if normalize:
         dataset = dataset.normalize_dataset_by_features(features=feature_set)
 
-    pca = PCA(n_components=n_components)
-    X_data = dataset.gather(features=feature_set)["X"]
-    embeddings = X_data[feature_set[0]]
-    embeddings = embeddings.reshape(embeddings.shape[0], -1)
-    X_pca = pca.fit_transform(embeddings)
-    return dataset, X_pca
+    batch_size = 200
+    num_samples = len(dataset)
+    pca = IncrementalPCA(n_components=n_components, batch_size=batch_size)
+    X_data = []
+    for idx, sample in enumerate(dataset.iter_features()):
+        if (idx + 1) % batch_size == 0 or (idx - 1) == num_samples:
+            X_data = np.array(X_data)
+            pca.partial_fit(X_data.reshape(X_data.shape[0], -1))
+            X_data = []
+        else:
+            X_data.append(sample["embeddings"])
+
+    dataset.add_op(
+        lambda x: pca.transform(x.reshape(1, -1)),
+        features=["embeddings"]
+    )
+    return dataset
 
 
 def main(data_path, n_components, normalize, scatter_dataset, output_dir):
