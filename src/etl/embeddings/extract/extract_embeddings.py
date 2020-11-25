@@ -286,7 +286,8 @@ def embed_from_dataloader(
                 int(p) for p in pred_labels_correct.tolist()
             ])
             dataset.set_labels(pred_labels_correct)
-            return dataset
+
+        return dataset
     else:
         embeddings, logits, labels = embed_dataset(
             model, dataloader, device, pool, output_dir
