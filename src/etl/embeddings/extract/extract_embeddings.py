@@ -244,9 +244,11 @@ def scatter_embed_dataset(model, dataloader, device, pool, output_dir):
                     labels = np.hstack([labels, numpyfied_labels])
 
             for idx in range(len(numpyfied_output)):
+                fname = str(embedding_cursor + idx)
+                fname = '0' * (6 - len(fname)) + fname
                 save_data(
                     embedding_path,
-                    embedding_cursor + idx,
+                    fname,
                     embeddings=numpyfied_output[idx],
                     logits=numpyfied_logits[idx],
                 )
@@ -281,7 +283,7 @@ def embed_from_dataloader(
 
             pred_labels_correct = get_model_results(np.array(logits), labels)
             pred_labels_correct = np.array([
-                int(p) for p in pred_labels_correct
+                int(p) for p in pred_labels_correct.tolist()
             ])
             dataset.set_labels(pred_labels_correct)
             return dataset
