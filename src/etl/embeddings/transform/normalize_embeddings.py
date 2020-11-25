@@ -65,7 +65,7 @@ def scatter_dataset_normalize(data_path, normalize, n_components):
     if normalize:
         dataset = dataset.normalize_dataset_by_features(features=feature_set)
 
-    batch_size = 20
+    batch_size = n_components * 2
     total = len(dataset) // batch_size
     pca = IncrementalPCA(n_components=n_components, batch_size=batch_size)
     iterator = dataset.iter(
