@@ -352,7 +352,9 @@ class Dataset(object):
         files = []
         for idx, path in enumerate(self.data_frame.X.values):
             if start_idx > 0:
-                out_fname = f"{start_idx + idx}_data.pkl"
+                out_fname = str(start_idx + idx)
+                out_fname = "0" * (6 - len(out_fname)) + out_fname
+                out_fname = f"{out_fname}_data.pkl"
             else:
                 out_fname = os.path.basename(path)
             out_path = os.path.join(data_dir, out_fname)
