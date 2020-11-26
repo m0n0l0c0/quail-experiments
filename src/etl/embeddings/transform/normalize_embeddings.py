@@ -73,7 +73,10 @@ def scatter_dataset_normalize(data_path, normalize, n_components):
     )
     for batch in tqdm(iterator, total=total, desc="Normalize embeddings"):
         samples = np.array([s["embeddings"] for s in batch])
-        pca.partial_fit(samples.reshape(samples.shape[0], -1))
+        samples = samples.reshape(samples.shape[0], -1)
+        if len(samples) >= batch_size:
+            # skip some...
+            pca.partial_fit(samples.reshape(samples.shape[0], -1))
 
     dataset.add_op(
         lambda x: pca.transform(x.reshape(1, -1)),
