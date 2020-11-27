@@ -122,9 +122,14 @@ class DatasetOperation(object):
     def __init__(self, name, feature_set, fn, call_by_features=True):
         self.name = name
         self.call_by_features = call_by_features
+
+        if feature_set is None:
+            feature_set = "all"
+
         self.feature_set = feature_set
         if feature_set != "all":
             self.feature_set = get_unique_features(feature_set)
+
         self.fn = fn
 
     def __call__(self, data):
@@ -144,8 +149,6 @@ class DatasetOperation(object):
 
 class ReshapeOp(DatasetOperation):
     def __init__(self, feature_set=None):
-        if feature_set is None:
-            feature_set = "all"
         super(ReshapeOp, self).__init__(
             name="ReshapeOp",
             feature_set=feature_set,
@@ -161,10 +164,27 @@ class ReshapeOp(DatasetOperation):
         return data
 
 
+class CastOp(DatasetOperation):
+    def __init__(self, cast, feature_set=None):
+        super(CastOp, self).__init__(
+            name="CastOp",
+            feature_set=feature_set,
+            fn=self.cast
+        )
+        self._cast = cast
+
+    def cast(self, data):
+        if isinstance(data, dict):
+            for key in data.keys():
+                data[key] = self._cast(data[key])
+        else:
+            data = self._cast(data)
+
+        return data
+
+
 class ConcatOp(DatasetOperation):
     def __init__(self, feature_set=None):
-        if feature_set is None:
-            feature_set = "all"
         super(ConcatOp, self).__init__(
             name="ConcatOp",
             feature_set=feature_set,
@@ -231,15 +251,17 @@ class Dataset(object):
         super(Dataset, self).__init__()
         self.data_path = data_path
         self.data_frame = data_frame
+        self.features = features
+
         self._index_name = "index.csv"
         self._index_file = os.path.join(self.data_path, self._index_name)
         if data_frame is None:
             self.data_frame = pd.read_csv(self._index_file)
-        self.cast = cast
-        self.features = features
+        self._cast = cast
         self._ret_x = ret_x
         self._ret_y = ret_y
         self._ret_xy = self._ret_x and self._ret_y
+
         self.ops = self._setup_ops(ops)
         self.collator = ConcatOp(feature_set=self.features)
 
@@ -282,14 +304,14 @@ class Dataset(object):
         ret_ops = OrderedDict()
         if ops is None:
             ops = OrderedDict()
-        if "cast" in ops:
-            ret_ops.update(cast=ops["cast"])
-        elif self.cast is not None:
-            ret_ops = ret_ops.update(cast=lambda d: d.astype(self.cast))
-        if "reshape" in ops:
-            ret_ops.update(reshape=ops["reshape"])
-        else:
-            ret_ops.update(reshape=ReshapeOp())
+
+        if "cast" in ops or self._cast is not None:
+            cast_op = ops["cast"] if "cast" in ops else CastOp(self._cast)
+            ret_ops.update(cast=cast_op)
+
+        reshape_op = ops["reshape"] if "reshape" in ops else ReshapeOp()
+        ret_ops.update(reshape=reshape_op)
+
         for op_key, op_value in ops.items():
             if op_key not in ret_ops:
                 ret_ops.update(**{op_key: op_value})
@@ -328,13 +350,31 @@ class Dataset(object):
     def _get_y(self, idx):
         idx = self._iter_idx_to_df_idx(idx)
         y = self.data_frame.y[idx]
-        if self.cast:
+        if self._cast:
             # ToDo := Is this a numpy array?
-            y = y.astype(self.cast)
+            y = y.astype(self._cast)
         return y
 
     def _iter_idx_to_df_idx(self, idx):
         return self.data_frame.index[idx]
+
+    def _prepare_iter_output(self, output, return_dict, batch_size):
+        if batch_size == 1:
+            return output[0]
+
+        ret = output
+        if not return_dict:
+            cast = np.concatenate
+            if len(np.array(output).shape) == 1:
+                cast = np.array
+            ret = cast(output)
+        else:
+            ret = {
+                key: np.array([e[key] for e in output])
+                for key in output[0].keys()
+            }
+
+        return ret
 
     @property
     def ret_x(self):
@@ -354,6 +394,17 @@ class Dataset(object):
         self._ret_y = value
         self._ret_xy = self._ret_x and self.ret_y
 
+    @property
+    def cast(self):
+        return self._cast
+
+    @cast.setter
+    def cast(self, cast):
+        if self._cast != cast:
+            self._cast = cast
+            cast_op = CastOp(self._cast)
+            self.ops.update(cast=cast_op)
+
     @staticmethod
     def build_index(data_dir, y):
         embedding_files = glob.glob(f"{data_dir}/*_data.pkl")
@@ -362,14 +413,20 @@ class Dataset(object):
         index = pd.DataFrame.from_dict(dict(X=embedding_files, y=y))
         index.to_csv(index_path)
 
-    def add_op(self, op_fn, features, name=None):
-        if name is None:
-            name = f"user_op_{len(self.ops)}"
-        operation = DatasetOperation(
-            name=name,
-            fn=op_fn,
-            feature_set=features,
-        )
+    def add_op(self, op_fn, features=None, name=None):
+        if isinstance(op_fn, DatasetOperation):
+            operation = op_fn
+            if name is None:
+                name = op_fn.name
+        else:
+            if name is None:
+                name = f"user_op_{len(self.ops)}"
+            operation = DatasetOperation(
+                name=name,
+                fn=op_fn,
+                feature_set=features,
+            )
+
         self.ops.update(**{name: operation})
 
     def copy_to_dir(self, data_dir, start_idx=0, overwrite=False):
@@ -396,7 +453,7 @@ class Dataset(object):
             data_frame=self.data_frame,
             features=features,
             ops=self.ops,
-            cast=self.cast,
+            cast=self._cast,
             ret_x=True,
             ret_y=False,
         )
@@ -405,7 +462,7 @@ class Dataset(object):
             data_frame=self.data_frame,
             features=features,
             ops=self.ops,
-            cast=self.cast,
+            cast=self._cast,
             ret_x=False,
             ret_y=True,
         )
@@ -420,7 +477,7 @@ class Dataset(object):
             data_frame=train_df,
             features=self.features,
             ops=self.ops,
-            cast=self.cast,
+            cast=self._cast,
             ret_x=self._ret_x,
             ret_y=self._ret_y,
         )
@@ -429,7 +486,7 @@ class Dataset(object):
             data_frame=test_df,
             features=self.features,
             ops=self.ops,
-            cast=self.cast,
+            cast=self._cast,
             ret_x=self._ret_x,
             ret_y=self._ret_y,
         )
@@ -438,41 +495,6 @@ class Dataset(object):
     def get_class_proportions(self):
         props = list(Counter(self.data_frame.y.values).values())
         return round(max(props) / min(props))
-
-    def gather(self, features=None):
-        _X = None
-        _y = None
-        self.ret_x = True
-        self.ret_y = True
-        if features is not None:
-            bar = tqdm(
-                self.iter_features(), desc="Loading examples", total=len(self)
-            )
-        else:
-            bar = tqdm(self, desc="Loading examples", total=len(self))
-        for X, y in bar:
-            if _X is None:
-                if features is not None:
-                    _X = dict()
-                    for feat in features:
-                        X_data = np.array(X[feat])
-                        X_data = X_data.reshape(1, *X_data.shape)
-                        _X.update(**{feat: X_data})
-                    _y = {"labels": np.array(y["label"])}
-                else:
-                    _X = np.array(X)
-            else:
-                if features is not None:
-                    for feat in features:
-                        _X[feat] = np.concatenate([
-                            _X[feat], X[feat].reshape(1, *X[feat].shape)
-                        ], axis=0)
-                    _y["labels"] = np.vstack([_y["labels"], y["label"]])
-                else:
-                    _X = np.concatenate([_X, X], axis=0)
-                    _y = np.vstack([_y, y])
-
-        return dict(X=_X, y=_y)
 
     def iter_features(self, start=None):
         iter_options = dict(collate=False, unshape=True)
@@ -494,9 +516,17 @@ class Dataset(object):
 
             self.n += 1
 
-    def iter(self, return_dict=False, x=True, y=True, batch_size=None):
-        self.ret_x = x
-        self.ret_y = y
+    def iter(self, return_dict=False, x=None, y=None, batch_size=None):
+        if x is not None:
+            self.ret_x = x
+        if y is not None:
+            self.ret_y = y
+
+        if not self.ret_x and not self.ret_y:
+            raise ValueError(
+                "Must iterate over at least one variable (x/y)"
+            )
+
         if batch_size is None:
             batch_size = 1
 
@@ -505,14 +535,61 @@ class Dataset(object):
         else:
             iterator = iter(self)
 
-        batch = []
+        _x = []
+        _y = []
         for idx, sample in enumerate(iterator):
-            batch.append(sample)
+            if self._ret_xy:
+                _x.append(sample[0])
+                _y.append(sample[1])
+            else:
+                _x.append(sample)
             if (idx + 1) % batch_size == 0 or idx == (len(self) - 1):
-                if batch_size == 1:
-                    batch = batch[0]
-                yield batch
-                batch = []
+                _x = self._prepare_iter_output(
+                    _x, return_dict=return_dict, batch_size=batch_size
+                )
+                if self._ret_xy:
+                    _y = self._prepare_iter_output(
+                        _y, return_dict=return_dict, batch_size=batch_size
+                    )
+                    yield _x, _y
+                else:
+                    yield _x
+                _x = []
+                _y = []
+
+    def first(self, return_dict=False, x=None, y=None):
+        if x is not None:
+            self.ret_x = x
+        if y is not None:
+            self.ret_y = y
+
+        ret = None
+        X_data = None
+        y_data = None
+        iter_options = {}
+        if return_dict:
+            iter_options = dict(collate=False, unshape=True)
+
+        if self.ret_x:
+            X_data = self._get_x(0, **iter_options)
+        if self.ret_y:
+            y_data = self._get_y(0)
+            if return_dict:
+                y_data = dict(label=y_data)
+
+        if self._ret_xy:
+            ret = (X_data, y_data)
+        elif self.ret_x:
+            ret = X_data
+        else:
+            ret = y_data
+        return ret
+
+    def to_list(self):
+        ret = []
+        for sample in self.iter(batch_size=20):
+            ret.extend(sample)
+        return ret
 
     def normalize_dataset_by_features(self, features):
         return Dataset(
@@ -520,7 +597,7 @@ class Dataset(object):
             data_frame=self.data_frame,
             features=self.features,
             ops=OrderedDict(normalize=NormalizeFeaturesOp(features)),
-            cast=self.cast,
+            cast=self._cast,
             ret_x=self._ret_x,
             ret_y=self._ret_y,
         )
@@ -632,3 +709,14 @@ class Dataset(object):
     def list_features(self):
         first_sample = self._get_x(0, collate=False, unshape=True)
         return list(first_sample.keys())
+
+    def prepare_for_train(self, feature_set):
+        self.ret_x = True
+        self.ret_y = True
+        self.cast = np.float32
+        self.features = feature_set
+        self.add_op(lambda x: x.squeeze(0), name="last")
+
+    def prepare_for_eval(self, feature_set):
+        self.prepare_for_train(feature_set)
+        self.ret_y = False

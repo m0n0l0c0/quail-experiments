@@ -8,7 +8,6 @@ from autogoal.grammar import (
     generate_cfg,
 )
 from classifiers import (
-    DT,
     LR,
     SGD,
     KNN,
@@ -52,7 +51,7 @@ class TreePipeline(SkPipeline):
     def __init__(
         self,
         normalizer: Union("Normalize", NoOp, MinMaxScaler),
-        classifier: Union("Classifier", RandomForest, DT, SGD, KNN),
+        classifier: Union("Classifier", RandomForest, SGD, KNN),
     ):
         self.normalizer = normalizer
         self.classifier = classifier

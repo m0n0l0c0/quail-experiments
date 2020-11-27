@@ -12,13 +12,12 @@ from utils import get_loggers, save_args
 from mlp_classifier import (
     get_pipeline,
     MLPClassifier,
+    get_hidden_size,
     eval_classifier,
     train_classifier,
 )
 from dataset import (
     get_splits,
-    get_x_y_from_dict,
-    get_dataset_class_proportions,
     get_normalized_dataset,
     sweep_features,
     DEFAULT_FEATS,
@@ -77,11 +76,6 @@ def parse_flags():
     return parser.parse_args()
 
 
-def get_hidden_size(train_dict, features=None):
-    X_train, _ = get_x_y_from_dict(train_dict, features=features)
-    return X_train.reshape(X_train.shape[0], -1).shape[-1]
-
-
 def save_classifier(classifier, output_dir, feature_set):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     features_str = f"classifier_{'_'.join(feature_set)}.pkl"
@@ -98,14 +92,13 @@ def make_fn(
     feature_set,
     score_fn,
 ):
-    dataset_rounds = get_dataset_class_proportions(train_dict)
     train_data = dict(
         train_epochs=args.epochs,
-        dataset_rounds=dataset_rounds,
         train_dict=train_dict,
         test_dict=test_dict,
         feature_set=feature_set,
         batch_size=args.batch_size,
+        score_fn=score_fn,
         print_result=False,
     )
 
@@ -162,17 +155,16 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
 def std_train(args, train_dict, test_dict, features, score_fn):
     for feature_set in features:
         print(f"Training with features: {feature_set}")
-        dataset_rounds = get_dataset_class_proportions(train_dict)
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier = MLPClassifier(lr=args.lr)
         classifier.initialize(hidden_size, device=GPU_DEVICE)
         train_data = dict(
             train_epochs=args.epochs,
-            dataset_rounds=dataset_rounds,
             train_dict=train_dict,
             test_dict=test_dict,
             feature_set=feature_set,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            score_fn=score_fn,
         )
         test_data = dict(
             test_dict=test_dict,

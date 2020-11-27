@@ -1,0 +1,14 @@
+classification:
+    iterations: 500
+    popsize: 200
+    selection: 10
+    early_stop: 6
+    balanced: false
+    memory: 32
+    autogoal: false
+    pipeline: logreg 
+    metric: f1
+    sweep_features: false
+    test_size: 0.20
+    lr: 0.001
+    epochs: 100

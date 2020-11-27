@@ -5,8 +5,10 @@ import torch.nn as nn
 from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline as SkPipeline
 
+from dataset_class import Dataset
+from dataset import get_x_y_from_dict, get_dataset_class_proportions
 from balanced_sampling import balanced_sampling_iter
-from torch.utils.data.dataset import Dataset
+from torch.utils.data.dataset import Dataset as TorchDataset
 from torch.utils.data.dataloader import DataLoader
 from autogoal.grammar import (
     Discrete,
@@ -116,7 +118,7 @@ class MLPClassifier():
         return y_pred
 
 
-class EmbeddingsDataset(Dataset):
+class EmbeddingsDataset(TorchDataset):
     def __init__(self, X, y=None):
         self.X = X
         self.y = y
@@ -136,16 +138,16 @@ class MLPPipeline(SkPipeline):
         super(MLPPipeline, self).__init__([("class", classifier)])
 
 
-def train_classifier(
+def std_train_classifier(
     classifier,
     train_epochs,
-    dataset_rounds,
     train_dict,
     test_dict,
     feature_set,
     batch_size,
     print_result=True,
 ):
+    dataset_rounds = get_dataset_class_proportions(train_dict)
     if not classifier.is_initialized:
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier.initialize(hidden_size, device=GPU_DEVICE)
@@ -191,12 +193,12 @@ def train_classifier(
                 print(classification_report(y_test, y_preds))
 
 
-def eval_classifier(
+def std_eval_classifier(
     classifier,
     test_dict,
     feature_set,
     batch_size,
-    score_fn=accuracy,
+    score_fn,
     print_result=True,
     return_y=False,
 ):
@@ -227,6 +229,123 @@ def eval_classifier(
         output = (output, y_test, y_preds_list)
 
     return output
+
+
+def scatter_train_classifier(
+    classifier,
+    train_epochs,
+    train_dict,
+    test_dict,
+    feature_set,
+    batch_size,
+    score_fn,
+    print_result=True,
+):
+    if not classifier.is_initialized:
+        hidden_size = get_hidden_size(train_dict, feature_set)
+        classifier.initialize(hidden_size, device=GPU_DEVICE)
+
+    train_dict.prepare_for_train(feature_set)
+    for epoch in range(1, train_epochs + 1):
+        classifier.model.train()
+        epoch_loss = 0
+        epoch_acc = 0
+
+        train_loader = DataLoader(
+            dataset=train_dict,
+            batch_size=batch_size,
+            shuffle=True
+        )
+        # from IPython import embed
+        # embed()
+        for batch in train_loader:
+            X_train, y_train = batch
+            loss, acc = classifier.fit(X_train, y_train)
+            epoch_loss += loss
+            epoch_acc += acc
+
+        if print_result:
+            eval_acc, y_test, y_preds = scatter_eval_classifier(
+                classifier,
+                test_dict,
+                feature_set,
+                batch_size,
+                score_fn=score_fn,
+                print_result=False,
+                return_y=True
+            )
+            status = f"Epoch {epoch+0:03}: | "
+            status += f"Loss: {epoch_loss/len(train_loader):.5f} | "
+            status += f"Acc: {epoch_acc/len(train_loader):.3f} | "
+            status += f"Eval Acc: {eval_acc:.3f} | "
+            print(status)
+
+            if epoch % 20 == 0:
+                print(classification_report(y_test, y_preds))
+
+
+def scatter_eval_classifier(
+    classifier,
+    test_dict,
+    feature_set,
+    batch_size,
+    score_fn,
+    print_result=True,
+    return_y=False,
+):
+    y_preds_list = None
+    classifier.model.eval()
+    X_test, y_test = test_dict.get_x_y_from_dict(features=feature_set)
+    X_test.prepare_for_eval(feature_set)
+    y_test = y_test.to_list()
+    test_loader = DataLoader(
+        dataset=X_test,
+        batch_size=batch_size,
+        shuffle=False
+    )
+    for batch in test_loader:
+        y_preds = classifier.predict(batch)
+        if y_preds_list is None:
+            y_preds_list = y_preds
+        else:
+            y_preds_list = np.concatenate([y_preds_list, y_preds], axis=0)
+
+    y_preds_list = y_preds_list.squeeze()
+    if print_result:
+        print(classification_report(y_test, y_preds_list))
+
+    output = score_fn(y_test, y_preds_list)
+    if return_y:
+        output = (output, y_test, y_preds_list)
+
+    return output
+
+
+def train_classifier(classifier, **kwargs):
+    if isinstance(kwargs["train_dict"], Dataset):
+        train_fn = scatter_train_classifier
+    else:
+        train_fn = std_train_classifier
+
+    return train_fn(classifier, **kwargs)
+
+
+def eval_classifier(classifier, **kwargs):
+    if isinstance(kwargs["test_dict"], Dataset):
+        eval_fn = scatter_eval_classifier
+    else:
+        eval_fn = std_eval_classifier
+
+    return eval_fn(classifier, **kwargs)
+
+
+def get_hidden_size(train_dict, features=None):
+    if isinstance(train_dict, Dataset):
+        sample = train_dict.first()
+        return sample.reshape(sample.shape[0], -1).shape[-1]
+    else:
+        X_train, _ = get_x_y_from_dict(train_dict, features=features)
+        return X_train.reshape(X_train.shape[0], -1).shape[-1]
 
 
 def get_pipeline(log_grammar=True):

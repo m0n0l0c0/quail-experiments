@@ -1,6 +1,8 @@
-from sklearn.preprocessing import MinMaxScaler as SkMinMaxScaler
+import numpy as np
+
+from dataset_class import Dataset
 from sklearn.ensemble import RandomForestClassifier as SkRandomForestClassifier
-from autogoal.contrib.sklearn import DecisionTreeClassifier as DT
+from sklearn.preprocessing import MinMaxScaler as SkMinMaxScaler
 from autogoal.contrib.sklearn import (
     TruncatedSVD,
     ComplementNB,
@@ -30,8 +32,74 @@ sgd_avail_losses = [
 ]
 
 
+class PartialEstimateOnDataset(object):
+    def fit(self, X, y=None):
+        if not isinstance(X, Dataset):
+            return super().fit_transform(X, y)
+
+        iter_args = dict(x=True, y=True, return_dict=False, batch_size=100)
+        for _X, _y in X.iter(**iter_args):
+            super().partial_fit(_X, _y)
+
+        return self
+
+    def fit_transform(self, X, y=None):
+        if not isinstance(X, Dataset):
+            return super().fit_transform(X, y)
+
+        self.fit(X, y)
+        return self.transform(X, y)
+
+    def transform(self, X, y=None):
+        if not isinstance(X, Dataset):
+            return super().transform(X)
+
+        samples = []
+        iter_args = dict(x=True, y=False, return_dict=False, batch_size=100)
+        for batch in X.iter(**iter_args):
+            samples.append(super().transform(batch))
+
+        return np.concatenate(samples)
+
+
+class EstimateOnDataset(object):
+    def _cast(self, data):
+        if data is None or not isinstance(data, Dataset):
+            return data
+
+        ret = data.to_list()
+        cast = np.concatenate
+        if len(np.array(ret).shape) == 1:
+            cast = np.array
+        return cast(ret)
+
+    def fit(self, X, y=None):
+        if not isinstance(X, Dataset):
+            # just in case of supervised learning
+            return super().fit(X, self._cast(y))
+
+        super().fit(self._cast(X), self._cast(y))
+        return self
+
+    def fit_transform(self, X, y=None):
+        if not isinstance(X, Dataset):
+            return super().fit_transform(X, y)
+
+        # avoid loading everything to memory again...
+        _X = self._cast(X)
+        _y = self._cast(y)
+        self.fit(_X, _y)
+        return self.transform(_X, _y)
+
+    def transform(self, X, y=None):
+        if not isinstance(X, Dataset):
+            return super().transform(X)
+
+        return super().transform(self._cast(X))
+
+
 # normalizers
-class MinMaxScaler(SkMinMaxScaler):
+class MinMaxScaler(PartialEstimateOnDataset, SkMinMaxScaler):
     def __init__(self):
         super(MinMaxScaler, self).__init__(feature_range=(0, 1))
 
@@ -48,6 +116,9 @@ class NoOp:
         return "NoOp()"
 
 
+# No partial_fit:
+#   - SVD
+#   - LogisticRegresion
 class SVD(TruncatedSVD):
     def __init__(
         self,
@@ -86,7 +157,7 @@ class SVDWithoutLogits(TruncatedSVD):
 
 
 # classifiers
-class LR(LogisticRegression):
+class LR(EstimateOnDataset, LogisticRegression):
     def __init__(
         self,
         penalty: Categorical("l1", "l2"),
@@ -96,12 +167,15 @@ class LR(LogisticRegression):
             penalty=penalty,
             C=reg,
             solver="liblinear",
+            fit_intercept=False,
+            multi_class="auto",
+            dual=False,
         )
         self.penalty = penalty
         self.reg = reg
 
 
-class RandomForest(SkRandomForestClassifier):
+class RandomForest(EstimateOnDataset, SkRandomForestClassifier):
     def __init__(
         self,
         n_estimators: Discrete(100, 200),
@@ -110,7 +184,7 @@ class RandomForest(SkRandomForestClassifier):
         self.n_estimators = n_estimators
 
 
-class SVM(SVC):
+class SVM(EstimateOnDataset, SVC):
     def __init__(
         self,
         kernel: Categorical("rbf", "linear", "poly"),
@@ -121,14 +195,14 @@ class SVM(SVC):
         self.reg = reg
 
 
-class ComplBN(ComplementNB):
+class ComplBN(EstimateOnDataset, ComplementNB):
     def __init__(self, fit_prior: Boolean(), norm: Boolean()):
         super(ComplBN, self).__init__(fit_prior=fit_prior, norm=norm)
         self.fit_prior = fit_prior
         self.norm = norm
 
 
-class OCSVM(OneClassSVM):
+class OCSVM(EstimateOnDataset, OneClassSVM):
     def __init__(
         self,
         kernel: Categorical('linear', 'poly', 'rbf', 'sigmoid'),
@@ -154,7 +228,7 @@ class OCSVM(OneClassSVM):
         self.cache_size = cache_size
 
 
-class SGD(SGDClassifier):
+class SGD(EstimateOnDataset, SGDClassifier):
     def __init__(
         self,
         loss: Categorical(*sgd_avail_losses),
@@ -168,7 +242,7 @@ class SGD(SGDClassifier):
         eta0: Continuous(min=-0.992, max=0.992),
         power_t: Continuous(min=-4.995, max=4.991),
         early_stopping: Boolean(),
-        validation_fraction: Continuous(min=0.006, max=0.993),
+        validation_fraction: Continuous(min=0.1, max=0.8),
         n_iter_no_change: Discrete(min=1, max=9),
         average: Boolean(),
     ):
@@ -204,7 +278,7 @@ class SGD(SGDClassifier):
         self.average = average
 
 
-class KNN(KNeighborsClassifier):
+class KNN(EstimateOnDataset, KNeighborsClassifier):
     def __init__(
         self,
         n_neighbors: Discrete(min=1, max=9),
@@ -245,7 +319,6 @@ CLASSIFIERS = [
     LR,
     RandomForest,
     SVM,
-    DT,
     ComplBN,
     OCSVM,
     SGD,
