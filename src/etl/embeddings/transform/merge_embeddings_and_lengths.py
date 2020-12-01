@@ -26,7 +26,7 @@ def parse_flags():
         "in a single file"
     )
     parser.add_argument(
-        "-o", "--output_path", required=False, type=str,
+        "-o", "--output_dir", required=False, type=str,
         help="Output path to store embeddings and data file"
     )
     return parser.parse_args()
@@ -47,9 +47,8 @@ def scatter_dataset_merge(embeddings_path, data_path, output_dir):
     )
 
 
-def main(embeddings_path, data_path, scatter_dataset, output_path):
-    output_dir = os.path.dirname(output_path)
-    output_name = os.path.splitext(os.path.basename(output_path))[0]
+def main(embeddings_path, data_path, scatter_dataset, output_dir):
+    output_name = "embeddings_with_lengths"
     if not scatter_dataset:
         embeddings_data = single_dataset_merge(embeddings_path, data_path)
         save_data(output_dir, output_name, **embeddings_data)
