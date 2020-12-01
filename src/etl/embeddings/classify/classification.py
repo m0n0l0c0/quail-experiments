@@ -1,6 +1,5 @@
 import os
 import yaml
-import torch
 import random
 import argparse
 import numpy as np
@@ -13,6 +12,7 @@ from utils import get_loggers, save_args
 from pipeline import get_pipeline, save_pipeline, pipeline_map
 from dataset_class import Dataset
 from balanced_sampling import balanced_resample
+from mlp_classification import setup_gpu_device
 from mlp_classification import std_train as mlp_std_train
 from mlp_classification import autogoal_train as mlp_autogoal_train
 from dataset import (
@@ -188,8 +188,8 @@ def make_fn(train_dict, test_dict, feature_set, score_fn):
         X_test_list = X_test
         y_test_list = y_test
         if isinstance(X_test, Dataset):
-            X_test_list = np.concatenate(list(X_test.iter()))
-            y_test_list = np.array(list(y_test.iter()))
+            X_test_list = np.array(X_test.to_list())
+            y_test_list = np.array(y_test.to_list())
 
         y_pred = pipeline.predict(X_test_list)
         return score_fn(y_test_list, y_pred)
@@ -281,8 +281,7 @@ def main(args):
 
     train_fn = train_classifier
     if args.mlp:
-        global GPU_DEVICE
-        GPU_DEVICE = torch.device("cuda", index=args.gpu)
+        setup_gpu_device(args.gpu)
         train_fn = mlp_autogoal_train if args.autogoal else mlp_std_train
 
     train_fn(args, train_dict, test_dict, features, score_fn)

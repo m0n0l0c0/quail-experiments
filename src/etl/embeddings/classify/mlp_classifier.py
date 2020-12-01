@@ -63,9 +63,12 @@ class MLPClassifier():
         self.mlp_dropout = mlp_dropout
         self.lr = lr
         self.is_initialized = False
+        self.score = self.binary_acc
 
-    def initialize(self, input_size, device=torch.device("cuda", index=0)):
+    def initialize(self, input_size, device=None, score_fn=None):
         self.input_size = input_size
+        if device is None:
+            device = torch.device("cuda", index=0)
         self.device = device
         self.model = MLP(
             self.input_size,
@@ -80,6 +83,8 @@ class MLPClassifier():
             weight_decay=1e-5
         )
         self.is_initialized = True
+        if score_fn is not None:
+            self.set_score_fn(score_fn)
 
     def _setup_input(self, in_data):
         if not torch.is_tensor(in_data):
@@ -93,10 +98,19 @@ class MLPClassifier():
         acc = correct_results_sum / y_test.shape[0]
         acc = torch.round(acc * 100)
 
-        return acc
+        return acc.item()
 
-    def score(self, y_pred, y_test):
-        return self.binary_acc(y_pred, y_test)
+    def score_fn_wrapper(self, score_fn):
+        def fn(y_pred, y_test):
+            preds = torch.round(torch.sigmoid(y_pred))
+            preds = preds.detach().cpu().numpy()
+            y = y_test.cpu().numpy()
+            return score_fn(preds, y)
+
+        return fn
+
+    def set_score_fn(self, score_fn):
+        self.score = self.score_fn_wrapper(score_fn)
 
     def fit(self, X_train, y_train):
         X_train = self._setup_input(X_train)
@@ -107,8 +121,8 @@ class MLPClassifier():
         loss.backward()
         self.optimizer.step()
         loss_value = loss.item()
-        acc_value = self.binary_acc(y_pred, y_train).item()
-        return loss_value, acc_value
+        score_value = self.score(y_pred, y_train)
+        return loss_value, score_value
 
     def predict(self, X_test, y=None):
         with torch.no_grad():
@@ -145,13 +159,16 @@ def std_train_classifier(
     test_dict,
     feature_set,
     batch_size,
+    score_fn,
     print_result=True,
 ):
+    from mlp_classification import GPU_DEVICE
     dataset_rounds = get_dataset_class_proportions(train_dict)
     if not classifier.is_initialized:
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier.initialize(hidden_size, device=GPU_DEVICE)
 
+    classifier.set_score_fn(score_fn)
     for epoch in range(1, train_epochs + 1):
         classifier.model.train()
         epoch_loss = 0
@@ -180,6 +197,7 @@ def std_train_classifier(
                 test_dict,
                 feature_set,
                 batch_size,
+                score_fn=score_fn,
                 print_result=False,
                 return_y=True
             )
@@ -241,10 +259,12 @@ def scatter_train_classifier(
     score_fn,
     print_result=True,
 ):
+    from mlp_classification import GPU_DEVICE
     if not classifier.is_initialized:
         hidden_size = get_hidden_size(train_dict, feature_set)
         classifier.initialize(hidden_size, device=GPU_DEVICE)
 
+    classifier.set_score_fn(score_fn)
     train_dict.prepare_for_train(feature_set)
     for epoch in range(1, train_epochs + 1):
         classifier.model.train()
@@ -256,8 +276,6 @@ def scatter_train_classifier(
             batch_size=batch_size,
             shuffle=True
         )
-        # from IPython import embed
-        # embed()
         for batch in train_loader:
             X_train, y_train = batch
             loss, acc = classifier.fit(X_train, y_train)
@@ -342,7 +360,7 @@ def eval_classifier(classifier, **kwargs):
 def get_hidden_size(train_dict, features=None):
     if isinstance(train_dict, Dataset):
         sample = train_dict.first()
-        return sample.reshape(sample.shape[0], -1).shape[-1]
+        return sample.shape[-1]
     else:
         X_train, _ = get_x_y_from_dict(train_dict, features=features)
         return X_train.reshape(X_train.shape[0], -1).shape[-1]

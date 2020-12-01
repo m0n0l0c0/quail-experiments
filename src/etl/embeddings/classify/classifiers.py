@@ -67,18 +67,16 @@ class EstimateOnDataset(object):
         if data is None or not isinstance(data, Dataset):
             return data
 
-        ret = data.to_list()
-        cast = np.concatenate
-        if len(np.array(ret).shape) == 1:
-            cast = np.array
-        return cast(ret)
+        return np.array(data.to_list())
 
     def fit(self, X, y=None):
         if not isinstance(X, Dataset):
             # just in case of supervised learning
             return super().fit(X, self._cast(y))
 
-        super().fit(self._cast(X), self._cast(y))
+        _X = self._cast(X)
+        _y = self._cast(y)
+        super().fit(_X, _y)
         return self
 
     def fit_transform(self, X, y=None):

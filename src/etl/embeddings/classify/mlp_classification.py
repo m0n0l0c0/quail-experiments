@@ -76,6 +76,11 @@ def parse_flags():
     return parser.parse_args()
 
 
+def setup_gpu_device(gpu_num):
+    global GPU_DEVICE
+    GPU_DEVICE = torch.device("cuda", index=gpu_num)
+
+
 def save_classifier(classifier, output_dir, feature_set):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     features_str = f"classifier_{'_'.join(feature_set)}.pkl"
@@ -140,6 +145,7 @@ def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
 def autogoal_train(args, train_dict, test_dict, features, score_fn):
     loggers = get_loggers(args.output_dir)
     for feature_set in features:
+        print(f"Training with features: {feature_set}")
         pipeline = setup_pipeline(
             args,
             train_dict,

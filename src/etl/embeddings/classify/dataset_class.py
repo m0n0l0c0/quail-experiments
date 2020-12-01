@@ -196,9 +196,9 @@ class ConcatOp(DatasetOperation):
         ret = None
         for feat in data.keys():
             if ret is None:
-                ret = np.array(data[feat])
+                ret = np.array(data[feat]).reshape(1, -1)
             else:
-                ret = np.concatenate([ret, data[feat]], axis=1)
+                ret = np.concatenate([ret, data[feat].reshape(1, -1)], axis=1)
         return ret
 
 
@@ -263,6 +263,7 @@ class Dataset(object):
         self._ret_xy = self._ret_x and self._ret_y
 
         self.ops = self._setup_ops(ops)
+        self.post_ops = OrderedDict()
         self.collator = ConcatOp(feature_set=self.features)
 
     def __len__(self):
@@ -321,12 +322,23 @@ class Dataset(object):
     def _get_features_from_data(self, data, **kwargs):
         orig_shapes = None
         if kwargs.get("unshape", False):
+            # may want to get original features
             orig_shapes = [data[f].shape for f in data.keys()]
+
+        # apply operations
         for op_name, op in self.ops.items():
             data = op(data)
+
+        # collate if necessary
         if "collate" not in kwargs or kwargs["collate"]:
             data = self.collator(data)
-        elif orig_shapes is not None:
+
+        # apply operations after collation (like unsqueezing for NN training)
+        for op_name, op in self.post_ops:
+            data = op(data)
+
+        # reshape original features if requested
+        if orig_shapes is not None:
             # cant collate and unshape
             for shape, feat in zip(orig_shapes, data.keys()):
                 orig_size = nelems_from_shape(shape)
@@ -334,6 +346,7 @@ class Dataset(object):
                 # op may have reduce data (decomposition, etc)
                 if orig_size == new_size:
                     data[feat] = data[feat].reshape(shape)
+
         return data
 
     def _get_x(self, idx, **kwargs):
@@ -413,7 +426,7 @@ class Dataset(object):
         index = pd.DataFrame.from_dict(dict(X=embedding_files, y=y))
         index.to_csv(index_path)
 
-    def add_op(self, op_fn, features=None, name=None):
+    def add_op(self, op_fn, features=None, name=None, after_collate=False):
         if isinstance(op_fn, DatasetOperation):
             operation = op_fn
             if name is None:
@@ -427,7 +440,10 @@ class Dataset(object):
                 feature_set=features,
             )
 
-        self.ops.update(**{name: operation})
+        if after_collate:
+            self.post_ops.update(**{name: operation})
+        else:
+            self.ops.update(**{name: operation})
 
     def copy_to_dir(self, data_dir, start_idx=0, overwrite=False):
         data_dir = Path(data_dir)
@@ -715,7 +731,7 @@ class Dataset(object):
         self.ret_y = True
         self.cast = np.float32
         self.features = feature_set
-        self.add_op(lambda x: x.squeeze(0), name="last")
+        self.add_op(lambda x: x.squeeze(0), name="last", after_collate=True)
 
     def prepare_for_eval(self, feature_set):
         self.prepare_for_train(feature_set)
