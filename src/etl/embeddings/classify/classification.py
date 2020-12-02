@@ -33,9 +33,9 @@ from autogoal.kb import (
 
 arg_to_metric_map = {
     "accuracy": accuracy_score,
-    "weigthed_accuracy": balanced_accuracy_score,
+    "weighted_accuracy": balanced_accuracy_score,
     "f1": f1_score,
-    "weigthed_f1": partial(f1_score, average="weighted"),
+    "weighted_f1": partial(f1_score, average="weighted"),
 }
 
 
