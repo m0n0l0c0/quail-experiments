@@ -10,5 +10,7 @@ classification:
     metric: f1
     sweep_features: false
     test_size: 0.20
-    lr: 0.001
-    epochs: 100
+    mlp:
+        lr: 0.001
+        epochs: 100
+        batch_size: 200
