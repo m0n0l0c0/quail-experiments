@@ -1,6 +1,6 @@
 classification:
-    iterations: 500
-    popsize: 200
+    iterations: 200
+    popsize: 50
     selection: 10
     early_stop: 6
     balanced: false
@@ -9,7 +9,7 @@ classification:
     pipeline: logreg 
     sweep_features: false
     test_size: 0.20
-    mlp:
+    multi_layer:
         lr: 0.001
         epochs: 100
         batch_size: 200

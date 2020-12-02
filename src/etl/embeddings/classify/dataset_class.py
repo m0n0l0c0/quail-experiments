@@ -334,7 +334,7 @@ class Dataset(object):
             data = self.collator(data)
 
         # apply operations after collation (like unsqueezing for NN training)
-        for op_name, op in self.post_ops:
+        for op_name, op in self.post_ops.items():
             data = op(data)
 
         # reshape original features if requested
@@ -441,6 +441,9 @@ class Dataset(object):
             )
 
         if after_collate:
+            # if operation is inserted after collation,
+            # it will not have features, just plain data
+            operation.call_by_features = False
             self.post_ops.update(**{name: operation})
         else:
             self.ops.update(**{name: operation})
