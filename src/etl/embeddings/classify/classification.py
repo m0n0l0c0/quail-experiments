@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 from pathlib import Path
-
+from functools import partial
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 
 from utils import get_loggers, save_args
