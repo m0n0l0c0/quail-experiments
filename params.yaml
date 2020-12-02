@@ -7,7 +7,6 @@ classification:
     memory: 32
     autogoal: false
     pipeline: logreg 
-    metric: f1
     sweep_features: false
     test_size: 0.20
     mlp:

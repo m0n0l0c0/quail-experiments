@@ -6,7 +6,7 @@ import numpy as np
 
 from pathlib import Path
 
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 
 from utils import get_loggers, save_args
 from pipeline import get_pipeline, save_pipeline, pipeline_map
@@ -33,7 +33,9 @@ from autogoal.kb import (
 
 arg_to_metric_map = {
     "accuracy": accuracy_score,
+    "weigthed_accuracy": balanced_accuracy_score,
     "f1": f1_score,
+    "weigthed_f1": partial(f1_score, average="weighted"),
 }
 
 
