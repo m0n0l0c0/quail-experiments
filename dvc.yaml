@@ -809,6 +809,7 @@ stages:
   logreg_no_emtpy_answers_embeddings:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
       --scatter_dataset -p logreg -m weighted_f1 --sweep_features -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_logreg
+      --memory 64
     deps:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
     - src/etl/embeddings/classify/classification.py
@@ -852,10 +853,11 @@ stages:
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_logreg
   logreg_no_emtpy_answers_embeddings_oversample_05:
-    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
       --scatter_dataset -p logreg -m weighted_f1 --sweep_features -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_logreg
+      --memory 64
     deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
     - src/etl/embeddings/classify/classification.py
     params:
     - classification.autogoal

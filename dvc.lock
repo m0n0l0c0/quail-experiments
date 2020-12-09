@@ -1288,3 +1288,51 @@ logreg_no_emtpy_answers_norm_with_lengths:
     md5: 8493804b89fbfa1db8a5a9d430f1dd72.dir
     size: 164044
     nfiles: 33
+logreg_no_emtpy_answers_norm_embeddings_oversample_05:
+  cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings
+    --scatter_dataset -p logreg -m weighted_f1 --sweep_features -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_logreg
+  deps:
+  - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings
+    md5: 561f6d50c4f24a67ecf0ddac17b98958.dir
+    size: 7320657
+    nfiles: 9096
+  - path: src/etl/embeddings/classify/classification.py
+    md5: f3cd5ff31d64170c105ce3638b05fb9f
+    size: 9849
+  params:
+    params.yaml:
+      classification.autogoal: false
+      classification.early_stop: 6
+      classification.iterations: 200
+      classification.popsize: 50
+      classification.selection: 10
+      classification.test_size: 0.2
+  outs:
+  - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_logreg
+    md5: 5a6a453666935299c64241e13da191ce.dir
+    size: 165446
+    nfiles: 33
+logreg_no_emtpy_answers_norm_with_lengths_oversample_05:
+  cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
+    --scatter_dataset -p logreg -m weighted_f1 --sweep_features -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_logreg
+  deps:
+  - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
+    md5: 82b5fa046fe4d7caa117b74a3f50e0dd.dir
+    size: 9720756
+    nfiles: 9096
+  - path: src/etl/embeddings/classify/classification.py
+    md5: f3cd5ff31d64170c105ce3638b05fb9f
+    size: 9849
+  params:
+    params.yaml:
+      classification.autogoal: false
+      classification.early_stop: 6
+      classification.iterations: 200
+      classification.popsize: 50
+      classification.selection: 10
+      classification.test_size: 0.2
+  outs:
+  - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_logreg
+    md5: 21d887447dbf0b58ffc29909acf0a661.dir
+    size: 163468
+    nfiles: 33
