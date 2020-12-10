@@ -898,3 +898,75 @@ stages:
     - classification.test_size
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_logreg
+  mlp_no_emtpy_answers_embeddings:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
+      --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification.autogoal
+    - classification.early_stop
+    - classification.iterations
+    - classification.multi_layer.batch_size
+    - classification.multi_layer.epochs
+    - classification.multi_layer.lr
+    - classification.popsize
+    - classification.selection
+    - classification.test_size
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp
+  mlp_no_emtpy_answers_norm_with_lengths:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
+      --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_mlp
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification.autogoal
+    - classification.early_stop
+    - classification.iterations
+    - classification.multi_layer.batch_size
+    - classification.multi_layer.epochs
+    - classification.multi_layer.lr
+    - classification.popsize
+    - classification.selection
+    - classification.test_size
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_mlp
+  mlp_no_emtpy_answers_embeddings_oversample_05:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
+      --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_mlp
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification.autogoal
+    - classification.early_stop
+    - classification.iterations
+    - classification.multi_layer.batch_size
+    - classification.multi_layer.epochs
+    - classification.multi_layer.lr
+    - classification.popsize
+    - classification.selection
+    - classification.test_size
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_mlp
+  mlp_no_emtpy_answers_norm_with_lengths_oversample_05:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
+      --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification.autogoal
+    - classification.early_stop
+    - classification.iterations
+    - classification.multi_layer.batch_size
+    - classification.multi_layer.epochs
+    - classification.multi_layer.lr
+    - classification.popsize
+    - classification.selection
+    - classification.test_size
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
