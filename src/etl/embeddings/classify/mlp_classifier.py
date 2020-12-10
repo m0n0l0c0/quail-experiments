@@ -63,7 +63,7 @@ class MLPClassifier():
         self.mlp_dropout = mlp_dropout
         self.lr = lr
         self.is_initialized = False
-        self.score = self.binary_acc
+        self.score_fn = None
 
     def initialize(self, input_size, device=None, score_fn=None):
         self.input_size = input_size
@@ -100,17 +100,19 @@ class MLPClassifier():
 
         return acc.item()
 
-    def score_fn_wrapper(self, score_fn):
-        def fn(y_pred, y_test):
+    def set_score_fn(self, score_fn):
+        self.score_fn = score_fn
+
+    def score(self, y_pred, y_test):
+        res = None
+        if self.score_fn is None:
+            res = self.binary_acc(y_pred, y_test)
+        else:
             preds = torch.round(torch.sigmoid(y_pred))
             preds = preds.detach().cpu().numpy()
             y = y_test.cpu().numpy()
-            return score_fn(preds, y)
-
-        return fn
-
-    def set_score_fn(self, score_fn):
-        self.score = self.score_fn_wrapper(score_fn)
+            res = self.score_fn(preds, y)
+        return res
 
     def fit(self, X_train, y_train):
         X_train = self._setup_input(X_train)
