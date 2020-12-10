@@ -361,7 +361,7 @@ def eval_classifier(classifier, **kwargs):
 
 def get_hidden_size(train_dict, features=None):
     if isinstance(train_dict, Dataset):
-        sample = train_dict.first()
+        sample = train_dict.first(x=True, y=False)
         return sample.shape[-1]
     else:
         X_train, _ = get_x_y_from_dict(train_dict, features=features)

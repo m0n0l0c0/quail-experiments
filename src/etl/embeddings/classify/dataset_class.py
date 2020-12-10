@@ -577,6 +577,8 @@ class Dataset(object):
                 _y = []
 
     def first(self, return_dict=False, x=None, y=None):
+        prev_ret_x, prev_ret_y = self.ret_x, self.ret_y
+
         if x is not None:
             self.ret_x = x
         if y is not None:
@@ -602,6 +604,8 @@ class Dataset(object):
             ret = X_data
         else:
             ret = y_data
+
+        self.ret_x, self.ret_y = prev_ret_x, prev_ret_y
         return ret
 
     def to_list(self):

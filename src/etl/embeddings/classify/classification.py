@@ -41,22 +41,25 @@ arg_to_metric_map = {
 
 def merge_with_params_file(parser, args):
     params_file = Path(os.getcwd())/"params.yaml"
-    params = None
-    if params_file.exists():
-        params = yaml.safe_load(open(params_file, 'r'))
-        if "classification" in params:
-            params = params["classification"]
-        else:
-            params = None
 
-    if params is not None:
-        for key, value in params.items():
-            if (
-                args.__contains__(key) and
-                parser.get_default(key) == args.__getattribute__(key)
-            ):
-                print(f"Overriding {key} from 'params.yaml' file")
-                args.__setattr__(key, value)
+    if not params_file.exists():
+        return args
+
+    params = {}
+    file_params = yaml.safe_load(open(params_file, 'r'))
+
+    if "classification" in file_params:
+        params.update(**file_params["classification"])
+    if "multi_layer" in file_params:
+        params.update(**file_params["multi_layer"])
+
+    for key, value in params.items():
+        if (
+            args.__contains__(key) and
+            parser.get_default(key) == args.__getattribute__(key)
+        ):
+            print(f"Overriding {key} from 'params.yaml' file")
+            args.__setattr__(key, value)
 
     return args
 
