@@ -272,7 +272,7 @@ def embed_from_dataloader(
 
         Dataset.build_index(
             embedding_path,
-            synth_labels if labels is None else labels
+            labels if synth_labels is None else synth_labels
         )
         dataset = Dataset(data_path=embedding_path)
 
