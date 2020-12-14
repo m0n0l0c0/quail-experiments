@@ -266,7 +266,7 @@ def embed_from_dataloader(
             model, dataloader, device, pool, output_dir
         )
         if synthetic or labels is None:
-            synth_labels = np.zeros(shape=(nof_samples))
+            synth_labels = np.zeros(shape=(nof_samples + 1))
         else:
             synth_labels = None
 
