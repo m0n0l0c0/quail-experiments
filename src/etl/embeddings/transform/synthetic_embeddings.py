@@ -49,7 +49,7 @@ def pick_random_examples(examples, num_samples):
         raise ValueError(
             "Requested more examples than available"
         )
-    indexes = random.choices(range(total_examples), k=num_samples)
+    indexes = random.choices(range(total_examples), k=num_samples + 1)
     progress = tqdm(indexes, disable=not LOG, desc="Choose samples")
     for idx in progress:
         picked.append(examples[idx])
