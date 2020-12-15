@@ -50,8 +50,8 @@ def merge_with_params_file(parser, args):
 
     if "classification" in file_params:
         params.update(**file_params["classification"])
-    if "multi_layer" in file_params:
-        params.update(**file_params["multi_layer"])
+    if "multi_layer" in file_params["classification"]:
+        params.update(**file_params["classification"]["multi_layer"])
 
     for key, value in params.items():
         if (
