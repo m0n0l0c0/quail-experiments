@@ -982,4 +982,4 @@ stages:
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
     metrics:
-    - mlp_no_emtpy_answers_norm_with_lengths_oversample_05
+    - data/metrics/mlp_no_emtpy_answers_norm_with_lengths_oversample_05

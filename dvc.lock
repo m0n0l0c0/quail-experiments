@@ -1249,8 +1249,8 @@ logreg_no_emtpy_answers_norm_embeddings:
     size: 6911095
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1273,8 +1273,8 @@ logreg_no_emtpy_answers_norm_with_lengths:
     size: 9275795
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1297,8 +1297,8 @@ logreg_no_emtpy_answers_norm_embeddings_oversample_05:
     size: 7344409
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1321,8 +1321,8 @@ logreg_no_emtpy_answers_norm_with_lengths_oversample_05:
     size: 9744521
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1340,14 +1340,15 @@ mlp_no_emtpy_answers_embeddings:
   cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
     --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp --batch_size
     32 -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp
+    --metrics_dir data/metrics/mlp_no_emtpy_answers_embeddings --train --eval
   deps:
   - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
     md5: 53850c5bf3a74d17655a26df774bde57.dir
     size: 40571655921
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1364,17 +1365,22 @@ mlp_no_emtpy_answers_embeddings:
     md5: fac4db1e143e1491091c8045c6f135a3.dir
     size: 106222502034
     nfiles: 32
+  - path: data/metrics/mlp_no_emtpy_answers_embeddings
+    md5: 1c5e4bc4caf63d8baf893850e29869ba.dir
+    size: 16168
+    nfiles: 31
 mlp_no_emtpy_answers_norm_with_lengths:
   cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
     --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_mlp
+    --metrics_dir data/metrics/mlp_no_emtpy_answers_norm_with_lengths --train --eval
   deps:
   - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
     md5: 76cf71131dded3f15c94a1b02caa6e6b.dir
     size: 9275795
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1391,18 +1397,24 @@ mlp_no_emtpy_answers_norm_with_lengths:
     md5: 46bc0415aede0dc6393a4856204f2397.dir
     size: 31297266
     nfiles: 32
+  - path: data/metrics/mlp_no_emtpy_answers_norm_with_lengths
+    md5: d975e5a7885fa5cf7079114c4cb2dece.dir
+    size: 16233
+    nfiles: 31
 mlp_no_emtpy_answers_embeddings_oversample_05:
   cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
     --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp --batch_size
     32 -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_mlp
+    --metrics_dir data/metrics/mlp_no_emtpy_answers_embeddings_oversample_05 --train
+    --eval
   deps:
   - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
     md5: 1455644cc10da7841cf920915f58d7c9.dir
     size: 52723306900
     nfiles: 11820
   - path: src/etl/embeddings/classify/classification.py
-    md5: 49134b9fc53fa9566ea857bf10ffd7e3
-    size: 9926
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1419,17 +1431,23 @@ mlp_no_emtpy_answers_embeddings_oversample_05:
     md5: c7f5e57b16f26a6bfc115ea3af2eeef5.dir
     size: 106222502067
     nfiles: 32
+  - path: data/metrics/mlp_no_emtpy_answers_embeddings_oversample_05
+    md5: 415cdc19595c683fb02aa7de85c7a764.dir
+    size: 15053
+    nfiles: 31
 mlp_no_emtpy_answers_norm_with_lengths_oversample_05:
   cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
     --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
+    --metrics_dir data/metrics/mlp_no_emtpy_answers_norm_with_lengths_oversample_05
+    --train --eval
   deps:
   - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
     md5: bd774ea99d0361bf53253caeea930e40.dir
     size: 9744521
     nfiles: 9096
   - path: src/etl/embeddings/classify/classification.py
-    md5: 76745dea78611ce3007cc8829a660234
-    size: 9915
+    md5: 0dcb7006c6141740f7b3b551602bb54a
+    size: 12028
   params:
     params.yaml:
       classification.autogoal: false
@@ -1446,3 +1464,7 @@ mlp_no_emtpy_answers_norm_with_lengths_oversample_05:
     md5: 82f4019ed03737790a2c92b2825789eb.dir
     size: 31297288
     nfiles: 32
+  - path: data/metrics/mlp_no_emtpy_answers_norm_with_lengths_oversample_05
+    md5: ebba81972e3c38cac2acbb6087676ec7.dir
+    size: 16390
+    nfiles: 31
