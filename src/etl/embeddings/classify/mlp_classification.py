@@ -156,6 +156,7 @@ def autogoal_train(args, train_dict, test_dict, features, score_fn):
         best_pipe, score = pipeline.run(args.iterations, logger=loggers)
         print(f"Pipe {best_pipe}")
         save_classifier(best_pipe, args.output_dir, feature_set)
+        # ToDo := Save classification report
 
 
 def std_train(args, train_dict, test_dict, features, score_fn):
@@ -179,6 +180,7 @@ def std_train(args, train_dict, test_dict, features, score_fn):
             score_fn=score_fn,
         )
         train_classifier(classifier, **train_data)
+        # ToDo := Save classification report
         eval_classifier(classifier, **test_data)
         save_classifier(classifier, args.output_dir, feature_set)
 

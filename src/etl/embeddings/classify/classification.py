@@ -1,20 +1,26 @@
 import os
 import yaml
+import json
+import pickle
 import random
 import argparse
 import numpy as np
 
 from pathlib import Path
 from functools import partial
+from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 
 from utils import get_loggers, save_args
 from pipeline import get_pipeline, save_pipeline, pipeline_map
 from dataset_class import Dataset
 from balanced_sampling import balanced_resample
+
+from mlp_classifier import eval_classifier as mlp_evaluation
 from mlp_classification import setup_gpu_device
 from mlp_classification import std_train as mlp_std_train
 from mlp_classification import autogoal_train as mlp_autogoal_train
+
 from dataset import (
     get_splits,
     get_x_y_from_dict,
@@ -81,6 +87,12 @@ def parse_flags():
         help="File containing the dataset"
     )
     parser.add_argument(
+        "-t", "--train", required=False, action="store_true"
+    )
+    parser.add_argument(
+        "-e", "--eval", required=False, action="store_true"
+    )
+    parser.add_argument(
         "--scatter_dataset", action="store_true",
         help="Whether to store the dataset scattered across multiple files or "
         "in a single file"
@@ -114,6 +126,10 @@ def parse_flags():
         help="Output directory to store k-top best pipelines and logs"
     )
     parser.add_argument(
+        "--metrics_dir", required=False, type=str,
+        help="Output directory to store classification report as json"
+    )
+    parser.add_argument(
         "-sf", "--sweep_features", action="store_true",
         help="Try all possible combinations of features"
     )
@@ -138,6 +154,10 @@ def parse_flags():
         help="GPU to use (default to 0), used only with mlp=True"
     )
     args = merge_with_params_file(parser, parser.parse_args())
+    if not args.train and not args.eval:
+        raise ValueError(
+            "You must either train or evaluate a model"
+        )
     return args
 
 
@@ -268,6 +288,43 @@ def train_classifier(args, train_dict, test_dict, features, score_fn):
         save_classifier(best_pipeline, args.output_dir, feature_set)
 
 
+def eval_classifier(args, train_dict, test_dict, features, score_fn):
+    if args.metrics_dir is not None:
+        Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
+
+    for feature_set in features:
+        print(f"Evaluating with features: {feature_set}")
+        classifier_name = f"classifier_{'_'.join(feature_set)}"
+        classifier_path = os.path.join(
+            args.output_dir, f"{classifier_name}.pkl"
+        )
+        classifier = pickle.load(open(classifier_path, "rb"))
+        if not args.mlp:
+            raise ValueError(
+                "Only MLP classifiers evaluation is implemented by now"
+            )
+
+        setup_gpu_device(args.gpu)
+        test_data = dict(
+            test_dict=test_dict,
+            feature_set=feature_set,
+            batch_size=args.batch_size,
+            score_fn=score_fn,
+            print_result=True,
+            return_y=True,
+        )
+        _, y_test, y_pred = mlp_evaluation(classifier, **test_data)
+
+        if args.metrics_dir is not None:
+            report = classification_report(y_test, y_pred, output_dict=True)
+            report_path = os.path.join(
+                args.metrics_dir, f"{classifier_name}.json"
+            )
+            print(f"Writing evalution to {report_path}")
+            with open(report_path, "w") as fout:
+                fout.write(json.dumps(report) + "\n")
+
+
 def main(args):
     print(f"Loading data from {args.data_path}")
     features = [args.features] if args.features is not None else DEFAULT_FEATS
@@ -284,13 +341,17 @@ def main(args):
     score_fn = arg_to_metric_map[args.metric]
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    train_fn = train_classifier
-    if args.mlp:
-        setup_gpu_device(args.gpu)
-        train_fn = mlp_autogoal_train if args.autogoal else mlp_std_train
+    if args.train:
+        train_fn = train_classifier
+        if args.mlp:
+            setup_gpu_device(args.gpu)
+            train_fn = mlp_autogoal_train if args.autogoal else mlp_std_train
 
-    train_fn(args, train_dict, test_dict, features, score_fn)
-    save_args(args, args.output_dir)
+        train_fn(args, train_dict, test_dict, features, score_fn)
+        save_args(args, args.output_dir)
+
+    if args.eval:
+        eval_classifier(args, train_dict, test_dict, features, score_fn)
 
 
 if __name__ == "__main__":
