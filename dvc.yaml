@@ -901,7 +901,7 @@ stages:
   mlp_no_emtpy_answers_embeddings:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
       --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp --batch_size
-      32 -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp
+      32 -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp --metrics_dir data/metrics/mlp_no_emtpy_answers_embeddings --train --eval
     deps:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings
     - src/etl/embeddings/classify/classification.py
@@ -917,9 +917,12 @@ stages:
     - classification.test_size
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/embeddings_mlp
+    metrics:
+    - data/metrics/mlp_no_emtpy_answers_embeddings
   mlp_no_emtpy_answers_norm_with_lengths:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
       --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_mlp
+      --metrics_dir data/metrics/mlp_no_emtpy_answers_norm_with_lengths --train --eval
     deps:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths
     - src/etl/embeddings/classify/classification.py
@@ -935,10 +938,13 @@ stages:
     - classification.test_size
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/normalized_embeddings_with_lengths_mlp
+    metrics:
+    - data/metrics/mlp_no_emtpy_answers_norm_with_lengths
   mlp_no_emtpy_answers_embeddings_oversample_05:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
       --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp --batch_size
       32 -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_mlp
+      --metrics_dir data/metrics/mlp_no_emtpy_answers_embeddings_oversample_05 --train --eval
     deps:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings/embeddings
     - src/etl/embeddings/classify/classification.py
@@ -954,9 +960,12 @@ stages:
     - classification.test_size
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_embeddings_mlp
+    metrics:
+    - data/metrics/mlp_no_emtpy_answers_embeddings_oversample_05
   mlp_no_emtpy_answers_norm_with_lengths_oversample_05:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
       --scatter_dataset -m weighted_f1 --sweep_features --memory 64 --mlp -o /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
+      --metrics_dir data/metrics/mlp_no_emtpy_answers_norm_with_lengths_oversample_05 --train --eval
     deps:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
     - src/etl/embeddings/classify/classification.py
@@ -972,3 +981,5 @@ stages:
     - classification.test_size
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths_mlp
+    metrics:
+    - mlp_no_emtpy_answers_norm_with_lengths_oversample_05
