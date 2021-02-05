@@ -487,9 +487,9 @@ class Dataset(object):
         )
         return X_dataset, y_dataset
 
-    def get_splits(self, test_size=0.25):
+    def get_splits(self, test_size=0.25, random_state=None):
         train_df, test_df = train_test_split(
-            self.data_frame, test_size=test_size
+            self.data_frame, test_size=test_size, random_state=None
         )
         train_dataset = Dataset(
             data_path=self.data_path,

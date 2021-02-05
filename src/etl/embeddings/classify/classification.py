@@ -122,6 +122,10 @@ def parse_flags():
         help="The percentage of examples to use for test"
     )
     parser.add_argument(
+        "--seed", required=False, type=float, default=None,
+        help="Seed to use when splitting datasets (used for reproducibility)"
+    )
+    parser.add_argument(
         "-o", "--output_dir", required=True, type=str,
         help="Output directory to store k-top best pipelines and logs"
     )
@@ -333,10 +337,14 @@ def main(args):
 
     if args.scatter_dataset:
         dataset = Dataset(data_path=args.data_path)
-        train_dict, test_dict = dataset.get_splits(test_size=args.test_size)
+        train_dict, test_dict = dataset.get_splits(
+            test_size=args.test_size, random_state=args.seed
+        )
     else:
         dataset, features = get_normalized_dataset(args.data_path, features)
-        train_dict, test_dict = get_splits(dataset, test_size=args.test_size)
+        train_dict, test_dict = get_splits(
+            dataset, test_size=args.test_size, random_state=args.seed
+        )
 
     score_fn = arg_to_metric_map[args.metric]
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
