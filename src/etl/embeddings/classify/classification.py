@@ -165,23 +165,6 @@ def parse_flags():
     return args
 
 
-def get_automl(args, score_fn):
-    return AutoML(
-        input=MatrixContinuousDense(),
-        output=CategoricalVector(),
-        search_algorithm=PESearch,
-        search_iterations=args.iterations,
-        score_metric=score_fn,
-        search_kwargs=dict(
-            pop_size=args.popsize,
-            selection=args.selection,
-            evaluation_timeout=args.timeout,
-            memory_limit=args.memory * Gb,
-            early_stop=args.early_stop,
-        ),
-    )
-
-
 def make_balanced_fn(train_dict, test_dict, feature_set, score_fn):
     if isinstance(train_dict, Dataset):
         raise ValueError(
@@ -235,7 +218,7 @@ def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
 
     fitness_fn = maker(train_dict, test_dict, feature_set, score_fn)
 
-    return PESearch(
+    classifier = PESearch(
         pipeline,
         fitness_fn,
         pop_size=args.popsize,
@@ -243,26 +226,41 @@ def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
         evaluation_timeout=args.timeout,
         memory_limit=args.memory * Gb,
         early_stop=args.early_stop,
+        random_state=args.seed,
     )
+    return dict(classifier=classifier, fitness_fn=fitness_fn)
 
 
 def setup_automl(args, train_dict, test_dict, feature_set, score_fn):
-    classifier = get_automl(args, score_fn)
+    classifier = AutoML(
+        input=MatrixContinuousDense(),
+        output=CategoricalVector(),
+        search_algorithm=PESearch,
+        search_iterations=args.iterations,
+        score_metric=score_fn,
+        random_state=args.seed,
+        search_kwargs=dict(
+            pop_size=args.popsize,
+            selection=args.selection,
+            evaluation_timeout=args.timeout,
+            memory_limit=args.memory * Gb,
+            early_stop=args.early_stop,
+        ),
+    )
     fitness_fn = make_fn(train_dict, test_dict, feature_set, score_fn)
     return dict(classifier=classifier, fitness_fn=fitness_fn)
 
 
 def fit_classifier(args, classifier):
     loggers = get_loggers(args.output_dir)
-    if isinstance(classifier, dict):
-        classifier, fitness_fn = classifier.values()
-        score = fitness_fn(classifier)
-        best_pipe = classifier.best_pipeline_.sampler_.replay()
-    else:
-        best_pipe, score = classifier.run(args.iterations, logger=loggers)
+    classifier, fitness_fn = classifier.values()
+    if isinstance(classifier, PESearch):
+        classifier, _ = classifier.run(args.iterations, logger=loggers)
 
-    print(f"End of training, best score {score}\nPipe: {best_pipe}")
-    return best_pipe
+    score = fitness_fn(classifier)
+
+    print(f"End of training, best score {score}\nPipe: {classifier}")
+    return classifier
 
 
 def save_classifier(classifier, output_dir, feature_set):

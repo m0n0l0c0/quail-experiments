@@ -107,7 +107,7 @@ def get_dataset_from_embeddings(embeddings, logits, labels):
 def get_predictions_from_classifier(dataset, classifier_path, autogoal):
     X_test, y_test = get_x_y_from_dict(dataset)
     sys.path.append(os.path.join(os.getcwd(), 'src/etl/embeddings/classify/'))
-    classifier = load_pipeline(classifier_path, autogoal_pipe=autogoal)
+    classifier = load_pipeline(classifier_path)
     return classifier.predict(X_test)
 
 
