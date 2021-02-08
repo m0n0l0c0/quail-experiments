@@ -64,7 +64,7 @@ def merge_with_params_file(parser, args):
             args.__contains__(key) and
             parser.get_default(key) == args.__getattribute__(key)
         ):
-            print(f"Overriding {key} from 'params.yaml' file")
+            print(f"Overriding from 'params.yaml': {key}={value}")
             args.__setattr__(key, value)
 
     return args
@@ -293,6 +293,11 @@ def train_classifier(args, train_dict, test_dict, features, score_fn):
 
 
 def eval_classifier(args, train_dict, test_dict, features, score_fn):
+    if not args.mlp:
+        raise ValueError(
+            "Only MLP classifiers evaluation is implemented by now"
+        )
+
     if args.metrics_dir is not None:
         Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
 
@@ -303,10 +308,6 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
             args.output_dir, f"{classifier_name}.pkl"
         )
         classifier = pickle.load(open(classifier_path, "rb"))
-        if not args.mlp:
-            raise ValueError(
-                "Only MLP classifiers evaluation is implemented by now"
-            )
 
         setup_gpu_device(args.gpu)
         test_data = dict(
