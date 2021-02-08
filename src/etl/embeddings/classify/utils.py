@@ -13,7 +13,7 @@ from autogoal.search import (
 class CustomLogger(Logger):
     def error(self, e: Exception, solution):
         out_file = os.path.join(
-            self.get_prefix(), "embeddings_classifier_errors.log"
+            self.get_prefix(), "classifier_errors.log"
         )
         if e and solution:
             with open(out_file, "a") as fp:
@@ -21,7 +21,7 @@ class CustomLogger(Logger):
 
     def update_best(self, new_best, new_fn, *args):
         out_file = os.path.join(
-            self.get_prefix(), "embeddings_classifier.log"
+            self.get_prefix(), "classifier.log"
         )
         with open(out_file, "a") as fp:
             fp.write(f"solution={repr(new_best)}\nfitness={new_fn}\n\n")
@@ -50,7 +50,7 @@ def get_loggers(output_dir):
 
 def get_save_load_name(feature_set):
     fname = "classifier"
-    if feature_set is None:
+    if feature_set is not None:
         fname = f"{fname}_{'_'.join(feature_set)}"
 
     fname += ".pkl"
@@ -65,13 +65,9 @@ def save_args(args, output_dir):
 
 
 def save_classifier(classifier, output_dir, feature_set=None):
-    output_dir = Path(output_dir)
     fname = get_save_load_name(feature_set)
-    if feature_set is None:
-        output_dir = output_dir.parent()
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    classifier_fname = os.path.join(str(output_dir), fname)
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    classifier_fname = os.path.join(output_dir, fname)
     Pickler(open(classifier_fname, "wb")).dump(classifier)
     print(f"Saved classifier to: {classifier_fname}")
 

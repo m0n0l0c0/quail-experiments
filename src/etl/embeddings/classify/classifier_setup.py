@@ -59,10 +59,18 @@ def make_fn(args, train_dict, test_dict, feature_set, score_fn):
         X_test, y_test = get_x_y_from_dict(test_dict, features=feature_set)
 
     def fitness(pipeline):
-        pipeline.fit(X_train, y_train)
-
+        X_train_list = X_train
+        y_train_list = y_train
         X_test_list = X_test
         y_test_list = y_test
+
+        # best effor to make it work with AutoGoal contrib modules
+        if args.autogoal:
+            X_train_list = np.array(X_train.to_list())
+            y_train_list = np.array(y_train.to_list())
+
+        pipeline.fit(X_train_list, y_train_list)
+
         if isinstance(X_test, Dataset):
             X_test_list = np.array(X_test.to_list())
             y_test_list = np.array(y_test.to_list())

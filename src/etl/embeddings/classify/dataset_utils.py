@@ -11,6 +11,10 @@ from collections import Counter
 from multiprocessing import cpu_count
 from concurrent.futures import ProcessPoolExecutor
 
+# separate normalization
+NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
+DEFAULT_FEATS = ["embeddings", "logits", "contexts", "question", "endings"]
+
 
 def flatten(array):
     ret = []

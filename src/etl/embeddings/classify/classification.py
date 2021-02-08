@@ -11,6 +11,7 @@ from autogoal.search import PESearch
 
 from pipeline import pipeline_map
 from dataset_class import Dataset
+from dataset_utils import DEFAULT_FEATS
 
 from classifier_setup import (
     setup_gpu_device,
@@ -21,14 +22,12 @@ from dataset import (
     get_splits,
     get_normalized_dataset,
     sweep_features,
-    DEFAULT_FEATS,
 )
 from utils import (
     get_loggers,
     save_args,
     save_classifier,
     load_classifier,
-    get_save_load_name,
 )
 
 arg_to_metric_map = {
@@ -188,14 +187,11 @@ def eval_score_fn(y_test, y_pred):
 
 
 def eval_classifier(args, train_dict, test_dict, features, score_fn):
-    if args.metrics_dir is not None:
-        Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
-
     if args.pipeline == "mlp":
         setup_gpu_device(args.gpu)
 
     print(f"Evaluating with features: {features}")
-    classifier = load_classifier(args.output_dir, features)
+    classifier = load_classifier(args.output_dir)
     fitness_fn = get_fitness_fn(
         args,
         train_dict,
@@ -207,8 +203,9 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
     # ToDo := Save a smaller report for DVC
     report = fitness_fn(classifier)
     if args.metrics_dir is not None:
+        Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
         report_path = os.path.join(
-            args.metrics_dir, f"{get_save_load_name(features)}.json"
+            args.metrics_dir, "evaluation_results.json"
         )
         print(f"Writing evalution to {report_path}")
         with open(report_path, "w") as fout:
@@ -217,8 +214,11 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
 
 def main(args):
     print(f"Loading data from {args.data_path}")
-    features = [args.features] if args.features is not None else DEFAULT_FEATS
+    features = args.features if args.features is not None else DEFAULT_FEATS
     if args.sweep_features:
+        raise ValueError(
+            "Sweep features is deprecated by now."
+        )
         features = sweep_features(features)
 
     if args.scatter_dataset:

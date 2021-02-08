@@ -9,17 +9,15 @@ from pathlib import Path
 from collections import Counter, OrderedDict
 from sklearn.model_selection import train_test_split
 from torch.utils.data.dataset import Dataset as TorchDataset
+
 from dataset_utils import (
+    NORM_FEATS,
     get_unique_features,
     nelems_from_shape,
     parallel_copy,
     setup_data_dir,
     get_item_from_data,
 )
-
-# separate normalization
-NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
-DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
 
 
 # Operations on Dataset

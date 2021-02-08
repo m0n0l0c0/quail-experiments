@@ -13,6 +13,7 @@ from classifiers import (
     CLASSIFIERS,
     RandomForest,
     MinMaxScaler,
+    MLPClassifier,
 )
 
 

@@ -6,11 +6,13 @@ from pathlib import Path
 from itertools import combinations
 from collections import Counter
 from sklearn.model_selection import train_test_split
+from dataset_utils import (
+    NORM_FEATS,
+    get_unique_features,
+    flatten,
+)
 
-"""DEPRECATED"""
-# separate normalization
-NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
-DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]
+"""DEPRECATED MODULE"""
 
 
 def get_dataset(data_path):
@@ -70,21 +72,13 @@ def get_dataset_class_proportions(train_dict):
     return round(max_nof / min_nof)
 
 
-def get_flat_list(list_of_lists):
-    return [item for sublist in list_of_lists for item in sublist]
-
-
-def get_unique_features(features):
-    return list(Counter(get_flat_list(features)).keys())
-
-
 def get_normalized_dataset(data_path, features):
     return normalize_dataset_by_features(get_dataset(data_path), features)
 
 
 def sweep_features(features):
     feature_combinations = []
-    flat_features = get_flat_list(features)
+    flat_features = flatten(features)
     for i in range(1, len(flat_features) + 1):
         for combination in combinations(flat_features, i):
             feature_combinations.append(list(combination))
