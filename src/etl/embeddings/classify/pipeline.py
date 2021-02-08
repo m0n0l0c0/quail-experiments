@@ -1,8 +1,6 @@
-import pickle
-
+from pickle import Pickler, Unpickler
 from sklearn.pipeline import Pipeline as SkPipeline
 
-from autogoal.ml import AutoML
 from autogoal.grammar import (
     Union,
     generate_cfg,
@@ -69,22 +67,11 @@ def get_pipeline(pipe_type="full", log_grammar=True):
 
 
 def save_pipeline(pipe, file_path):
-    with open(file_path, 'wb') as fout:
-        if isinstance(pipe, AutoML):
-            pipe.save(fout)
-        else:
-            pickle.dump(pipe, fout)
+    Pickler(open(file_path, "wb")).dump(pipe)
 
 
-def load_pipeline(file_path, autogoal_pipe=True):
-    with open(file_path, 'rb') as fin:
-        if not autogoal_pipe:
-            pipeline = pickle.load(fin)
-        else:
-            pipeline = AutoML()
-            pipeline.load(fin)
-
-    return pipeline
+def load_pipeline(file_path):
+    Unpickler(open(file_path, "rb")).load()
 
 
 pipeline_map = {
