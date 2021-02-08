@@ -1,4 +1,3 @@
-from pickle import Pickler, Unpickler
 from sklearn.pipeline import Pipeline as SkPipeline
 
 from autogoal.grammar import (
@@ -59,6 +58,12 @@ class TreePipeline(SkPipeline):
         ])
 
 
+class MLPPipeline(SkPipeline):
+    def __init__(self, classifier: Union("Classification", MLPClassifier)):
+        self.classifier = classifier
+        super(MLPPipeline, self).__init__([("class", classifier)])
+
+
 def get_pipeline(pipe_type="full", log_grammar=True):
     grammar = generate_cfg(pipeline_map[pipe_type])
     if log_grammar:
@@ -66,16 +71,9 @@ def get_pipeline(pipe_type="full", log_grammar=True):
     return grammar
 
 
-def save_pipeline(pipe, file_path):
-    Pickler(open(file_path, "wb")).dump(pipe)
-
-
-def load_pipeline(file_path):
-    Unpickler(open(file_path, "rb")).load()
-
-
 pipeline_map = {
     "full": FullPipeline,
     "logreg": LogRegPipeline,
+    "mlp": MLPPipeline,
     "tree": TreePipeline,
 }

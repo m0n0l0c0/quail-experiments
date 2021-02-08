@@ -1,4 +1,6 @@
+import torch
 import numpy as np
+import torch.nn as nn
 
 from dataset_class import Dataset
 from sklearn.ensemble import RandomForestClassifier as SkRandomForestClassifier
@@ -32,6 +34,8 @@ sgd_avail_losses = [
 ]
 
 
+# Utility classes to stream a Dataset from dataset_class
+# avoids loading all datapoints in RAM
 class PartialEstimateOnDataset(object):
     def fit(self, X, y=None):
         if not isinstance(X, Dataset):
@@ -300,6 +304,119 @@ class KNN(EstimateOnDataset, KNeighborsClassifier):
         self.leaf_size = leaf_size
         self.p = p
         self.metric = metric
+
+
+class MLP(nn.Module):
+    def __init__(self, input_size: int, hidden_size=768, dropout=0.1):
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.layer_1 = nn.Linear(input_size, self.hidden_size)
+        self.layer_2 = nn.Linear(self.hidden_size, self.hidden_size)
+        self.layer_out = nn.Linear(self.hidden_size, 1)
+
+        for layer in (self.layer_1, self.layer_2, self.layer_out):
+            nn.init.xavier_uniform_(layer.weight)
+            if layer.bias is not None:
+                nn.init.zeros_(layer.bias)
+
+        self.relu = nn.ReLU()
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
+        self.batchnorm1 = nn.BatchNorm1d(self.hidden_size)
+        self.batchnorm2 = nn.BatchNorm1d(self.hidden_size)
+
+    def forward(self, inputs):
+        x = self.relu(self.layer_1(inputs))
+        x = self.batchnorm1(x)
+        x = self.dropout1(x)
+        x = self.relu(self.layer_2(x))
+        x = self.batchnorm2(x)
+        x = self.dropout2(x)
+        x = self.layer_out(x)
+
+        return x
+
+
+class MLPClassifier():
+    def __init__(
+        self,
+        mlp_hidden_size: Discrete(64, 256) = 256,
+        mlp_dropout: Continuous(0.0, 0.3) = 0.3,
+        lr: Continuous(0.00005, 0.01) = 0.01,
+    ):
+        self.mlp_hidden_size = mlp_hidden_size
+        self.mlp_dropout = mlp_dropout
+        self.lr = lr
+        self.is_initialized = False
+        self.score_fn = None
+
+    def initialize(self, input_size, device=None, score_fn=None):
+        self.input_size = input_size
+        if device is None:
+            device = torch.device("cuda", index=0)
+        self.device = device
+        self.model = MLP(
+            self.input_size,
+            hidden_size=self.mlp_hidden_size,
+            dropout=self.mlp_dropout
+        )
+        self.model.to(self.device)
+        self.criterion = nn.BCEWithLogitsLoss()
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=self.lr,
+            weight_decay=1e-5
+        )
+        self.is_initialized = True
+        if score_fn is not None:
+            self.set_score_fn(score_fn)
+
+    def _setup_input(self, in_data):
+        if not torch.is_tensor(in_data):
+            in_data = torch.as_tensor(in_data, dtype=torch.float32)
+        return in_data.to(self.device)
+
+    def binary_acc(self, y_pred, y_test):
+        y_pred_tag = torch.round(torch.sigmoid(y_pred))
+
+        correct_results_sum = (y_pred_tag == y_test).sum().float()
+        acc = correct_results_sum / y_test.shape[0]
+        acc = torch.round(acc * 100)
+
+        return acc.item()
+
+    def set_score_fn(self, score_fn):
+        self.score_fn = score_fn
+
+    def score(self, y_pred, y_test):
+        res = None
+        if self.score_fn is None:
+            res = self.binary_acc(y_pred, y_test)
+        else:
+            preds = torch.round(torch.sigmoid(y_pred))
+            preds = preds.detach().cpu().numpy()
+            y = y_test.cpu().numpy()
+            res = self.score_fn(preds, y)
+        return res
+
+    def fit(self, X_train, y_train):
+        X_train = self._setup_input(X_train)
+        y_train = self._setup_input(y_train).unsqueeze(1)
+        y_pred = self.model(X_train)
+        loss = self.criterion(y_pred, y_train)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        loss_value = loss.item()
+        score_value = self.score(y_pred, y_train)
+        return loss_value, score_value
+
+    def predict(self, X_test, y=None):
+        with torch.no_grad():
+            X_test = self._setup_input(X_test)
+            y_pred = torch.round(torch.sigmoid(self.model(X_test)))
+            y_pred = y_pred.cpu().numpy()
+        return y_pred
 
 
 NORMALIZERS = [

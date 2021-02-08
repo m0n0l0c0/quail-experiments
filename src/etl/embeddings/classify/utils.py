@@ -1,6 +1,6 @@
 import os
-import pickle
 
+from pickle import Pickler, Unpickler
 from pathlib import Path
 from autogoal.search import (
     ConsoleLogger,
@@ -48,9 +48,43 @@ def get_loggers(output_dir):
     ]
 
 
+def get_save_load_name(feature_set):
+    fname = "classifier"
+    if feature_set is None:
+        fname = f"{fname}_{'_'.join(feature_set)}"
+
+    fname += ".pkl"
+    return fname
+
+
 def save_args(args, output_dir):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     args_fname = os.path.join(output_dir, "training_args.pkl")
-    with open(args_fname, "wb") as fout:
-        pickle.dump(args, fout)
+    Pickler(open(args_fname, "wb")).dump(args)
     print(f"Saved args to: {args_fname}")
+
+
+def save_classifier(classifier, output_dir, feature_set=None):
+    output_dir = Path(output_dir)
+    fname = get_save_load_name(feature_set)
+    if feature_set is None:
+        output_dir = output_dir.parent()
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    classifier_fname = os.path.join(str(output_dir), fname)
+    Pickler(open(classifier_fname, "wb")).dump(classifier)
+    print(f"Saved classifier to: {classifier_fname}")
+
+
+def load_classifier(output_dir, feature_set=None):
+    if not Path(output_dir).exists():
+        raise RuntimeError(
+            "Requested to load a classifier from an invalid path "
+            f"`{output_dir}`"
+        )
+
+    fname = get_save_load_name(feature_set)
+    classifier_fname = os.path.join(output_dir, fname)
+    classifier = Unpickler(open(classifier_fname, "rb")).load()
+    print(f"Loaded classifier from: {classifier_fname}")
+    return classifier

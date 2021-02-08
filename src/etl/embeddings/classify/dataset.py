@@ -7,6 +7,7 @@ from itertools import combinations
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
+"""DEPRECATED"""
 # separate normalization
 NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
 DEFAULT_FEATS = [["embeddings", "logits", "contexts", "question", "endings"]]

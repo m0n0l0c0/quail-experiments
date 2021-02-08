@@ -19,7 +19,7 @@ sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, "classify"))
 sys.path.append(os.path.join(base_path, "extract"))
 
-from pipeline import load_pipeline  # noqa: E402
+from utils import load_classifier  # noqa: E402
 from dataset import get_x_y_from_dict  # noqa: E402
 from extract_embeddings import embed_dataset, mc_setup  # noqa: E402
 from choices.reformat_predictions import get_index_matching_text  # noqa: E402
@@ -106,8 +106,7 @@ def get_dataset_from_embeddings(embeddings, logits, labels):
 
 def get_predictions_from_classifier(dataset, classifier_path, autogoal):
     X_test, y_test = get_x_y_from_dict(dataset)
-    sys.path.append(os.path.join(os.getcwd(), 'src/etl/embeddings/classify/'))
-    classifier = load_pipeline(classifier_path)
+    classifier = load_classifier(classifier_path)
     return classifier.predict(X_test)
 
 
@@ -161,7 +160,7 @@ def main(
     embeddings, logits, labels = embed_dataset(model, eval_dataloader, device)
     dataset = get_dataset_from_embeddings(embeddings, logits, labels)
     predictions = get_predictions_from_classifier(
-        dataset, classifier_path, autogoal
+        dataset, classifier_path
     )
     predictions_dict = dict(classifier=predictions, model=logits)
     strategy_dict = dict(type=strategy, extras=no_answer_text)

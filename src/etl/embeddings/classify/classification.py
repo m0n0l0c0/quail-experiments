@@ -1,40 +1,34 @@
 import os
 import yaml
 import json
-import pickle
-import random
 import argparse
-import numpy as np
 
 from pathlib import Path
 from functools import partial
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
+from autogoal.search import PESearch
 
-from utils import get_loggers, save_args
-from pipeline import get_pipeline, save_pipeline, pipeline_map
+from pipeline import pipeline_map
 from dataset_class import Dataset
-from balanced_sampling import balanced_resample
 
-from mlp_classifier import eval_classifier as mlp_evaluation
-from mlp_classification import setup_gpu_device
-from mlp_classification import std_train as mlp_std_train
-from mlp_classification import autogoal_train as mlp_autogoal_train
-
+from classifier_setup import (
+    setup_gpu_device,
+    setup_pipeline,
+    get_fitness_fn,
+)
 from dataset import (
     get_splits,
-    get_x_y_from_dict,
     get_normalized_dataset,
     sweep_features,
     DEFAULT_FEATS,
 )
-
-from autogoal.utils import Gb
-from autogoal.search import PESearch
-from autogoal.ml import AutoML
-from autogoal.kb import (
-    MatrixContinuousDense,
-    CategoricalVector,
+from utils import (
+    get_loggers,
+    save_args,
+    save_classifier,
+    load_classifier,
+    get_save_load_name,
 )
 
 arg_to_metric_map = {
@@ -138,10 +132,6 @@ def parse_flags():
         help="Try all possible combinations of features"
     )
     parser.add_argument(
-        "--mlp", required=False, action="store_true",
-        help="Whether to train a MLP classifier or a pipeline"
-    )
-    parser.add_argument(
         "-bs", "--batch_size", required=False, type=int, default=1024,
         help="The batch size for train/predict"
     )
@@ -165,92 +155,6 @@ def parse_flags():
     return args
 
 
-def make_balanced_fn(train_dict, test_dict, feature_set, score_fn):
-    if isinstance(train_dict, Dataset):
-        raise ValueError(
-            "Cannot do balanced sampling on a Dataset instance, load raw data"
-            " or balance outside classification process"
-        )
-    X_test, y_test = get_x_y_from_dict(test_dict, features=feature_set)
-    X_train, y_train = get_x_y_from_dict(train_dict, features=feature_set)
-    X_train, y_train = balanced_resample(
-        seed=random.choice(list(range(1000))),
-        X_train=X_train,
-        y_train=y_train,
-    )
-
-    def fitness(pipeline):
-        y_pred = pipeline.fit(X_train, y_train).predict(X_test)
-        return score_fn(y_pred, y_test)
-
-    return fitness
-
-
-def make_fn(train_dict, test_dict, feature_set, score_fn):
-    if isinstance(train_dict, Dataset):
-        X_train, y_train = train_dict.get_x_y_from_dict(features=feature_set)
-        X_test, y_test = test_dict.get_x_y_from_dict(features=feature_set)
-    else:
-        X_train, y_train = get_x_y_from_dict(train_dict, features=feature_set)
-        X_test, y_test = get_x_y_from_dict(test_dict, features=feature_set)
-
-    def fitness(pipeline):
-        pipeline.fit(X_train, y_train)
-
-        X_test_list = X_test
-        y_test_list = y_test
-        if isinstance(X_test, Dataset):
-            X_test_list = np.array(X_test.to_list())
-            y_test_list = np.array(y_test.to_list())
-
-        y_pred = pipeline.predict(X_test_list)
-        return score_fn(y_test_list, y_pred)
-
-    return fitness
-
-
-def setup_pipeline(args, train_dict, test_dict, feature_set, score_fn):
-    pipeline = get_pipeline(pipe_type=args.pipeline, log_grammar=True)
-    if args.balanced:
-        maker = make_balanced_fn
-    else:
-        maker = make_fn
-
-    fitness_fn = maker(train_dict, test_dict, feature_set, score_fn)
-
-    classifier = PESearch(
-        pipeline,
-        fitness_fn,
-        pop_size=args.popsize,
-        selection=args.selection,
-        evaluation_timeout=args.timeout,
-        memory_limit=args.memory * Gb,
-        early_stop=args.early_stop,
-        random_state=args.seed,
-    )
-    return dict(classifier=classifier, fitness_fn=fitness_fn)
-
-
-def setup_automl(args, train_dict, test_dict, feature_set, score_fn):
-    classifier = AutoML(
-        input=MatrixContinuousDense(),
-        output=CategoricalVector(),
-        search_algorithm=PESearch,
-        search_iterations=args.iterations,
-        score_metric=score_fn,
-        random_state=args.seed,
-        search_kwargs=dict(
-            pop_size=args.popsize,
-            selection=args.selection,
-            evaluation_timeout=args.timeout,
-            memory_limit=args.memory * Gb,
-            early_stop=args.early_stop,
-        ),
-    )
-    fitness_fn = make_fn(train_dict, test_dict, feature_set, score_fn)
-    return dict(classifier=classifier, fitness_fn=fitness_fn)
-
-
 def fit_classifier(args, classifier):
     loggers = get_loggers(args.output_dir)
     classifier, fitness_fn = classifier.values()
@@ -263,69 +167,52 @@ def fit_classifier(args, classifier):
     return classifier
 
 
-def save_classifier(classifier, output_dir, feature_set):
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    features_str = f"classifier_{'_'.join(feature_set)}.pkl"
-    classifier_fname = os.path.join(output_dir, features_str)
-    save_pipeline(classifier, classifier_fname)
-    print(f"Saved best pipeline to: {classifier_fname}")
-
-
+# In the new setup, we don't use feature sets
+# dvc exp will take care of comparing models accross feature_sets
 def train_classifier(args, train_dict, test_dict, features, score_fn):
-    for feature_set in features:
-        print(f"Training with features: {feature_set}")
-        if args.autogoal:
-            setup_fn = setup_automl
-        else:
-            setup_fn = setup_pipeline
+    print(f"Training with features: {features}")
+    classifier = setup_pipeline(
+        args,
+        train_dict,
+        test_dict,
+        features,
+        score_fn,
+    )
+    best_pipeline = fit_classifier(args, classifier)
+    save_classifier(best_pipeline, args.output_dir)
 
-        classifier = setup_fn(
-            args,
-            train_dict,
-            test_dict,
-            feature_set,
-            score_fn,
-        )
-        best_pipeline = fit_classifier(args, classifier)
-        save_classifier(best_pipeline, args.output_dir, feature_set)
+
+def eval_score_fn(y_test, y_pred):
+    print(classification_report(y_test, y_pred))
+    return classification_report(y_test, y_pred, output_dict=True)
 
 
 def eval_classifier(args, train_dict, test_dict, features, score_fn):
-    if not args.mlp:
-        raise ValueError(
-            "Only MLP classifiers evaluation is implemented by now"
-        )
-
     if args.metrics_dir is not None:
         Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
 
-    for feature_set in features:
-        print(f"Evaluating with features: {feature_set}")
-        classifier_name = f"classifier_{'_'.join(feature_set)}"
-        classifier_path = os.path.join(
-            args.output_dir, f"{classifier_name}.pkl"
-        )
-        classifier = pickle.load(open(classifier_path, "rb"))
-
+    if args.pipeline == "mlp":
         setup_gpu_device(args.gpu)
-        test_data = dict(
-            test_dict=test_dict,
-            feature_set=feature_set,
-            batch_size=args.batch_size,
-            score_fn=score_fn,
-            print_result=True,
-            return_y=True,
-        )
-        _, y_test, y_pred = mlp_evaluation(classifier, **test_data)
 
-        if args.metrics_dir is not None:
-            report = classification_report(y_test, y_pred, output_dict=True)
-            report_path = os.path.join(
-                args.metrics_dir, f"{classifier_name}.json"
-            )
-            print(f"Writing evalution to {report_path}")
-            with open(report_path, "w") as fout:
-                fout.write(json.dumps(report) + "\n")
+    print(f"Evaluating with features: {features}")
+    classifier = load_classifier(args.output_dir, features)
+    fitness_fn = get_fitness_fn(
+        args,
+        train_dict,
+        test_dict,
+        features,
+        eval_score_fn
+    )
+
+    # ToDo := Save a smaller report for DVC
+    report = fitness_fn(classifier)
+    if args.metrics_dir is not None:
+        report_path = os.path.join(
+            args.metrics_dir, f"{get_save_load_name(features)}.json"
+        )
+        print(f"Writing evalution to {report_path}")
+        with open(report_path, "w") as fout:
+            fout.write(json.dumps(report) + "\n")
 
 
 def main(args):
@@ -349,12 +236,10 @@ def main(args):
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     if args.train:
-        train_fn = train_classifier
-        if args.mlp:
+        if args.pipeline == "mlp":
             setup_gpu_device(args.gpu)
-            train_fn = mlp_autogoal_train if args.autogoal else mlp_std_train
 
-        train_fn(args, train_dict, test_dict, features, score_fn)
+        train_classifier(args, train_dict, test_dict, features, score_fn)
         save_args(args, args.output_dir)
 
     if args.eval:
