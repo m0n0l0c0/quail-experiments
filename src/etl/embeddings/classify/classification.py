@@ -38,14 +38,20 @@ arg_to_metric_map = {
 }
 
 
+def get_params():
+    params = None
+    params_file = Path(os.getcwd()).absolute().joinpath("params.yaml")
+    if params_file.exists():
+        params = yaml.safe_load(open(params_file, "r"))
+
+    return params
+
+
 def merge_with_params_file(parser, args):
-    params_file = Path(os.getcwd())/"params.yaml"
-
-    if not params_file.exists():
-        return args
-
     params = {}
-    file_params = yaml.safe_load(open(params_file, 'r'))
+    file_params = get_params()
+    if file_params is None:
+        return args
 
     if "classification" in file_params:
         params.update(**file_params["classification"])
@@ -86,7 +92,7 @@ def parse_flags():
         "-e", "--eval", required=False, action="store_true"
     )
     parser.add_argument(
-        "--scatter_dataset", action="store_true",
+        "--no_scatter_dataset", action="store_false",
         help="Whether to store the dataset scattered across multiple files or "
         "in a single file"
     )
@@ -205,15 +211,45 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
     if args.metrics_dir is not None:
         Path(args.metrics_dir).mkdir(exist_ok=True, parents=True)
         report_path = os.path.join(
-            args.metrics_dir, "evaluation_results.json"
+            args.metrics_dir, "scores.json"
         )
         print(f"Writing evalution to {report_path}")
         with open(report_path, "w") as fout:
             fout.write(json.dumps(report) + "\n")
 
 
+def get_data_path_from_features(args):
+    params = get_params()
+    if params is None:
+        raise RuntimeError("No params file found to search for features!")
+
+    features = params["features"]
+    data_path = args.data_path
+    prefix = ""
+    suffix = ""
+    if features.get("oversample", False):
+        prefix += "oversample_"
+    if features.get("normalization", False):
+        prefix += "normalized_"
+
+    # exception: oversample_embeddings contains the data in
+    # oversample_embeddings/embeddings
+    prefix += "embeddings"
+
+    if features.get("text_length", False):
+        suffix += "_with_lengths"
+
+    dataset_name = f"{prefix}{suffix}"
+    if dataset_name == "oversample_embeddings":
+        dataset_name = os.path.join(dataset_name, "embeddings")
+
+    data_path = os.path.join(data_path, dataset_name)
+    return data_path
+
+
 def main(args):
-    print(f"Loading data from {args.data_path}")
+    data_path = get_data_path_from_features(args)
+    print(f"Loading data from {data_path}")
     features = args.features if args.features is not None else DEFAULT_FEATS
     if args.sweep_features:
         raise ValueError(
@@ -222,12 +258,12 @@ def main(args):
         features = sweep_features(features)
 
     if args.scatter_dataset:
-        dataset = Dataset(data_path=args.data_path)
+        dataset = Dataset(data_path=data_path)
         train_dict, test_dict = dataset.get_splits(
             test_size=args.test_size, random_state=args.seed
         )
     else:
-        dataset, features = get_normalized_dataset(args.data_path, features)
+        dataset, features = get_normalized_dataset(data_path, features)
         train_dict, test_dict = get_splits(
             dataset, test_size=args.test_size, random_state=args.seed
         )
