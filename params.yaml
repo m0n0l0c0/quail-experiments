@@ -4,12 +4,23 @@ classification:
     selection: 10
     early_stop: 6
     balanced: false
-    memory: 32
+    memory: 64
     autogoal: false
     pipeline: logreg
     sweep_features: false
     test_size: 0.20
+    metric: weighted_f1
     multi_layer:
         lr: 0.001
         epochs: 100
         batch_size: 200
+
+features:
+    normalization: false
+    oversample: false
+    text_length: false
+    embeddings: false
+    logits: false
+    context: false
+    question: false
+    endings: false
