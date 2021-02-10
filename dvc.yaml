@@ -88,3 +88,29 @@ stages:
     metrics:
     - data/metrics/bert-train-no-empty-answers/eval_metrics.json
     - data/metrics/bert-train-no-empty-answers/train_metrics.json
+  bert-eval-no-empty-answers:
+    cmd: ./src/processing/run.sh data/specs/bert-eval-no-empty-answers_experiment.json
+    deps:
+    - data/models/bert-train-no-empty-answers
+    - data/quail_no_empty_answers/dev.json
+    - src/processing/run.sh
+    params:
+    - data/specs/bert-eval-no-empty-answers_experiment.json:
+      - params.do_eval
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.per_device_eval_batch_size
+      - params.per_device_train_batch_size
+      - params.task_name
+      - params.warmup_steps
+    outs:
+    - data/results/bert-eval-no-empty-answers/eval_nbest_predictions.json
+    - data/results/bert-eval-no-empty-answers/eval_predictions.json
+    metrics:
+    - data/metrics/bert-eval-no-empty-answers/eval_metrics.json
