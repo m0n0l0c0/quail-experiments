@@ -45,7 +45,7 @@ get_experiments(){
 ch_to_project_root(){
   # chdir to project root
   scriptdir=$(dirname -- "$(realpath -- "$0")")
-  rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments-v2\).*/\1/')
+  rootdir=$(echo $scriptdir | sed -e 's/\(quail-experiments\).*/\1/')
   cwd=$(pwd)
   cd $rootdir >/dev/null
 }
