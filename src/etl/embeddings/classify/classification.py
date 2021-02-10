@@ -92,7 +92,7 @@ def parse_flags():
         "-e", "--eval", required=False, action="store_true"
     )
     parser.add_argument(
-        "--no_scatter_dataset", action="store_false",
+        "--no_scatter_dataset", action="store_true",
         help="Whether to store the dataset scattered across multiple files or "
         "in a single file"
     )
