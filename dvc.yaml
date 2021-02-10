@@ -806,3 +806,19 @@ stages:
     - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers/oversample_normalized_embeddings_with_lengths
+  classification:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers
+      -o /data/gblanco/results/quail_no_empty_answers --metrics_dir data/metrics/classification
+      --train --eval
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification
+    - features
+    outs:
+    - /data/gblanco/results/quail_no_empty_answers:
+        checkpoint: true
+    metrics:
+    - data/metrics/classification/scores.json:
+        cache: false
