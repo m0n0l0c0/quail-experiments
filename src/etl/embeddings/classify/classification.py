@@ -257,15 +257,15 @@ def main(args):
         )
         features = sweep_features(features)
 
-    if args.scatter_dataset:
-        dataset = Dataset(data_path=data_path)
-        train_dict, test_dict = dataset.get_splits(
-            test_size=args.test_size, random_state=args.seed
-        )
-    else:
+    if args.no_scatter_dataset:
         dataset, features = get_normalized_dataset(data_path, features)
         train_dict, test_dict = get_splits(
             dataset, test_size=args.test_size, random_state=args.seed
+        )
+    else:
+        dataset = Dataset(data_path=data_path)
+        train_dict, test_dict = dataset.get_splits(
+            test_size=args.test_size, random_state=args.seed
         )
 
     score_fn = arg_to_metric_map[args.metric]
