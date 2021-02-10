@@ -142,3 +142,19 @@ stages:
     - src/etl/embeddings/extract/extract_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+  normalize_no_emtpy_answers_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+  normalize_no_emtpy_answers_embeddings_oversample_05:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
