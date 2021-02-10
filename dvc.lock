@@ -101,3 +101,201 @@ stages:
       md5: be46589e12f830a3e7955451e37136ae.dir
       size: 438215920
       nfiles: 5
+  bert-train-no-empty-answers:
+    cmd: ./src/processing/run.sh data/specs/bert-train-no-empty-answers_experiment.json
+    deps:
+    - path: data/models/bert-base-uncased
+      md5: be46589e12f830a3e7955451e37136ae.dir
+      size: 438215920
+      nfiles: 5
+    - path: data/quail_no_empty_answers/dev.json
+      md5: 0527f4f70f20380b3eb7b506c063a7d8
+      size: 554890
+    - path: data/quail_no_empty_answers/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755
+    - path: src/processing/run.sh
+      md5: 311ef43e41a222b7a3d5e66084db3cca
+      size: 1947
+    params:
+      data/specs/bert-train-no-empty-answers_experiment.json:
+        params.do_eval: true
+        params.do_train: true
+        params.fp16: true
+        params.fp16_opt_level: O1
+        params.gradient_accumulation_steps: 8
+        params.learning_rate: 5e-05
+        params.max_seq_length: 484
+        params.meta: bert-train-no-empty-answers
+        params.model_type: bert
+        params.num_train_epochs: 2
+        params.per_device_eval_batch_size: 8
+        params.per_device_train_batch_size: 2
+        params.task_name: generic
+        params.warmup_steps: 500
+    outs:
+    - path: data/metrics/bert-train-no-empty-answers/eval_metrics.json
+      md5: 5a4f1683f08baecd85ab2ea48726ea8a
+      size: 66
+    - path: data/metrics/bert-train-no-empty-answers/train_metrics.json
+      md5: eeff26dc790409cc63d884251979714f
+      size: 66
+    - path: data/models/bert-train-no-empty-answers/config.json
+      md5: fda1d82a923cf7ffd8b9da484296692f
+      size: 698
+    - path: data/models/bert-train-no-empty-answers/pytorch_model.bin
+      md5: 1011835e19507dacaa005790bc1b9789
+      size: 437986601
+    - path: data/models/bert-train-no-empty-answers/special_tokens_map.json
+      md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+      size: 112
+    - path: data/models/bert-train-no-empty-answers/tokenizer_config.json
+      md5: acaa1589c694bf6f6c146b3bac976f67
+      size: 161
+    - path: data/models/bert-train-no-empty-answers/training_args.bin
+      md5: 86e76737c04333939abb0f6eba3e95ff
+      size: 1560
+    - path: data/models/bert-train-no-empty-answers/vocab.txt
+      md5: 64800d5d8528ce344256daf115d4965e
+      size: 231508
+    - path: data/results/bert-train-no-empty-answers/eval_nbest_predictions.json
+      md5: 964986065a498675580b2fabee5bdc66
+      size: 351905
+    - path: data/results/bert-train-no-empty-answers/eval_predictions.json
+      md5: a1f5eeea39df963eda90719dae411888
+      size: 34625
+    - path: data/results/bert-train-no-empty-answers/train_nbest_predictions.json
+      md5: 5037c1e9af7e0f5214944c94952d6324
+      size: 1479915
+    - path: data/results/bert-train-no-empty-answers/train_predictions.json
+      md5: 29950bc197a2dea8e6bfc052666cfee2
+      size: 145521
+  extract_no_empty_answers_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert-eval-no-empty-answers_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
+    deps:
+    - path: data/models/bert-train-no-empty-answers
+      md5: be5e7f1093238e2997fdd6b72b24f67f.dir
+      size: 438220907
+      nfiles: 8
+    - path: data/quail_no_empty_answers/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755
+    - path: data/specs/bert-eval-no-empty-answers_experiment.json
+      md5: 2734e0e160d157c534d86913077b5ed2
+      size: 1322
+    - path: src/etl/embeddings/extract/extract_embeddings.py
+      md5: 375e77b5d8e5727848881bedc5f4d2ea
+      size: 15753
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+      md5: 5e9eae97b8b627584b93716b89d760cc.dir
+      size: 40571674111
+      nfiles: 9096
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings
+      md5: f4ccfc1a71538a55d561adba0db1a253.dir
+      size: 53953043048
+      nfiles: 12096
+  extract_no_empty_answers_lengths_oversample_05:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/train.json
+      md5: a012eeb6f452195b850f8deb930e4ca5
+      size: 2965835
+    - path: src/etl/embeddings/extract/extract_lengths.py
+      md5: 1947b907bf19b546e09ac5a00fde7230
+      size: 2559
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+      md5: f06fb889b4dfc8d6d32d1b0f50213b5c
+      size: 677552
+  normalize_no_emtpy_answers_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+      md5: 5e9eae97b8b627584b93716b89d760cc.dir
+      size: 40571674111
+      nfiles: 9096
+    - path: src/etl/embeddings/transform/normalize_embeddings.py
+      md5: 4fbd590c4418242cac7712c84a3608bf
+      size: 3091
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+      md5: b36ec939b9852c97af9ca94abc5689aa.dir
+      size: 6929285
+      nfiles: 9096
+  extract_no_empty_answers_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths
+    deps:
+    - path: data/quail_no_empty_answers/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755
+    - path: src/etl/embeddings/extract/extract_lengths.py
+      md5: 1947b907bf19b546e09ac5a00fde7230
+      size: 2559
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+      md5: db3c9bb79da844e3815ff2f1d7aa7390
+      size: 509608
+  merge_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+      md5: b36ec939b9852c97af9ca94abc5689aa.dir
+      size: 6929285
+      nfiles: 9096
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+      md5: db3c9bb79da844e3815ff2f1d7aa7390
+      size: 509608
+    - path: src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+      md5: bdf8fd8efcebfb7ca4c90b250c44e7b7
+      size: 1925
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
+      md5: 37ff2ee09d02ee49e56ca0d5617e341c.dir
+      size: 9293985
+      nfiles: 9096
+  normalize_no_emtpy_answers_embeddings_oversample_05:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+      md5: d36c175ce0b3438a2774e462015c12f7.dir
+      size: 53950077213
+      nfiles: 12095
+    - path: src/etl/embeddings/transform/normalize_embeddings.py
+      md5: 4fbd590c4418242cac7712c84a3608bf
+      size: 3091
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+      md5: 59c486eec8b7489ffde71378c0c87da5.dir
+      size: 7400497
+      nfiles: 9096
+  merge_norm_with_lengths_oversample_05:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+      md5: 59c486eec8b7489ffde71378c0c87da5.dir
+      size: 7400497
+      nfiles: 9096
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+      md5: f06fb889b4dfc8d6d32d1b0f50213b5c
+      size: 677552
+    - path: src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+      md5: bdf8fd8efcebfb7ca4c90b250c44e7b7
+      size: 1925
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
+      md5: b0b4436eb7dba3acf292c368960e1baf.dir
+      size: 9804184
+      nfiles: 9096

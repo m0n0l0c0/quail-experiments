@@ -90,12 +90,12 @@ stages:
     - data/metrics/bert-train-no-empty-answers/train_metrics.json
   extract_no_empty_answers_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
-      data/specs/bert-eval-no-empty-answers/experiment.json --extract params --scatter_dataset
+      data/specs/bert-eval-no-empty-answers_experiment.json --extract params --scatter_dataset
       -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
     deps:
     - data/models/bert-train-no-empty-answers
     - data/quail_no_empty_answers/train.json
-    - data/specs/bert-eval-no-empty-answers/experiment.json
+    - data/specs/bert-eval-no-empty-answers_experiment.json
     - src/etl/embeddings/extract/extract_embeddings.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
@@ -154,3 +154,19 @@ stages:
     - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
+  classification:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+      -o /data/gblanco/results/quail_no_empty_answers_2 --metrics_dir data/metrics/classification
+      --train --eval
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification
+    - features
+    outs:
+    - /data/gblanco/results/quail_no_empty_answers_2:
+        checkpoint: true
+    metrics:
+    - data/metrics/classification/scores.json:
+        cache: false
