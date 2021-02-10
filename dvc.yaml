@@ -10,8 +10,7 @@ stages:
     - data/quail/train.json
     - data/quail/train_answers.json
   dl_models:
-    cmd: python ./src/etl/dl_models.py -m bert-base-uncased
-      --overwrite
+    cmd: python ./src/etl/dl_models.py -m bert-base-uncased --overwrite
     deps:
     - src/etl/dl_models.py
     outs:
@@ -52,3 +51,40 @@ stages:
     outs:
     - ./data/quail_no_empty_answers/dev_index_list.json
     - data/quail_no_empty_answers/dev.json
+  bert-train-no-empty-answers:
+    cmd: ./src/processing/run.sh data/specs/bert-train-no-empty-answers_experiment.json
+    deps:
+    - data/models/bert-base-uncased
+    - data/quail_no_empty_answers/dev.json
+    - data/quail_no_empty_answers/train.json
+    - src/processing/run.sh
+    params:
+    - data/specs/bert-train-no-empty-answers_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.per_device_eval_batch_size
+      - params.per_device_train_batch_size
+      - params.task_name
+      - params.warmup_steps
+    outs:
+    - data/models/bert-train-no-empty-answers/config.json
+    - data/models/bert-train-no-empty-answers/pytorch_model.bin
+    - data/models/bert-train-no-empty-answers/special_tokens_map.json
+    - data/models/bert-train-no-empty-answers/tokenizer_config.json
+    - data/models/bert-train-no-empty-answers/training_args.bin
+    - data/models/bert-train-no-empty-answers/vocab.txt
+    - data/results/bert-train-no-empty-answers/eval_nbest_predictions.json
+    - data/results/bert-train-no-empty-answers/eval_predictions.json
+    - data/results/bert-train-no-empty-answers/train_nbest_predictions.json
+    - data/results/bert-train-no-empty-answers/train_predictions.json
+    metrics:
+    - data/metrics/bert-train-no-empty-answers/eval_metrics.json
+    - data/metrics/bert-train-no-empty-answers/train_metrics.json

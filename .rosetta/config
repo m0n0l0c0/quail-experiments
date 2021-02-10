@@ -48,9 +48,18 @@ results = "data/results"
 
 [keydefs]
   groups = ["meta"]
+  exclude_params = [
+    "data_dir",
+    "cache_dir",
+    "model_name_or_path",
+    "output_dir",
+    "metrics_dir",
+    "results_dir",
+    "save_total_limit",
+    "save_steps",
+    "save_logits"
+  ]
 
   # big definition of hashable parameters,
   # the example value determines the type
-  hash = [
-    "meta"
-  ]
+  hash = ["meta"]
