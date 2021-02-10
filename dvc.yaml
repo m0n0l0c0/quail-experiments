@@ -114,3 +114,31 @@ stages:
     - data/results/bert-eval-no-empty-answers/eval_predictions.json
     metrics:
     - data/metrics/bert-eval-no-empty-answers/eval_metrics.json
+  extract_no_empty_answers_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert-eval-no-empty-answers/experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings
+    - data/models/bert-train-no-empty-answers
+    - data/quail_no_empty_answers/train.json
+    - data/specs/bert-eval-no-empty-answers/experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+  extract_no_empty_answers_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths
+    deps:
+    - data/quail_no_empty_answers/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+  extract_no_empty_answers_lengths_oversample_05:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
