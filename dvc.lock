@@ -176,9 +176,9 @@ stages:
       -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
     deps:
     - path: data/models/bert-train-no-empty-answers
-      md5: be5e7f1093238e2997fdd6b72b24f67f.dir
-      size: 438220907
-      nfiles: 8
+      md5: 1aaf9fd99a1b5c1b368750932fd8ce1a.dir
+      size: 438220750
+      nfiles: 7
     - path: data/quail_no_empty_answers/train.json
       md5: d3a6f28fa96f7431cee0ec4aa4193105
       size: 2451755
@@ -299,3 +299,50 @@ stages:
       md5: b0b4436eb7dba3acf292c368960e1baf.dir
       size: 9804184
       nfiles: 9096
+  classification:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+      -o /data/gblanco/results/quail_no_empty_answers_2 --metrics_dir data/metrics/classification
+      --train --eval
+    deps:
+    - path: /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+      md5: f5c9499401898969427d612afddd7a35.dir
+      size: 94559332270
+      nfiles: 57578
+    - path: src/etl/embeddings/classify/classification.py
+      md5: 834f1df2e95230abd0b41dce05e01ebc
+      size: 9057
+    params:
+      params.yaml:
+        classification:
+          iterations: 200
+          popsize: 50
+          selection: 10
+          early_stop: 6
+          balanced: false
+          memory: 64
+          autogoal: false
+          pipeline: logreg
+          sweep_features: false
+          test_size: 0.2
+          metric: weighted_f1
+          multi_layer:
+            lr: 0.001
+            epochs: 100
+            batch_size: 200
+        features:
+          normalization: true
+          oversample: false
+          text_length: false
+          embeddings: false
+          logits: false
+          context: false
+          question: false
+          endings: false
+    outs:
+    - path: /data/gblanco/results/quail_no_empty_answers_2
+      md5: ea785203df34063281c005acd41ebba7.dir
+      size: 10337
+      nfiles: 3
+    - path: data/metrics/classification/scores.json
+      md5: e51aa5bf6992ca01fece319fc7665e05
+      size: 454
