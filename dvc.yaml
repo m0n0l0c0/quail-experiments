@@ -162,8 +162,7 @@ stages:
     - classification
     - features
     outs:
-    - /data/gblanco/results/quail_no_empty_answers_2:
-        checkpoint: true
+    - /data/gblanco/results/quail_no_empty_answers_2
     metrics:
     - data/metrics/classification/scores.json:
         cache: false
