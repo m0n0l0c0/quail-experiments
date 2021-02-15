@@ -17,7 +17,7 @@ classification:
 features:
     normalization: true
     oversample: true
-    text_length: false
+    text_length: true
     embeddings: false
     logits: false
     context: false
