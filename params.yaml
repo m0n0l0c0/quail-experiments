@@ -16,10 +16,10 @@ classification:
         batch_size: 200
 features:
     normalization: true
-    oversample: true
-    text_length: true
-    embeddings: true
-    logits: true
-    context: false
-    question: true
-    endings: true
+    oversample: false
+    text_length: false
+    embeddings: false
+    logits: false
+    context: true
+    question: false
+    endings: false
