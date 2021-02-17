@@ -332,7 +332,7 @@ stages:
         features:
           normalization: true
           oversample: false
-          text_length: false
+          text_length: true
           embeddings: true
           logits: true
           context: false
@@ -340,9 +340,9 @@ stages:
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 07ca647d5e753722247b018c38c44f0a.dir
-      size: 8983
+      md5: 4c4ea6982b745a98168cf50c965acd69.dir
+      size: 9235
       nfiles: 3
     - path: data/metrics/classification/scores.json
-      md5: 3195f57a3d3039228af70efd457b8fef
-      size: 451
+      md5: c7e2638b298d5499b122ff2c24bda649
+      size: 452
