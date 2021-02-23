@@ -102,9 +102,9 @@ def make_mlp_fn(args, train_dict, test_dict, feature_set, score_fn):
 
     def fitness(pipeline):
         if args.train:
-            mlp_train(pipeline.classifier, **train_data)
+            mlp_train(pipeline, **train_data)
 
-        y_test, y_pred = mlp_eval(pipeline.classifier, **eval_data)
+        y_test, y_pred = mlp_eval(pipeline, **eval_data)
         return score_fn(y_test, y_pred)
 
     return fitness

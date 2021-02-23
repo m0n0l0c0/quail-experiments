@@ -38,18 +38,21 @@ arg_to_metric_map = {
 }
 
 
-def get_params():
+def get_params(throw=True):
     params = None
     params_file = Path(os.getcwd()).absolute().joinpath("params.yaml")
     if params_file.exists():
         params = yaml.safe_load(open(params_file, "r"))
+
+    if params is None and throw:
+        raise RuntimeError("No params file found to search for features!")
 
     return params
 
 
 def merge_with_params_file(parser, args):
     params = {}
-    file_params = get_params()
+    file_params = get_params(throw=False)
     if file_params is None:
         return args
 
@@ -198,6 +201,7 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
 
     print(f"Evaluating with features: {features}")
     classifier = load_classifier(args.output_dir)
+    args.train = False
     fitness_fn = get_fitness_fn(
         args,
         train_dict,
@@ -220,9 +224,6 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
 
 def get_data_path_from_features(args):
     params = get_params()
-    if params is None:
-        raise RuntimeError("No params file found to search for features!")
-
     features = params["features"]
     data_path = args.data_path
     prefix = ""
@@ -247,10 +248,27 @@ def get_data_path_from_features(args):
     return data_path
 
 
+def get_features_from_params(args):
+    if args.features is not None:
+        features = [feat for feat in args.features if feat in DEFAULT_FEATS]
+    else:
+        params = get_params()
+        params_feats = params["features"]
+        features = [
+            feat for feat, value in params_feats.items()
+            if isinstance(value, bool) and value is not False
+        ]
+
+    return features
+
+
 def main(args):
     data_path = get_data_path_from_features(args)
     print(f"Loading data from {data_path}")
-    features = args.features if args.features is not None else DEFAULT_FEATS
+    features = get_features_from_params(args)
+    if not len(features):
+        raise RuntimeError("No features found to work")
+
     if args.sweep_features:
         raise ValueError(
             "Sweep features is deprecated by now."
