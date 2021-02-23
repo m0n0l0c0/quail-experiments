@@ -217,9 +217,11 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
         report_path = os.path.join(
             args.metrics_dir, "scores.json"
         )
-        print(f"Writing evalution to {report_path}")
+        print(f"Writing evaluation to {report_path}")
         with open(report_path, "w") as fout:
             fout.write(json.dumps(report) + "\n")
+
+    return report
 
 
 def get_data_path_from_features(args):
@@ -297,7 +299,7 @@ def main(args):
         save_args(args, args.output_dir)
 
     if args.eval:
-        eval_classifier(args, train_dict, test_dict, features, score_fn)
+        return eval_classifier(args, train_dict, test_dict, features, score_fn)
 
 
 if __name__ == "__main__":
