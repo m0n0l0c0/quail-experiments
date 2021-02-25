@@ -1,10 +1,14 @@
 import os
+import sys
 import yaml
 import collections.abc
 
 from yaml import SafeLoader
 from pathlib import Path
 from collections import OrderedDict
+
+sys.path.append("src/etl/embeddings/classify/")
+from classification import get_data_path_from_features  # noqa: E402
 
 
 def ordered_load(stream, Loader=SafeLoader, object_pairs_hook=OrderedDict):
@@ -67,7 +71,12 @@ def combination_to_params(comb):
     return comb
 
 
-def validate_combination(combination):
+def validate_combination(args, combination):
     # dont allow combinations of all falsy values
     keys = [k for k in combination.keys() if k not in ["pipeline"]]
-    return not all([not combination[k] for k in keys])
+    valid = not all([not combination[k] for k in keys])
+    if valid:
+        data_path = get_data_path_from_features(args)
+        valid = Path(data_path).joinpath("index.csv").exists()
+
+    return valid

@@ -14,10 +14,6 @@ from hyperopt import (
     STATUS_OK,
     STATUS_FAIL,
 )
-
-sys.path.append("src/etl/embeddings/classify")
-from classification import parse_flags, get_params
-from classification import main as classification_main
 from hyperp_utils import (
     load_params,
     write_params,
@@ -25,6 +21,10 @@ from hyperp_utils import (
     combination_to_params,
     validate_combination,
 )
+
+sys.path.append("src/etl/embeddings/classify")
+from classification import parse_flags, get_params  # noqa:  E402
+from classification import main as classification_main  # noqa:  E402
 
 params_file = Path(os.getcwd()).absolute().joinpath("params.yaml")
 
