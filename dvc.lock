@@ -309,8 +309,8 @@ stages:
       size: 94559332270
       nfiles: 57578
     - path: src/etl/embeddings/classify/classification.py
-      md5: 5e6c7a0a066eae379845ef434386c1cc
-      size: 9565
+      md5: 5c54b4d9c71593e537e4e7216e3a217f
+      size: 9628
     params:
       params.yaml:
         classification:
@@ -323,6 +323,7 @@ stages:
           autogoal: false
           pipeline: mlp
           sweep_features: false
+          seed: 42
           test_size: 0.2
           metric: weighted_f1
           multi_layer:
@@ -330,19 +331,19 @@ stages:
             epochs: 100
             batch_size: 200
         features:
-          normalization: true
-          oversample: true
-          text_length: true
-          embeddings: true
-          logits: true
-          context: true
+          normalization: false
+          oversample: false
+          text_length: false
+          embeddings: false
+          logits: false
+          context: false
           question: true
-          endings: true
+          endings: false
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 6debdc978e7b433ce39fb494c4e78955.dir
-      size: 1010083
+      md5: 27ecc9618f5feb2a0b841f7a82dc5e18.dir
+      size: 3426532820
       nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: efacced77379bf21b5cabd2800c61e3d
-      size: 527
+      md5: 500dde04ef6b0927c3005b14b19c48db
+      size: 526
