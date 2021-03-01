@@ -73,6 +73,8 @@ def combination_to_params(comb):
 
 def validate_combination(args, combination, insert_features=False):
     # dont allow combinations of all falsy values
+    if "features" in combination:
+        combination = combination["features"]
     keys = [k for k in combination.keys() if k not in ["pipeline"]]
     valid = any([combination[k] for k in keys])
     if valid:

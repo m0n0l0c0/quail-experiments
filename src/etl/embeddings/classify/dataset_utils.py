@@ -13,7 +13,9 @@ from concurrent.futures import ProcessPoolExecutor
 
 # separate normalization
 NORM_FEATS = [["embeddings", "logits"], ["contexts", "question", "endings"]]
-DEFAULT_FEATS = ["embeddings", "logits", "contexts", "question", "endings"]
+DEFAULT_FEATS = [
+    "embeddings", "logits", "contexts", "question", "endings", "text_length"
+]
 
 
 def flatten(array):

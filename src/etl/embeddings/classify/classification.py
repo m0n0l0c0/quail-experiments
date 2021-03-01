@@ -250,14 +250,16 @@ def get_data_path_from_features(args):
 
 
 def get_features_from_params(args):
-    if args.features is not None:
+    if args.features is not None and len(args.features) > 0:
         features = [feat for feat in args.features if feat in DEFAULT_FEATS]
     else:
         params = get_params()
         params_feats = params["features"]
         features = [
             feat for feat, value in params_feats.items()
-            if isinstance(value, bool) and value is not False
+            if isinstance(value, bool) and
+            value is not False and
+            feat in DEFAULT_FEATS
         ]
 
     return features

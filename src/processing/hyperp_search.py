@@ -35,7 +35,7 @@ def extract_score(score):
         ret = ret.get("f1-score")
     else:
         ret = score.get("accuracy")
-    print(f"got score {score} return {ret}")
+    # print(f"got score {score} return {ret}")
     return ret
 
 
