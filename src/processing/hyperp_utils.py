@@ -71,12 +71,21 @@ def combination_to_params(comb):
     return comb
 
 
-def validate_combination(args, combination):
+def validate_combination(args, combination, insert_features=False):
     # dont allow combinations of all falsy values
     keys = [k for k in combination.keys() if k not in ["pipeline"]]
-    valid = not all([not combination[k] for k in keys])
+    valid = any([combination[k] for k in keys])
     if valid:
+        if insert_features:
+            prev_feats = args.features
+            args.features = [
+                feat for feat in keys
+                if isinstance(combination[feat], bool) and
+                combination[feat] is not False
+            ]
         data_path = get_data_path_from_features(args)
         valid = Path(data_path).joinpath("index.csv").exists()
+        if insert_features:
+            args.features = prev_feats
 
     return valid

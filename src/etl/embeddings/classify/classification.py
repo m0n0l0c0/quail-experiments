@@ -225,21 +225,20 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
 
 
 def get_data_path_from_features(args):
-    params = get_params()
-    features = params["features"]
+    features = get_features_from_params(args)
     data_path = args.data_path
     prefix = ""
     suffix = ""
-    if features.get("oversample", False):
+    if "oversample" in features:
         prefix += "oversample_"
-    if features.get("normalization", False):
+    if "normalization" in features:
         prefix += "normalized_"
 
     # exception: oversample_embeddings contains the data in
     # oversample_embeddings/embeddings
     prefix += "embeddings"
 
-    if features.get("text_length", False):
+    if "text_length" in features:
         suffix += "_with_lengths"
 
     dataset_name = f"{prefix}{suffix}"
