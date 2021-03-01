@@ -35,7 +35,7 @@ def extract_score(score):
         ret = ret.get("f1-score")
     else:
         ret = score.get("accuracy")
-
+    print(f"got score {score} return {ret}")
     return ret
 
 
@@ -43,27 +43,30 @@ def train_eval(args, x):
     params = combination_to_params(x)
     params = update_params(params, load_params(params_file))
     write_params(params, params_file)
-    return classification_main(args)
+    if not validate_combination(args, x):
+        return None, {"loss": -100.0, "status": STATUS_FAIL, "time": 0.0}
+
+    return classification_main(args), None
 
 
 def objective(args, x):
-    if not validate_combination(x):
-        return {"loss": -100.0, "status": STATUS_FAIL, "time": 0.0}
-
     start = timer()
     args.train = True
     args.eval = True
     x["pipeline"] = "mlp"
-    score = train_eval(args, x)
+    score, fail = train_eval(args, x)
     end = timer()
     elapsed = end - start
-    result = {
-        "loss": 1 - extract_score(score),
-        "time": elapsed,
-        "status": STATUS_OK,
-        "x": x
-    }
-    result.update({k: v for k, v in score.items()})
+    if score is None:
+        result = fail
+    else:
+        result = {
+            "loss": 1 - extract_score(score),
+            "time": elapsed,
+            "status": STATUS_OK,
+            "x": x
+        }
+        result.update({k: v for k, v in score.items()})
     return result
 
 

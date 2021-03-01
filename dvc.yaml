@@ -166,3 +166,17 @@ stages:
     metrics:
     - data/metrics/classification/scores.json:
         cache: false
+  hyperp_search:
+    cmd: python src/processing/hyperp_search.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+      -o /data/gblanco/results/quail_no_empty_answers_2_hyper_search --metrics_dir
+      data/metrics/hyper-search --train --eval
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+    - src/processing/hyperp_search.py
+    params:
+    - classification
+    - features
+    - hyper-search
+    outs:
+    - /data/gblanco/results/quail_no_empty_answers_2_hyper_search
+    - data/metrics/hyper-search/hyperparam_search.csv
