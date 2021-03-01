@@ -60,11 +60,11 @@ def get_combination(args, features, index):
 
     comb = grid[index]
     comb["pipeline"] = "mlp"
-    while not validate_combination(args, comb, insert_features=True):
+    while not validate_combination(args, comb):
+        index += 1
         if index >= len(grid):
             comb = None
             break
-        index += 1
         comb = grid[index]
         comb["pipeline"] = "mlp"
 

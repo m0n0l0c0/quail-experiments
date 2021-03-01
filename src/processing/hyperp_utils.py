@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 sys.path.append("src/etl/embeddings/classify/")
 from classification import get_data_path_from_features  # noqa: E402
+from classification import get_features_from_object  # noqa: E402
 
 
 def ordered_load(stream, Loader=SafeLoader, object_pairs_hook=OrderedDict):
@@ -71,23 +72,17 @@ def combination_to_params(comb):
     return comb
 
 
-def validate_combination(args, combination, insert_features=False):
+def validate_combination(args, combination):
     # dont allow combinations of all falsy values
-    if "features" in combination:
-        combination = combination["features"]
-    keys = [k for k in combination.keys() if k not in ["pipeline"]]
-    valid = any([combination[k] for k in keys])
+    features = get_features_from_object(combination, allow_all_feats=False)
+    valid = len(features) > 0
     if valid:
-        if insert_features:
-            prev_feats = args.features
-            args.features = [
-                feat for feat in keys
-                if isinstance(combination[feat], bool) and
-                combination[feat] is not False
-            ]
+        prev_feats = args.features
+        args.features = get_features_from_object(
+            combination, allow_all_feats=True
+        )
         data_path = get_data_path_from_features(args)
         valid = Path(data_path).joinpath("index.csv").exists()
-        if insert_features:
-            args.features = prev_feats
+        args.features = prev_feats
 
     return valid

@@ -225,7 +225,7 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
 
 
 def get_data_path_from_features(args):
-    features = get_features_from_params(args)
+    features = get_features_from_params(args, allow_all_feats=True)
     data_path = args.data_path
     prefix = ""
     suffix = ""
@@ -249,26 +249,39 @@ def get_data_path_from_features(args):
     return data_path
 
 
-def get_features_from_params(args):
-    if args.features is not None and len(args.features) > 0:
-        features = [feat for feat in args.features if feat in DEFAULT_FEATS]
-    else:
-        params = get_params()
-        params_feats = params["features"]
+def get_features_from_object(obj, allow_all_feats=True):
+    if isinstance(obj, dict):
+        if "features" in obj:
+            obj = obj["features"]
+
         features = [
-            feat for feat, value in params_feats.items()
+            feat for feat, value in obj.items()
             if isinstance(value, bool) and
-            value is not False and
-            feat in DEFAULT_FEATS
+            value is not False
         ]
+    elif isinstance(obj, list):
+        features = [feat for feat in obj]
+    else:
+        raise RuntimeError(f"Unable to inspect object for features, got {obj}")
+
+    if not allow_all_feats:
+        features = [feat for feat in features if feat in DEFAULT_FEATS]
 
     return features
+
+
+def get_features_from_params(args, allow_all_feats=True):
+    feat_obj = args.features
+    if args.features is None or len(args.features) == 0:
+        feat_obj = get_params()
+
+    return get_features_from_object(feat_obj, allow_all_feats)
 
 
 def main(args):
     data_path = get_data_path_from_features(args)
     print(f"Loading data from {data_path}")
-    features = get_features_from_params(args)
+    features = get_features_from_params(args, allow_all_feats=False)
     if not len(features):
         raise RuntimeError("No features found to work")
 
