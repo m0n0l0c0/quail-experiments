@@ -332,18 +332,18 @@ stages:
             batch_size: 200
         features:
           normalization: false
-          oversample: false
+          oversample: true
           text_length: false
           embeddings: true
           logits: false
           context: false
-          question: true
+          question: false
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 01a5282b8b98209d943187255e851cb9.dir
+      md5: c6a8b161008b1b8912294b61cb0eb19e.dir
       size: 3426532820
       nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: 880c10f3383034a36873ba5fa946f542
-      size: 529
+      md5: 1ac9e711b0d2760f98037ed432e5d34c
+      size: 531
