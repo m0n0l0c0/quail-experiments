@@ -18,11 +18,11 @@ classification:
 features:
     normalization: true
     oversample: false
-    text_length: true
+    text_length: false
     embeddings: true
     logits: false
     context: false
-    question: false
+    question: true
     endings: false
 hyper-search:
     iterations: 2000
