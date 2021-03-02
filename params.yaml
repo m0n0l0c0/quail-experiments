@@ -17,12 +17,12 @@ classification:
         batch_size: 200
 features:
     normalization: true
-    oversample: false
-    text_length: true
+    oversample: true
+    text_length: false
     embeddings: true
     logits: true
     context: false
-    question: true
+    question: false
     endings: false
 hyper-search:
     iterations: 2000
