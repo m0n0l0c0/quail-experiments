@@ -22,7 +22,7 @@ features:
     embeddings: false
     logits: false
     context: true
-    question: false
+    question: true
     endings: true
 hyper-search:
     iterations: 2000

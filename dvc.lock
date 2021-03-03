@@ -337,13 +337,13 @@ stages:
           embeddings: false
           logits: false
           context: true
-          question: false
+          question: true
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 19b41d1ff06c1e502fac0c86183861c8.dir
+      md5: 937717c85bfa41a40bd0b7214d6ca474.dir
       size: 3426532820
       nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: 2e17a1ee97cfeca16cb4efd2d6e5a794
+      md5: d9f71b03c99c219027db2e3de01f9d0d
       size: 529
