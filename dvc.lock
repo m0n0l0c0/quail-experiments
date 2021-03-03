@@ -331,19 +331,19 @@ stages:
             epochs: 100
             batch_size: 200
         features:
-          normalization: true
-          oversample: true
-          text_length: true
-          embeddings: true
-          logits: true
-          context: false
+          normalization: false
+          oversample: false
+          text_length: false
+          embeddings: false
+          logits: false
+          context: true
           question: true
-          endings: true
+          endings: false
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 2d533a618c7e594db2f6df02a7201d0e.dir
-      size: 1010084
+      md5: 3cf617c0978109b0815efd44f6156317.dir
+      size: 3426532820
       nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: 7dc69e9a8ab35742292e2bc461f19657
-      size: 530
+      md5: bb4094fe53e61eb2492b369e62739e1d
+      size: 514
