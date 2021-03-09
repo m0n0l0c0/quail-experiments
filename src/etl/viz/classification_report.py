@@ -12,13 +12,17 @@ def parse_flags():
         "-d", "--digits", type=int, required=False, default=2,
         help="Number of digits to round floats"
     )
+    parser.add_argument(
+        "-t", "--tabulated", action="store_true",
+        help="Whether to print data tabulated or just plain space-formatted"
+    )
     return parser.parse_args()
 
 
 # extracted from:
 # https://github.com/scikit-learn/scikit-learn/
 # blob/0fb307bf3/sklearn/metrics/_classification.py#L1825
-def classification_report(data_dict, digits=2):
+def classification_report(data_dict, digits=2, tabulated=False):
     """Build a text report showing the main classification metrics.
     Read more in the :ref:`User Guide <classification_report>`.
     Parameters
@@ -70,16 +74,29 @@ def classification_report(data_dict, digits=2):
     else:
         average_options = ("micro", "macro", "weighted")
 
-    longest_last_line_heading = "weighted avg"
-    name_width = max(len(cn) for cn in target_names)
-    width = max(name_width, len(longest_last_line_heading), digits)
-    head_fmt = "{:>{width}s} " + " {:>9}" * len(headers)
-    report = head_fmt.format("", *headers, width=width)
-    report += "\n\n"
-    row_fmt = "{:>{width}s} " + " {:>9.{digits}f}" * 3 + " {:>9}\n"
+    if not tabulated:
+        longest_last_line_heading = "weighted avg"
+        name_width = max(len(cn) for cn in target_names)
+        width = max(name_width, len(longest_last_line_heading), digits)
+        head_fmt = "{:>{width}s} " + " {:>9}" * len(headers)
+        report = head_fmt.format("", *headers, width=width)
+        report += "\n\n"
+        row_fmt = "{:>{width}s} " + " {:>9.{digits}f}" * 3 + " {:>9}\n"
+        row_fmt_accuracy = "{:>{width}s} " + " {:>9.{digits}}" * 2 \
+            + " {:>9.{digits}f}" + " {:>9}\n"
+    else:
+        head_fmt = "\t{}" * len(headers) + "\n"
+        report = head_fmt.format(*headers)
+        row_fmt = "{}" + "\t{:>9.{digits}f}" * 3 + "\t{}\n"
+        row_fmt_accuracy = "{} " + "\t{:>9.{digits}}" * 2 \
+            + "\t{:>9.{digits}f}" + "\t{}\n"
+
     for row in rows:
-        report += row_fmt.format(*row, width=width, digits=digits)
-    report += "\n"
+        if not tabulated:
+            report += row_fmt.format(*row, width=width, digits=digits)
+            report += "\n"
+        else:
+            report += row_fmt.format(*row, digits=digits)
 
     # compute all applicable averages
     for average in average_options:
@@ -90,20 +107,32 @@ def classification_report(data_dict, digits=2):
 
         if line_heading == "accuracy":
             avg = [data_dict[line_heading], sum(s)]
-            row_fmt_accuracy = "{:>{width}s} " + \
-                " {:>9.{digits}}" * 2 + " {:>9.{digits}f}" + \
-                " {:>9}\n"
-            report += row_fmt_accuracy.format(line_heading, "", "",
-                                              *avg, width=width,
-                                              digits=digits)
+            if not tabulated:
+                report += row_fmt_accuracy.format(
+                    line_heading, "", "",
+                    *avg, width=width, digits=digits
+                )
+            else:
+                report += row_fmt_accuracy.format(
+                    line_heading, "", "",
+                    *avg, digits=digits
+                )
         else:
             avg = list(data_dict[line_heading].values())
-            report += row_fmt.format(line_heading, *avg,
-                                     width=width, digits=digits)
+            if not tabulated:
+                report += row_fmt.format(
+                    line_heading, *avg, width=width, digits=digits
+                )
+            else:
+                report += row_fmt.format(line_heading, *avg, digits=digits)
+
     return report
 
 
 if __name__ == '__main__':
     args = parse_flags()
     data = json.load(open(args.metrics))
-    print(classification_report(data, digits=args.digits))
+    print(classification_report(
+        data, digits=args.digits, tabulated=args.tabulated
+    ))
+
