@@ -166,3 +166,14 @@ stages:
     metrics:
     - data/metrics/classification/scores.json:
         cache: false
+  extract_noea_model_std_quail_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_noea_std_2
+    deps:
+    - data/models/bert-train-no-empty-answers
+    - data/quail_race_fmt/dev.json
+    - data/specs/bert-eval-noea-std-quail_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2
