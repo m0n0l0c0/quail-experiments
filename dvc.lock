@@ -62,9 +62,9 @@ stages:
       ./data/quail_no_empty_answers/dev_index_list.json
     deps:
     - path: data/quail_race_fmt
-      md5: a285061c0fce5446207646fcddcecfeb.dir
-      size: 3475135
-      nfiles: 3
+      md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
+      size: 170911082
+      nfiles: 7
     - path: src/etl/choices/reformat_dataset.py
       md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
       size: 4721
@@ -80,9 +80,9 @@ stages:
       -s train --no_answer_text "not enough information"
     deps:
     - path: data/quail_race_fmt
-      md5: a285061c0fce5446207646fcddcecfeb.dir
-      size: 3475135
-      nfiles: 3
+      md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
+      size: 170911082
+      nfiles: 7
     - path: src/etl/choices/reformat_dataset.py
       md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
       size: 4721
@@ -134,12 +134,6 @@ stages:
         params.task_name: generic
         params.warmup_steps: 500
     outs:
-    - path: data/metrics/bert-train-no-empty-answers/eval_metrics.json
-      md5: 5a4f1683f08baecd85ab2ea48726ea8a
-      size: 66
-    - path: data/metrics/bert-train-no-empty-answers/train_metrics.json
-      md5: eeff26dc790409cc63d884251979714f
-      size: 66
     - path: data/models/bert-train-no-empty-answers/config.json
       md5: fda1d82a923cf7ffd8b9da484296692f
       size: 698
@@ -348,6 +342,29 @@ stages:
       md5: 6405baa6318def45a5f1136dabbeb158
       size: 528
   extract_noea_model_std_quail_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_noea_std_2
+    deps:
+    - path: data/models/bert-train-no-empty-answers
+      md5: 1aaf9fd99a1b5c1b368750932fd8ce1a.dir
+      size: 438220750
+      nfiles: 7
+    - path: data/quail_race_fmt/dev.json
+      md5: b2573225520d6ae103b7b1f899ebd433
+      size: 611156
+    - path: data/specs/bert-eval-noea-std-quail_experiment.json
+      md5: 63f445ffb89c19c6efd3220ca431979d
+      size: 1309
+    - path: src/etl/embeddings/extract/extract_embeddings.py
+      md5: 375e77b5d8e5727848881bedc5f4d2ea
+      size: 15753
+    outs:
+    - path: /data/gblanco/datasets/embeddings/quail_noea_std_2
+      md5: 81c2e6e468208c425d755f083df3a77b.dir
+      size: 12870866040
+      nfiles: 2165
+  extract_noea_model_std_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
       -o /data/gblanco/datasets/embeddings/quail_noea_std_2
