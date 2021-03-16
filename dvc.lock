@@ -383,7 +383,7 @@ stages:
       md5: 375e77b5d8e5727848881bedc5f4d2ea
       size: 15753
     outs:
-    - path: /data/gblanco/datasets/embeddings/quail_noea_std_2
-      md5: 81c2e6e468208c425d755f083df3a77b.dir
+    - path: /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+      md5: a75ab9b46fe7f10d0c2466f089278de6.dir
       size: 12870866040
       nfiles: 2165

@@ -176,4 +176,5 @@ stages:
     - data/specs/bert-eval-noea-std-quail_experiment.json
     - src/etl/embeddings/extract/extract_embeddings.py
     outs:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+
