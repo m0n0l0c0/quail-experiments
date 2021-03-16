@@ -26,6 +26,7 @@ group_by_keys = true
 hash_path = false
 keys_as_segments = false
 overwrite = false
+remove_ignore = ['.gitignore']
 
 # hooks?
 [visualization]
