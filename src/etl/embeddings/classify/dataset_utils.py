@@ -96,8 +96,9 @@ def copy_file(src_dst):
 
 
 def nelems_from_shape(shape):
+    if len(shape) == 0:
+        return 1
     return reduce(lambda a, b: a * b, shape)
-
 
 def parallel_copy(files):
     with ProcessPoolExecutor(max_workers=cpu_count()) as pool:

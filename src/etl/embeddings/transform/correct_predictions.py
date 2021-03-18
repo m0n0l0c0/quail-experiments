@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import torch
 import random
 import argparse
 import numpy as np
@@ -10,29 +9,20 @@ from pathlib import Path
 
 from transformers import is_tf_available
 
-from mcqa_utils import Dataset
-from mcqa_utils.utils import id_to_label
+from mcqa_utils import Dataset as McqaDataset
+from mcqa_utils.utils import label_to_id, id_to_label
 from mc_transformers.mc_transformers import softmax
 
 base_path = os.path.dirname(os.path.dirname(__file__))
-sys.path.append(base_path)
+src_root = os.path.dirname(os.path.dirname(base_path))
+
+sys.path.append(os.path.join(src_root, "etl"))
 sys.path.append(os.path.join(base_path, "classify"))
 sys.path.append(os.path.join(base_path, "extract"))
 
 from utils import load_classifier  # noqa: E402
-from dataset import get_x_y_from_dict  # noqa: E402
-from extract_embeddings import embed_dataset, mc_setup  # noqa: E402
+from dataset_class import Dataset  # noqa: E402
 from choices.reformat_predictions import get_index_matching_text  # noqa: E402
-
-if is_tf_available():
-    # Force no unnecessary allocation
-    import tensorflow as tf
-    gpus = tf.config.experimental.list_physical_devices("GPU")
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-
-
-os.environ.update(**{"WANDB_DISABLED": "true"})
 
 
 def parse_flags():
@@ -42,26 +32,12 @@ def parse_flags():
         help="Path to the trained classifier"
     )
     parser.add_argument(
-        "-a", "--args_file", required=True, type=str,
-        help="Arguments in json used to work with the model"
-    )
-    parser.add_argument(
-        "-g", "--gpu", required=False, default=0, type=int,
-        help="GPU to use (default to 0)"
-    )
-    parser.add_argument(
-        "-s", "--split", required=False, default="dev", type=str,
-        choices=["train", "dev", "test"],
-        help="The split of the dataset to extract embeddings from"
+        "-e", "--embeddings_path", required=True, default=None, type=str,
+        help="Path to embeddings dataset"
     )
     parser.add_argument(
         "-o", "--output_path", required=False, type=str,
         help="Path to store corrected predictions"
-    )
-    parser.add_argument(
-        "--autogoal", action="store_true",
-        help="Whether the classifier was trained with autogoal or custom "
-        "pipeline"
     )
     parser.add_argument(
         "--strategy", required=False, default="no_answer", type=str,
@@ -74,6 +50,16 @@ def parse_flags():
         help="Text of an unaswerable question answer (only necessary "
         "for no_answer strategy)"
     )
+    parser.add_argument(
+        "-d", "--data_path", required=True, default=None, type=str,
+        help="Path to original dataset to extract gold answers"
+    )
+    parser.add_argument(
+        "-s", "--split", required=False, default="dev", type=str,
+        choices=["train", "dev", "test"],
+        help="The split of the dataset to extract embeddings from"
+    )
+
     args = parser.parse_args()
     if args.strategy == "no_answer" and args.no_answer_text is None:
         raise ValueError(
@@ -121,21 +107,29 @@ def apply_strategy(gold_answer, strategy_dict):
     return answer
 
 
-def correct_model_with_classifier(all_args, preds_dict, strategy_dict, split):
-    class_preds = preds_dict['classifier']
-    model_preds = softmax(preds_dict['model'], axis=1)
-    data_args = all_args["data_args"]
+def correct_model_with_classifier(
+    classifier,
+    dataset,
+    strategy_dict,
+    gold_answers
+):
+    mdl_answers = []
+    cls_answers = []
+    data_iter = dataset.iter(return_dict=True, x=True, y=True)
+    for gold, (x, y) in zip(gold_answers, data_iter):
+        label = y["label"]
+        assert(id_to_label(gold.label) == id_to_label(label))
+        mdl_pred = int(np.argmax(softmax(x["logits"], axis=1)))
+        mdl_answers.append(label_to_id(mdl_pred))
+        cls_answers.append(classifier.predict(x["embeddings"]))
 
-    mcqa_dataset = Dataset(data_path=data_args.data_dir, task="generic")
-    gold_answers = mcqa_dataset.get_gold_answers(split, with_text_values=True)
-
-    assert(len(gold_answers) == len(class_preds) == len(model_preds))
+    assert(len(mdl_answers) == len(cls_answers))
 
     predictions = {}
-    for gold, cl_pred, probs in zip(gold_answers, class_preds, model_preds):
+    for gold, cl_pred, probs in zip(gold_answers, mdl_answers, cls_answers):
         # classifier says model is right
         if cl_pred == 1:
-            pred_label = id_to_label(np.argmax(probs))
+            pred_label = id_to_label(gold)
         else:
             pred_label = id_to_label(apply_strategy(gold, strategy_dict))
 
@@ -146,26 +140,23 @@ def correct_model_with_classifier(all_args, preds_dict, strategy_dict, split):
 
 def main(
     classifier_path,
-    args_file,
-    gpu,
-    split,
+    embeddings_path,
     output_path,
-    autogoal,
     strategy,
     no_answer_text,
+    data_path,
+    split,
 ):
-    all_args, model, trainer, eval_dataset = mc_setup(args_file, split)
-    eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
-    device = torch.device("cuda", index=gpu)
-    embeddings, logits, labels = embed_dataset(model, eval_dataloader, device)
-    dataset = get_dataset_from_embeddings(embeddings, logits, labels)
-    predictions = get_predictions_from_classifier(
-        dataset, classifier_path
-    )
-    predictions_dict = dict(classifier=predictions, model=logits)
+    mcqa_dataset = McqaDataset(data_path=data_path, task='generic')
+    gold_answers = mcqa_dataset.get_gold_answers(split, with_text_values=True)
+    print(f"Load gold answers from {data_path}")
+    classifier = load_classifier(classifier_path)
+    print(f"Load classifier from {classifier_path}")
+    dataset = Dataset(data_path=embeddings_path)
+    print(f"Load embeddings from {embeddings_path}")
     strategy_dict = dict(type=strategy, extras=no_answer_text)
     full_predictions = correct_model_with_classifier(
-        all_args, predictions_dict, strategy_dict, split
+        classifier, dataset, strategy_dict, gold_answers
     )
     save_predictions(output_path, full_predictions)
 
