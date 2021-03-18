@@ -177,4 +177,31 @@ stages:
     - src/etl/embeddings/extract/extract_embeddings.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+  extract_noea_std_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
+      -s dev -t generic -o /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths
+    deps:
+    - data/quail_race_fmt/dev.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+  normalize_noea_std_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+  merge_std_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
 

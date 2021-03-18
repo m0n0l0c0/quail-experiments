@@ -68,7 +68,7 @@ def main(data_dir, task, split, features, output_path):
     output_dir = os.path.dirname(output_path)
     output_name = os.path.splitext(os.path.basename(output_path))[0]
     processor = processors[task]()
-    examples = get_examples(processor, split, data_dir)
+    examples = get_examples(processor, Split(split), data_dir)
     save_dict = dict()
     save_fields = features if features is not None else default_feats
 
