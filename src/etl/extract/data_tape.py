@@ -29,6 +29,10 @@ def parse_flags():
         help="Message from commits to filter"
     )
     parser.add_argument(
+        "--dvc_stage", type=str, required=False, default=None,
+        help="Dvc target to checkout when git taping"
+    )
+    parser.add_argument(
         "-o", "--output_dir", type=str, required=False, default=None,
         help="Output dir to store data"
     )
@@ -61,7 +65,7 @@ def save_data(data_file, output_dir):
     copyfile(params_src, params_dst)
 
 
-def git_tape(data_file, commit_msg, output_dir):
+def git_tape(data_file, commit_msg, output_dir, dvc_stage):
     lookup_table = []
     repo = Repository(".")
     lookup_table = gather_data(lookup_table, data_file, output_dir)
@@ -69,7 +73,8 @@ def git_tape(data_file, commit_msg, output_dir):
         os.system(f"git checkout {commit.id} 2>&1 >/dev/null")
         if commit.message.strip() != commit_msg:
             continue
-        os.system("dvc checkout 2>&1 >/dev/null")
+        dvc_stage = "" if dvc_stage is None else dvc_stage
+        os.system(f"dvc checkout {dvc_stage} 2>&1 >/dev/null")
         lookup_table = gather_data(lookup_table, data_file, output_dir)
 
 
