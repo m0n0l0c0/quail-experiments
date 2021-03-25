@@ -15,7 +15,6 @@ sys.path.append(os.path.join(src_root, "etl", "embeddings", "classify"))
 
 from hyperp_utils import load_params  # noqa: E402
 from classification import get_features_from_object  # noqa: E402
-from classification import get_data_path_from_features  # noqa: E402
 
 
 def parse_flags():
@@ -46,9 +45,7 @@ def gather_data(lookup_table, data_file, output_dir):
     lookup_entry = "_".join([pipeline, *features])
     if lookup_entry not in lookup_table:
         lookup_table.append(lookup_entry)
-        output_dir = Path(output_dir).joinpath(
-            pipeline, get_data_path_from_features()
-        )
+        output_dir = Path(output_dir).joinpath(lookup_entry)
         save_data(data_file, output_dir)
 
     return lookup_table
