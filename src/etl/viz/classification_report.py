@@ -135,4 +135,3 @@ if __name__ == '__main__':
     print(classification_report(
         data, digits=args.digits, tabulated=args.tabulated
     ))
-

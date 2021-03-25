@@ -224,9 +224,14 @@ def eval_classifier(args, train_dict, test_dict, features, score_fn):
     return report
 
 
-def get_data_path_from_features(args):
+def get_data_path_from_features(args=None, data_path_arg=None):
     features = get_features_from_params(args, allow_all_feats=True)
-    data_path = args.data_path
+    if args is None and data_path_arg is None:
+        data_path = ""
+    elif data_path_arg is not None:
+        data_path = data_path_arg
+    else:
+        data_path = args.data_path
     prefix = ""
     suffix = ""
     if "oversample" in features:
@@ -271,9 +276,10 @@ def get_features_from_object(obj, allow_all_feats=True):
 
 
 def get_features_from_params(args, allow_all_feats=True):
-    feat_obj = args.features
-    if args.features is None or len(args.features) == 0:
+    if args is None or args.features is None or len(args.features) == 0:
         feat_obj = get_params()
+    else:
+        feat_obj = args.features
 
     return get_features_from_object(feat_obj, allow_all_feats)
 

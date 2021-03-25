@@ -6,9 +6,8 @@ import argparse
 from pygit2 import Repository
 from pathlib import Path
 
-sys.path.append("./src/processing")
-sys.path.append("./src/etl/viz")
-sys.path.append("./src/etl/embeddings/classify")
+sys.path.append("../../processing")
+sys.path.append("../embeddings/classify")
 
 from hyperp_utils import load_params  # noqa: E402
 from classification_report import classification_report  # noqa: E402

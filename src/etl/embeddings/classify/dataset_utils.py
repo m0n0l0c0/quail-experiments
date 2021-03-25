@@ -100,6 +100,7 @@ def nelems_from_shape(shape):
         return 1
     return reduce(lambda a, b: a * b, shape)
 
+
 def parallel_copy(files):
     with ProcessPoolExecutor(max_workers=cpu_count()) as pool:
         with tqdm(desc="Copy files", total=len(files)) as progress:

@@ -418,6 +418,9 @@ class Dataset(object):
         props = list(Counter(self.data_frame.y.values).values())
         return round(max(props) / min(props))
 
+    def destructure_sample(self, data):
+        return self._get_features_from_data(data)
+
     def iter_features(self, start=None):
         iter_options = dict(collate=False, unshape=True)
         self.n = 0 if start is None else max(min(start, len(self)), 0)
@@ -635,6 +638,18 @@ class Dataset(object):
     def list_features(self):
         first_sample = self._get_x(0, collate=False, unshape=True)
         return list(first_sample.keys())
+
+    def get_feature_shape(self, feature_name, throw=True):
+        first_sample = self._get_x(0, collate=False, unshape=True)
+        feature_shape = None
+        if feature_name in first_sample:
+            feature_shape = first_sample[feature_name].shape
+
+        if throw and feature_shape is None:
+            raise ValueError(
+                f"Feature `{feature_name}` not found!"
+            )
+        return feature_shape
 
     def prepare_for_train(self, feature_set):
         self.ret_x = True
