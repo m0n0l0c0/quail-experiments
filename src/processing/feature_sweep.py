@@ -17,7 +17,7 @@ features = {
     "oversample": [False, True],
     "embeddings": [False, True],
     "logits": [False, True],
-    "context": [False, True],
+    "contexts": [False, True],
     "question": [False, True],
     "endings": [False, True]
 }

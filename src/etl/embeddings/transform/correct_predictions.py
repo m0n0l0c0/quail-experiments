@@ -150,8 +150,6 @@ def correct_model_with_classifier(
 def get_path_from_features(classifier_path, data_path):
     params_path = Path(classifier_path).joinpath("params.yaml")
     params = load_params(params_path)
-    if params["features"]["context"]:
-        params["features"]["contexts"] = True
     features = get_features_from_object(params, allow_all_feats=True)
     embeddings_path = get_data_path_from_features(
         args=Args(features=features, data_path=data_path)

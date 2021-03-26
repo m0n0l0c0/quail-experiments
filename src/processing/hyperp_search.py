@@ -105,7 +105,7 @@ def main(args):
         "oversample": hp.choice("feat_oversample", [True, False]),
         "embeddings": hp.choice("feat_embeddings", [True, False]),
         "logits": hp.choice("feat_logits", [True, False]),
-        "context": hp.choice("feat_context", [True, False]),
+        "contexts": hp.choice("feat_contexts", [True, False]),
         "question": hp.choice("feat_question", [True, False]),
         "endings": hp.choice("feat_endings", [True, False]),
     }])
