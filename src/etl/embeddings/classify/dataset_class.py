@@ -256,7 +256,10 @@ class Dataset(object):
         idx = self._iter_idx_to_df_idx(idx)
         emb_data = pickle.load(open(self.data_frame.X[idx], "rb"))
         if isinstance(emb_data, dict):
-            emb_data = {k: np.array(v) for k, v in emb_data.items()}
+            emb_data = {
+                k: np.array(v) for k, v in emb_data.items()
+                if k in self.features
+            }
         elif isinstance(emb_data, list):
             emb_data = np.array(emb_data)
         # ToDo := Aggregate features from data_frame

@@ -15,7 +15,6 @@ features = {
     # "pipeline": ["logreg", "mlp"],
     "normalization": [False, True],
     "oversample": [False, True],
-    "text_length": [False, True],
     "embeddings": [False, True],
     "logits": [False, True],
     "context": [False, True],

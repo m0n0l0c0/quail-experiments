@@ -103,7 +103,6 @@ def main(args):
         # "pipeline": hp.choice("class_pipeline", ["logreg", "mlp"]),
         "normalization": hp.choice("feat_normalization", [True, False]),
         "oversample": hp.choice("feat_oversample", [True, False]),
-        "text_length": hp.choice("feat_text_length", [True, False]),
         "embeddings": hp.choice("feat_embeddings", [True, False]),
         "logits": hp.choice("feat_logits", [True, False]),
         "context": hp.choice("feat_context", [True, False]),

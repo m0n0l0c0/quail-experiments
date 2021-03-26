@@ -15,14 +15,23 @@ from mc_transformers.mc_transformers import softmax
 base_path = os.path.dirname(os.path.dirname(__file__))
 src_root = os.path.dirname(os.path.dirname(base_path))
 
+sys.path.append(os.path.join(src_root, "processing"))
 sys.path.append(os.path.join(src_root, "etl"))
 sys.path.append(os.path.join(base_path, "classify"))
 sys.path.append(os.path.join(base_path, "extract"))
 
 from utils import load_classifier  # noqa: E402
+from hyperp_utils import load_params  # noqa: E402
 from dataset_class import Dataset  # noqa: E402
+from classification import get_features_from_object  # noqa: E402
 from classification import get_data_path_from_features  # noqa: E402
 from choices.reformat_predictions import get_index_matching_text  # noqa: E402
+
+
+class Args():
+    def __init__(self, features, data_path=None):
+        self.features = features
+        self.data_path = data_path
 
 
 def parse_flags():
@@ -138,6 +147,25 @@ def correct_model_with_classifier(
     return predictions
 
 
+def get_path_from_features(classifier_path, data_path):
+    params_path = Path(classifier_path).joinpath("params.yaml")
+    params = load_params(params_path)
+    if params["features"]["context"]:
+        params["features"]["contexts"] = True
+    features = get_features_from_object(params, allow_all_feats=True)
+    embeddings_path = get_data_path_from_features(
+        args=Args(features=features, data_path=data_path)
+    )
+    # no oversampling in dev set
+    if "oversample_" in embeddings_path:
+        embeddings_path = embeddings_path.replace("oversample_", "")
+
+    return (
+        embeddings_path,
+        get_features_from_object(params, allow_all_feats=False)
+    )
+
+
 def main(
     classifier_path,
     embeddings_path,
@@ -152,14 +180,13 @@ def main(
     gold_answers = mcqa_dataset.get_gold_answers(split, with_text_values=True)
     print(f"Load classifier from {classifier_path}")
     classifier = load_classifier(classifier_path)
-    embeddings_path = get_data_path_from_features(
-        data_path_arg=embeddings_path
+    embeddings_path, features = get_path_from_features(
+        classifier_path, embeddings_path
     )
-    # no oversampling in dev set
-    if "oversample_" in embeddings_path:
-        embeddings_path = embeddings_path.replace("oversample_", "")
     print(f"Load embeddings from {embeddings_path}")
-    dataset = Dataset(data_path=embeddings_path)
+    dataset = Dataset(
+        data_path=embeddings_path, features=features
+    )
     strategy_dict = dict(type=strategy, extras=no_answer_text)
     mdl_answers, cls_answers = get_classifier_from_model_answers(
         classifier, dataset, strategy_dict, gold_answers

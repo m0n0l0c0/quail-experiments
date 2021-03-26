@@ -243,7 +243,10 @@ def get_data_path_from_features(args=None, data_path_arg=None):
     # oversample_embeddings/embeddings
     prefix += "embeddings"
 
-    if "text_length" in features:
+    if (
+        "text_length" in features or
+        any([x in features for x in ["contexts", "question", "endings"]])
+    ):
         suffix += "_with_lengths"
 
     dataset_name = f"{prefix}{suffix}"
