@@ -205,3 +205,29 @@ stages:
     outs:
     - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
 
+  classifier_corrects_model:
+    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/quail_no_empty_answers_2
+      -e /data/gblanco/datasets/embeddings/quail_noea_std_2/ -o data/metrics/classifier_corrects_model
+      --strategy no_answer --no_answer_text "not enough information" -d data/quail_race_fmt
+      -s dev
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2
+    - /data/gblanco/results/quail_no_empty_answers_2
+    - data/quail_race_fmt
+    - src/etl/embeddings/transform/correct_predictions.py
+    params:
+    - features
+    metrics:
+    - data/metrics/classifier_corrects_model/eval_nbest_predictions.json:
+        cache: false
+    - data/mtrics/classifier_corrects_model/eval_predictions.json:
+        cache: false
+  evaluate_classifier_corrections:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/mtrics/classifier_corrects_model/eval_nbest_predictions.json
+      -m C_at_1 f1 avg --task generic
+    deps:
+    - data/mtrics/classifier_corrects_model/eval_nbest_predictions.json
+    - data/quail_race_fmt
+    metrics:
+    - data/metrics/classifier_corrects_model/corrected_model_results.json:
+        cache: false
