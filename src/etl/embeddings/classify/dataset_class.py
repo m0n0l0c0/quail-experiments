@@ -258,7 +258,7 @@ class Dataset(object):
         if isinstance(emb_data, dict):
             emb_data = {
                 k: np.array(v) for k, v in emb_data.items()
-                if k in self.features
+                if len(self.features) == 0 or k in self.features
             }
         elif isinstance(emb_data, list):
             emb_data = np.array(emb_data)

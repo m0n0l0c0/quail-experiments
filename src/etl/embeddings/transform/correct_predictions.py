@@ -7,6 +7,7 @@ import numpy as np
 
 from tqdm import tqdm
 from pathlib import Path
+from collections import defaultdict
 
 from mcqa_utils import Dataset as McqaDataset
 from mcqa_utils.utils import label_to_id, id_to_label
@@ -45,8 +46,8 @@ def parse_flags():
         help="Path to embeddings dataset directory (not the dataset itself)"
     )
     parser.add_argument(
-        "-o", "--output_path", required=False, type=str,
-        help="Path to store corrected predictions"
+        "-o", "--output_dir", required=False, type=str,
+        help="Dir to store corrected predictions"
     )
     parser.add_argument(
         "--strategy", required=False, default="no_answer", type=str,
@@ -68,6 +69,11 @@ def parse_flags():
         choices=["train", "dev", "test"],
         help="The split of the dataset to extract embeddings from"
     )
+    parser.add_argument(
+        "-p", "--params_path", required=False, default="params.yaml", type=str,
+        help="Path to params file to get features from (default to root"
+        "params.yaml)"
+    )
 
     args = parser.parse_args()
     if args.strategy == "no_answer" and args.no_answer_text is None:
@@ -78,10 +84,13 @@ def parse_flags():
     return args
 
 
-def save_predictions(output_path, predictions):
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w") as fout:
-        fout.write(json.dumps(predictions) + "\n")
+def save_predictions(output_dir, **kwargs):
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    for fname, content in kwargs.items():
+        fpath = str(output_path.joinpath(f"{fname}.json"))
+        with open(fpath, "w") as fout:
+            fout.write(json.dumps(content) + "\n")
 
 
 def apply_strategy(gold_answer, strategy_dict):
@@ -97,11 +106,13 @@ def apply_strategy(gold_answer, strategy_dict):
 
 def correct_sample(dataset, sample, match_idx):
     # remove endings matching no-answer-text
+    corrected = False
     for feat in dataset.list_features():
         shape = dataset.get_feature_shape(feat)
         if len(shape) and shape[0] == 4:
             sample[feat] = np.delete(sample[feat], match_idx)
-    return sample
+            corrected = True
+    return sample, corrected
 
 
 def get_classifier_from_model_answers(
@@ -112,43 +123,69 @@ def get_classifier_from_model_answers(
 ):
     mdl_answers = []
     cls_answers = []
-    iterator = zip(gold_answers, dataset.iter(return_dict=True, y=False))
+    final_logits = []
+    all_logits, _ = dataset.get_x_y_from_dict(features=["logits"])
+    iterator = zip(
+        gold_answers, all_logits, dataset.iter(return_dict=True, y=False)
+    )
     tqdm_args = dict(desc="Applying classifier", total=len(dataset))
-    for gold, x in tqdm(iterator, **tqdm_args):
+    for gold, logits, x in tqdm(iterator, **tqdm_args):
         # classifiers are always trained on a 3-choice version of the dataset,
         # removing the no-answer-ending
-        mdl_pred = int(np.argmax(softmax(x["logits"], axis=1)))
-        mdl_answers.append(label_to_id(mdl_pred))
+        # logits comes as list of lists
+        logits = logits[0]
+        mdl_pred = int(np.argmax(softmax(logits, axis=1)))
         match_idx = get_index_matching_text(gold, strategy_dict["extras"])
-        x = correct_sample(dataset, x, match_idx)
+        x, corrected = correct_sample(dataset, x, match_idx)
         plain_x = dataset.destructure_sample(x)
+        # account for answer in matching text
+        if corrected and match_idx <= mdl_pred:
+            mdl_pred += 1
+        if len(logits) < len(gold.endings):
+            logits = np.insert(logits, match_idx, np.min(logits))
+        mdl_answers.append(label_to_id(mdl_pred))
         cls_answers.append(classifier.predict(plain_x))
+        final_logits.append(logits)
 
     assert(len(mdl_answers) == len(cls_answers))
-    return mdl_answers, cls_answers
+    return mdl_answers, cls_answers, final_logits
 
 
 def correct_model_with_classifier(
     mdl_answers,
     cls_answers,
     strategy_dict,
-    gold_answers
+    gold_answers,
+    all_logits,
 ):
     predictions = {}
-    for gold, mdl_ans, cl_pred in zip(gold_answers, mdl_answers, cls_answers):
-        # classifier says model is right
+    nbest_predictions = defaultdict(list)
+    iterator = zip(gold_answers, mdl_answers, cls_answers, all_logits)
+    for gold, mdl_ans, cl_pred, logits in iterator:
+        # classifier says model: (0: wrong/1: right)
         if cl_pred == 1:
             pred_label = id_to_label(mdl_ans)
         else:
-            pred_label = id_to_label(apply_strategy(gold, strategy_dict))
+            corrected_id = apply_strategy(gold, strategy_dict)
+            pred_label = id_to_label(corrected_id)
+            # high probabilities when softmaxed
+            logits = [-(len(logits)) for _ in range(logits)]
+            logits[corrected_id] = 0
 
         predictions[gold.example_id] = pred_label
+        group_id = gold.example_id.split("-")[0]
+        nbest_pred = {
+            "logits": logits.tolist(),
+            "probs": (softmax(logits, axis=1)).tolist(),
+            "pred_label": pred_label,
+            "label": id_to_label(gold.label),
+        }
+        nbest_predictions[group_id].append(nbest_pred)
 
-    return predictions
+    return nbest_predictions, predictions
 
 
-def get_path_from_features(classifier_path, data_path):
-    params_path = Path(classifier_path).joinpath("params.yaml")
+def get_path_from_features(classifier_path, data_path, params_path):
     params = load_params(params_path)
     features = get_features_from_object(params, allow_all_feats=True)
     embeddings_path = get_data_path_from_features(
@@ -167,11 +204,12 @@ def get_path_from_features(classifier_path, data_path):
 def main(
     classifier_path,
     embeddings_path,
-    output_path,
+    output_dir,
     strategy,
     no_answer_text,
     data_path,
     split,
+    params_path,
 ):
     print(f"Load gold answers from {data_path}")
     mcqa_dataset = McqaDataset(data_path=data_path, task='generic')
@@ -179,20 +217,26 @@ def main(
     print(f"Load classifier from {classifier_path}")
     classifier = load_classifier(classifier_path)
     embeddings_path, features = get_path_from_features(
-        classifier_path, embeddings_path
+        classifier_path, embeddings_path, params_path
     )
     print(f"Load embeddings from {embeddings_path}")
+    print(f"Features {features}")
     dataset = Dataset(
         data_path=embeddings_path, features=features
     )
     strategy_dict = dict(type=strategy, extras=no_answer_text)
-    mdl_answers, cls_answers = get_classifier_from_model_answers(
+    mdl_answers, cls_answers, all_logits = get_classifier_from_model_answers(
         classifier, dataset, strategy_dict, gold_answers
     )
-    full_predictions = correct_model_with_classifier(
-        mdl_answers, cls_answers, strategy_dict, gold_answers
+    nbest_predictions, predictions = correct_model_with_classifier(
+        mdl_answers, cls_answers, strategy_dict, gold_answers, all_logits
     )
-    save_predictions(output_path, full_predictions)
+    prefix = "eval" if split == "dev" else split
+    save_dict = {
+        f"{prefix}_nbest_predictions": nbest_predictions,
+        f"{prefix}_predictions": predictions,
+    }
+    save_predictions(output_dir, **save_dict)
 
 
 if __name__ == "__main__":
