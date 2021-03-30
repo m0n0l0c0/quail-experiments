@@ -154,7 +154,7 @@ class Dataset(object):
         super(Dataset, self).__init__()
         self.data_path = data_path
         self.data_frame = data_frame
-        self.features = features
+        self.features = features if features is not None else []
 
         self._index_name = "index.csv"
         self._index_file = os.path.join(self.data_path, self._index_name)
@@ -256,9 +256,10 @@ class Dataset(object):
         idx = self._iter_idx_to_df_idx(idx)
         emb_data = pickle.load(open(self.data_frame.X[idx], "rb"))
         if isinstance(emb_data, dict):
+            features = self.features if self.features is not None else []
             emb_data = {
                 k: np.array(v) for k, v in emb_data.items()
-                if len(self.features) == 0 or k in self.features
+                if len(features) == 0 or k in features
             }
         elif isinstance(emb_data, list):
             emb_data = np.array(emb_data)
