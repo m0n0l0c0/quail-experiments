@@ -142,3 +142,5 @@ cython_debug/
 /runs
 /*.log
 data/*/cached_*
+/*.index
+/sweep_run*
