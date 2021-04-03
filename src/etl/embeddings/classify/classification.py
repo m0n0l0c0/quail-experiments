@@ -306,7 +306,7 @@ def main(args):
             dataset, test_size=args.test_size, random_state=args.seed
         )
     else:
-        dataset = Dataset(data_path=data_path)
+        dataset = Dataset(data_path=data_path, features=features)
         train_dict, test_dict = dataset.get_splits(
             test_size=args.test_size, random_state=args.seed
         )
