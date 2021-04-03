@@ -193,7 +193,9 @@ def get_path_from_features(classifier_path, data_path, params_path):
     )
     # no oversampling in dev set
     if "oversample_" in embeddings_path:
-        embeddings_path = embeddings_path.replace("oversample_", "")
+        embeddings_path = embeddings_path.replace(
+            "oversample_embeddings/", ""
+        )
 
     return (
         embeddings_path,

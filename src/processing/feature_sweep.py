@@ -12,7 +12,7 @@ from hyperp_utils import (
 )
 
 features = {
-    # "pipeline": ["logreg", "mlp"],
+    "pipeline": ["logreg", "mlp"],
     "normalization": [False, True],
     "oversample": [False, True],
     "embeddings": [False, True],
@@ -58,14 +58,14 @@ def get_combination(args, features, index):
         return comb, index
 
     comb = grid[index]
-    comb["pipeline"] = "mlp"
+    # comb["pipeline"] = "mlp"
     while not validate_combination(args, comb):
         index += 1
         if index >= len(grid):
             comb = None
             break
         comb = grid[index]
-        comb["pipeline"] = "mlp"
+        # comb["pipeline"] = "mlp"
 
     return combination_to_params(comb), index
 
