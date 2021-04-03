@@ -224,7 +224,7 @@ stages:
         cache: false
   evaluate_classifier_corrections:
     cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      -m C_at_1 avg --task generic
+      -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
     deps:
     - data/metrics/classifier_corrects_model/eval_nbest_predictions.json
     - data/quail_race_fmt
