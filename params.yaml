@@ -1,6 +1,6 @@
 classification:
     iterations: 200
-    popsize: 50
+    popsize: 10
     selection: 10
     early_stop: 6
     balanced: false
