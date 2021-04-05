@@ -29,8 +29,8 @@ def parse_flags():
         help="Number of digits to round floats in report"
     )
     parser.add_argument(
-        "-o", "--output_dir", type=str, required=False, default=None,
-        help="Output dir to store data"
+        "-o", "--output_file", type=str, required=False, default=None,
+        help="Output file to store results"
     )
     parser.add_argument(
         "--git_tape", action="store_true", required=False,
@@ -39,6 +39,10 @@ def parse_flags():
     parser.add_argument(
         "--filter_pipeline", type=str, required=False, default=None,
         help="Filter pipeline results based on a string"
+    )
+    parser.add_argument(
+        "-p", "--print_report", action="store_true", required=False,
+        help="Whether to print the classification report or not"
     )
     args = parser.parse_args()
     if args.git_tape and (not args.commit_msg or not args.scores_file):
@@ -59,7 +63,7 @@ def print_single_results(pipeline, features, data, digits):
     print(classification_report(data, digits, tabulated=True))
 
 
-def print_data(lookup_table, scores_file, digits=2):
+def gather_data(lookup_table, scores_file, digits=2, print_report=False):
     params = load_params("params.yaml")
     data = json.load(open(scores_file))
     features = get_features_from_object(params, allow_all_feats=False)
@@ -67,7 +71,8 @@ def print_data(lookup_table, scores_file, digits=2):
     lookup_entry = "_".join([pipeline, *features])
     if lookup_entry not in lookup_table:
         lookup_table[lookup_entry] = data
-        print_single_results(pipeline, features, data, digits)
+        if print_report:
+            print_single_results(pipeline, features, data, digits)
 
     return lookup_table
 
@@ -81,15 +86,18 @@ def save_data(lookup_table, output_dir):
             json.dump(fp=fout, obj=lookup_table)
 
 
-def git_tape(scores_file, commit_msg, digits, output_dir):
+def git_tape(scores_file, commit_msg, digits, output_dir, print_report):
     lookup_table = {}
     repo = Repository(".")
-    lookup_table = print_data(lookup_table, scores_file, digits=digits)
+    lookup_table = gather_data(lookup_table, scores_file, digits=digits)
     for commit in repo.walk(repo.head.target):
         os.system(f"git checkout {commit.id} 2>&1 >/dev/null")
         if commit.message.strip() != commit_msg:
             continue
-        lookup_table = print_data(lookup_table, scores_file, digits=digits)
+        lookup_table = gather_data(
+            lookup_table, scores_file,
+            digits=digits, print_report=print_report
+        )
 
     save_data(lookup_table, output_dir)
 
