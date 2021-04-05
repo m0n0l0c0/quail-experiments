@@ -315,7 +315,7 @@ stages:
           balanced: false
           memory: 64
           autogoal: false
-          pipeline: mlp
+          pipeline: logreg
           sweep_features: false
           seed: 42
           test_size: 0.2
@@ -326,20 +326,20 @@ stages:
             batch_size: 200
         features:
           normalization: true
-          oversample: true
+          oversample: false
           embeddings: false
-          logits: false
+          logits: true
           contexts: true
-          question: true
+          question: false
           endings: false
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 28d3a7324adc71b76408f2bfbdeb8a18.dir
-      size: 838043
-      nfiles: 2
+      md5: 8fdf3b744228f0caad37147b8849a118.dir
+      size: 6677
+      nfiles: 3
     - path: data/metrics/classification/scores.json
-      md5: 30746ccadb73adac5fbc0f9494b8bdb7
-      size: 457
+      md5: 5e72bfb80fbcf62d14ea3f107310f1c1
+      size: 448
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
@@ -448,9 +448,9 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 28d3a7324adc71b76408f2bfbdeb8a18.dir
-      size: 838043
-      nfiles: 2
+      md5: 8fdf3b744228f0caad37147b8849a118.dir
+      size: 6677
+      nfiles: 3
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
@@ -462,11 +462,11 @@ stages:
       params.yaml:
         features:
           normalization: true
-          oversample: true
+          oversample: false
           embeddings: false
-          logits: false
+          logits: true
           contexts: true
-          question: true
+          question: false
           endings: false
     outs:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
