@@ -110,7 +110,7 @@ def correct_sample(dataset, sample, match_idx):
     for feat in dataset.list_features():
         shape = dataset.get_feature_shape(feat)
         if len(shape) and shape[0] == 4:
-            sample[feat] = np.delete(sample[feat], match_idx)
+            sample[feat] = np.delete(sample[feat], match_idx, axis=0)
             corrected = True
     return sample, corrected
 
@@ -169,7 +169,7 @@ def correct_model_with_classifier(
             corrected_id = apply_strategy(gold, strategy_dict)
             pred_label = id_to_label(corrected_id)
             # high probabilities when softmaxed
-            logits = [-(len(logits)) for _ in range(len(logits))]
+            logits = np.array([-(len(logits)) for _ in range(len(logits))])
             logits[corrected_id] = 0
 
         predictions[gold.example_id] = pred_label

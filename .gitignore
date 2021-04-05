@@ -144,3 +144,4 @@ cython_debug/
 data/*/cached_*
 /*.index
 /sweep_run*
+/nohup.*
