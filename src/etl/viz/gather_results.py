@@ -6,12 +6,16 @@ import argparse
 from pygit2 import Repository
 from pathlib import Path
 
-sys.path.append("../../processing")
-sys.path.append("../embeddings/classify")
+base_path = os.path.dirname(os.path.dirname(__file__))
+src_root = os.path.dirname(base_path)
+
+sys.path.append(os.path.join(src_root, "processing"))
+sys.path.append(os.path.join(src_root, "etl"))
+
 
 from hyperp_utils import load_params  # noqa: E402
 from classification_report import classification_report  # noqa: E402
-from classification import get_features_from_object  # noqa: E402
+from embeddings.classify.classification import get_features_from_object  # noqa: E402
 
 
 def parse_flags():
@@ -77,16 +81,15 @@ def gather_data(lookup_table, scores_file, digits=2, print_report=False):
     return lookup_table
 
 
-def save_data(lookup_table, output_dir):
-    if output_dir is not None:
-        output_path = Path(output_dir)
-        output_path.mkdir(exist_ok=True, parents=True)
-        file_path = str(output_path.joinpath("results.json"))
-        with open(file_path, "w") as fout:
+def save_data(lookup_table, output_file):
+    if output_file is not None:
+        output_path = Path(output_file)
+        output_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(output_file, "w") as fout:
             json.dump(fp=fout, obj=lookup_table)
 
 
-def git_tape(scores_file, commit_msg, digits, output_dir, print_report):
+def git_tape(scores_file, commit_msg, digits, output_file, print_report):
     lookup_table = {}
     repo = Repository(".")
     lookup_table = gather_data(lookup_table, scores_file, digits=digits)
@@ -99,7 +102,7 @@ def git_tape(scores_file, commit_msg, digits, output_dir, print_report):
             digits=digits, print_report=print_report
         )
 
-    save_data(lookup_table, output_dir)
+    save_data(lookup_table, output_file)
 
 
 def print_results(scores_file, digits, filter_pipeline):
@@ -125,7 +128,8 @@ if __name__ == '__main__':
     if args.git_tape:
         fn_args.update(
             commit_msg=args.commit_msg,
-            output_dir=args.output_dir,
+            output_file=args.output_file,
+            print_report=args.print_report,
         )
         git_tape(**fn_args)
     else:
