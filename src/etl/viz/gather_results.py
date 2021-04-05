@@ -99,10 +99,11 @@ def git_tape(scores_file, commit_msg, digits, output_file, print_report):
         os.system(f"git checkout {commit.id} 2>&1 >/dev/null")
         if commit.message.strip() == commit_msg:
             start_found = True
-        if not start_found and commit.message.strip() != commit_msg:
-            continue
-        elif start_found:
-            break
+        else:
+            if not start_found and commit.message.strip() != commit_msg:
+                continue
+            elif start_found:
+                break
         lookup_table = gather_data(
             lookup_table, scores_file,
             digits=digits, print_report=print_report
