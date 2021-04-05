@@ -315,7 +315,7 @@ stages:
           balanced: false
           memory: 64
           autogoal: false
-          pipeline: mlp
+          pipeline: logreg
           sweep_features: false
           seed: 42
           test_size: 0.2
@@ -326,20 +326,20 @@ stages:
             batch_size: 200
         features:
           normalization: true
-          oversample: false
+          oversample: true
           embeddings: true
           logits: true
           contexts: true
-          question: true
+          question: false
           endings: false
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 1b498f3c3270b0bc6499f929e18657f4.dir
-      size: 1000868
-      nfiles: 2
+      md5: c0696bf321ee12b0a7ded2cc61a22692.dir
+      size: 9059
+      nfiles: 3
     - path: data/metrics/classification/scores.json
-      md5: 63e9f85fe28bb680486f5533aff2192c
-      size: 532
+      md5: 163d634eed7f965199c06dc91d986f88
+      size: 529
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
@@ -448,9 +448,9 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 1b498f3c3270b0bc6499f929e18657f4.dir
-      size: 1000868
-      nfiles: 2
+      md5: c0696bf321ee12b0a7ded2cc61a22692.dir
+      size: 9059
+      nfiles: 3
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
@@ -462,31 +462,31 @@ stages:
       params.yaml:
         features:
           normalization: true
-          oversample: false
+          oversample: true
           embeddings: true
           logits: true
           contexts: true
-          question: true
+          question: false
           endings: false
     outs:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 223a60606b9438135a2761640b2c5f3d
-      size: 478060
+      md5: 6f0a3aafbe9f73f7790e85528e99088b
+      size: 466687
     - path: data/metrics/classifier_corrects_model/eval_predictions.json
-      md5: 862ffdbd420c20ff180fde9d5f37e421
+      md5: f3f7822a33144130e5f80322aa03ebee
       size: 34625
   evaluate_classifier_corrections:
     cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
       -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
     deps:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 223a60606b9438135a2761640b2c5f3d
-      size: 478060
+      md5: 6f0a3aafbe9f73f7790e85528e99088b
+      size: 466687
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
       nfiles: 7
     outs:
     - path: data/metrics/classifier_corrects_model/corrected_model_results.json
-      md5: 7ca5b298768a0f36cd264191d832034c
-      size: 235
+      md5: 6a5720e150f29a0d47ef8102ad101348
+      size: 237
