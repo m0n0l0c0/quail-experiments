@@ -6,7 +6,7 @@ classification:
     balanced: false
     memory: 64
     autogoal: false
-    pipeline: logreg
+    pipeline: mlp
     sweep_features: false
     seed: 42
     test_size: 0.2
@@ -21,7 +21,7 @@ features:
     embeddings: false
     logits: false
     contexts: true
-    question: true
+    question: false
     endings: false
 hyper-search:
     iterations: 2000
