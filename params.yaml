@@ -16,12 +16,12 @@ classification:
         epochs: 100
         batch_size: 200
 features:
-    normalization: true
-    oversample: true
-    embeddings: false
-    logits: true
+    normalization: false
+    oversample: false
+    embeddings: true
+    logits: false
     contexts: false
-    question: true
-    endings: true
+    question: false
+    endings: false
 hyper-search:
     iterations: 2000
