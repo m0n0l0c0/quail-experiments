@@ -169,7 +169,7 @@ def correct_model_with_classifier(
             corrected_id = apply_strategy(gold, strategy_dict)
             pred_label = id_to_label(corrected_id)
             # high probabilities when softmaxed
-            logits = [-(len(logits)) for _ in range(logits)]
+            logits = [-(len(logits)) for _ in range(len(logits))]
             logits[corrected_id] = 0
 
         predictions[gold.example_id] = pred_label
