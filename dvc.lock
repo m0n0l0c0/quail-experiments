@@ -315,7 +315,7 @@ stages:
           balanced: false
           memory: 64
           autogoal: false
-          pipeline: logreg
+          pipeline: mlp
           sweep_features: false
           seed: 42
           test_size: 0.2
@@ -334,12 +334,12 @@ stages:
           endings: false
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 985b4b357b6a024c6327ca509eed58ec.dir
-      size: 6437
-      nfiles: 3
+      md5: e569e3c140fb05147804a0809bc1eb89.dir
+      size: 828827
+      nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: 78f4ff3f6ea9f254d075b22ec441e21a
-      size: 454
+      md5: 8d69712e6a86feb7fa181467c2b35e9b
+      size: 452
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
@@ -448,9 +448,9 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 985b4b357b6a024c6327ca509eed58ec.dir
-      size: 6437
-      nfiles: 3
+      md5: e569e3c140fb05147804a0809bc1eb89.dir
+      size: 828827
+      nfiles: 2
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
