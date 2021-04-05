@@ -330,15 +330,15 @@ stages:
           embeddings: true
           logits: true
           contexts: false
-          question: false
+          question: true
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 6517b81143dda277b70753697d296971.dir
-      size: 9095
+      md5: cf2b5202f7f166aea0d01d79c88811b0.dir
+      size: 9143
       nfiles: 3
     - path: data/metrics/classification/scores.json
-      md5: 1a4bd46602c7c3c056230eaf1f473d56
+      md5: 6c1d77cb8b3a218f80d72765a2ac9f48
       size: 453
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
@@ -448,8 +448,8 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 6517b81143dda277b70753697d296971.dir
-      size: 9095
+      md5: cf2b5202f7f166aea0d01d79c88811b0.dir
+      size: 9143
       nfiles: 3
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
@@ -466,7 +466,7 @@ stages:
           embeddings: true
           logits: true
           contexts: false
-          question: false
+          question: true
           endings: true
     outs:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
