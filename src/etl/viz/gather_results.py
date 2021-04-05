@@ -10,12 +10,12 @@ base_path = os.path.dirname(os.path.dirname(__file__))
 src_root = os.path.dirname(base_path)
 
 sys.path.append(os.path.join(src_root, "processing"))
-sys.path.append(os.path.join(src_root, "etl"))
+sys.path.append(os.path.join(src_root, "etl", "embeddings"))
 
 
 from hyperp_utils import load_params  # noqa: E402
 from classification_report import classification_report  # noqa: E402
-from embeddings.classify.classification import get_features_from_object  # noqa: E402
+from classify.classification import get_features_from_object  # noqa: E402
 
 
 def parse_flags():
@@ -38,7 +38,8 @@ def parse_flags():
     )
     parser.add_argument(
         "--git_tape", action="store_true", required=False,
-        help="Whether to do the git tape or print the results"
+        help="Whether to do the git tape or print the results "
+        "(commits must be contiguous)"
     )
     parser.add_argument(
         "--filter_pipeline", type=str, required=False, default=None,
@@ -93,10 +94,15 @@ def git_tape(scores_file, commit_msg, digits, output_file, print_report):
     lookup_table = {}
     repo = Repository(".")
     lookup_table = gather_data(lookup_table, scores_file, digits=digits)
+    start_found = False
     for commit in repo.walk(repo.head.target):
         os.system(f"git checkout {commit.id} 2>&1 >/dev/null")
-        if commit.message.strip() != commit_msg:
+        if commit.message.strip() == commit_msg:
+            start_found = True
+        if not start_found and commit.message.strip() != commit_msg:
             continue
+        elif start_found:
+            break
         lookup_table = gather_data(
             lookup_table, scores_file,
             digits=digits, print_report=print_report
