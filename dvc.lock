@@ -330,16 +330,16 @@ stages:
           embeddings: true
           logits: false
           contexts: true
-          question: false
+          question: true
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 0845276264b556c11b8c2c6467a5be96.dir
-      size: 9059
+      md5: 42486344d8fdbcf26fb706f78fc54e4c.dir
+      size: 9238
       nfiles: 3
     - path: data/metrics/classification/scores.json
-      md5: 76116db3cedbcd39aa83cf5ab590fec1
-      size: 529
+      md5: ff4b7cc4a971c378beb33c07b9975577
+      size: 530
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
@@ -448,8 +448,8 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: 0845276264b556c11b8c2c6467a5be96.dir
-      size: 9059
+      md5: 42486344d8fdbcf26fb706f78fc54e4c.dir
+      size: 9238
       nfiles: 3
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
@@ -466,27 +466,27 @@ stages:
           embeddings: true
           logits: false
           contexts: true
-          question: false
+          question: true
           endings: true
     outs:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 309d2c92a2a6830cc1cc0f109e8d0aac
-      size: 447984
+      md5: e67c6776f41375275c8ef0d47e940c14
+      size: 448254
     - path: data/metrics/classifier_corrects_model/eval_predictions.json
-      md5: 3bd633cb9cc8b6ea49c24741029401b0
+      md5: b98192b370a6290f2ca19617fdcfc172
       size: 34625
   evaluate_classifier_corrections:
     cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
       -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
     deps:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 309d2c92a2a6830cc1cc0f109e8d0aac
-      size: 447984
+      md5: e67c6776f41375275c8ef0d47e940c14
+      size: 448254
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
       nfiles: 7
     outs:
     - path: data/metrics/classifier_corrects_model/corrected_model_results.json
-      md5: 5e3b7abec99553876741aa15e2317586
-      size: 237
+      md5: 3e689ad0e799f24cc54e78f44ac4fe71
+      size: 235
