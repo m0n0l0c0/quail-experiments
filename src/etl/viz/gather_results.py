@@ -62,10 +62,24 @@ def parse_flags():
     return args
 
 
+def simple_report(data, digits, tabulated=False):
+    report = ""
+    width = max([len(cn) for cn in data] + [digits])
+    row = "{:>{width}s}" + ("\t" if tabulated else "") + "{:>9.{digits}f}\n"
+    for key, value in data.items():
+        report += row.format(key, value, width=width, digits=digits)
+    return report
+
+
 def print_single_results(pipeline, features, data, digits):
     print(f"Pipeline:\t{pipeline}")
     print(f"Features:\t{', '.join(features)}")
-    print(classification_report(data, digits, tabulated=True))
+    try:
+        report = classification_report(data, digits, tabulated=True)
+    except Exception as e:
+        report = simple_report(data, digits, tabulated=True)
+    finally:
+        print(report)
 
 
 def gather_data(lookup_table, scores_file, digits=2, print_report=False):
