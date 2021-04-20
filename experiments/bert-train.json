@@ -1,7 +1,7 @@
 {
   "inputs": [
-    "${DATA_DIR}/quail/train_race_fmt.json",
-    "${DATA_DIR}/quail/dev_race_fmt.json",
+    "${DATA_DIR}/quail_race_fmt/train.json",
+    "${DATA_DIR}/quail_race_fmt/dev.json",
     "${MODELS_DIR}/bert-base-uncased"
   ],
   "scripts": [

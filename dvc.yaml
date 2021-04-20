@@ -204,7 +204,6 @@ stages:
     - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
-
   classifier_corrects_model:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/quail_no_empty_answers_2
       -e /data/gblanco/datasets/embeddings/quail_noea_std_2/ -o data/metrics/classifier_corrects_model
