@@ -635,10 +635,18 @@ stages:
       md5: 66aa5212d0687e98ca1c0b6e6ee8d5ec
       size: 180
     outs:
-    - path: data/RACE
-      md5: f66b5353809145c16890b2ea5f177f5e.dir
-      size: 131160431
-      nfiles: 27935
+    - path: data/RACE/dev
+      md5: 1be4be7086bef61408432e677c5056d0.dir
+      size: 3308878
+      nfiles: 1389
+    - path: data/RACE/test
+      md5: d04fc25fbac6952abca0d72aa7a7a45e.dir
+      size: 3368243
+      nfiles: 1407
+    - path: data/RACE/train
+      md5: 487f0c637a5872e97716f6714a430585.dir
+      size: 60493414
+      nfiles: 25137
   tr_quail_dev_no_empty_answers_removed:
     cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
       -s dev --no_answer_text "not enough information"
@@ -654,3 +662,18 @@ stages:
     - path: data/quail_empty_answers_removed/dev.json
       md5: e8c4ed4ea82859767ebbdd4bcec51d3f
       size: 524048
+  tr_quail_train_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s train --no_answer_text "not enough information"
+    deps:
+    - path: data/quail_race_fmt
+      md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
+      size: 170911082
+      nfiles: 7
+    - path: src/etl/choices/reformat_dataset.py
+      md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
+      size: 4721
+    outs:
+    - path: data/quail_empty_answers_removed/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755

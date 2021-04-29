@@ -317,7 +317,9 @@ stages:
     deps:
     - src/etl/dl_race.sh
     outs:
-    - data/RACE
+    - data/RACE/train
+    - data/RACE/dev
+    - data/RACE/test
   bert-train-race:
     cmd: ./src/processing/run.sh data/specs/bert-train-race_experiment.json
     deps:
@@ -342,6 +344,8 @@ stages:
       - params.task_name
       - params.warmup_steps
     outs:
+    - data/RACE/cached_dev_BertTokenizer_484_race
+    - data/RACE/cached_dev_BertTokenizer_484_race.lock
     - data/models/bert-train-race/config.json
     - data/models/bert-train-race/pytorch_model.bin
     - data/models/bert-train-race/special_tokens_map.json
@@ -363,10 +367,19 @@ stages:
     - src/etl/choices/reformat_dataset.py
     outs:
     - data/quail_empty_answers_removed/dev.json
+  tr_quail_train_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s train --no_answer_text "not enough information"
+    deps:
+    - data/quail_race_fmt
+    - src/etl/choices/reformat_dataset.py
+    outs:
+    - data/quail_empty_answers_removed/train.json
   bert-eval-noea-mod-quail:
     cmd: ./src/processing/run.sh data/specs/bert-eval-noea-mod-quail_experiment.json
     deps:
     - data/models/bert-train-no-empty-answers
+    - data/quail_empty_answers_removed/train.json
     - data/quail_empty_answers_removed/dev.json
     - src/processing/run.sh
     params:
