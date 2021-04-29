@@ -628,3 +628,29 @@ stages:
     - path: data/metrics/bert-eval-noea-std-quail/eval_mcqa.json
       md5: aa226020c50c79708eb3ca6c816524ff
       size: 235
+  dl_race:
+    cmd: ./src/etl/dl_race.sh
+    deps:
+    - path: src/etl/dl_race.sh
+      md5: 66aa5212d0687e98ca1c0b6e6ee8d5ec
+      size: 180
+    outs:
+    - path: data/RACE
+      md5: f66b5353809145c16890b2ea5f177f5e.dir
+      size: 131160431
+      nfiles: 27935
+  tr_quail_dev_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s dev --no_answer_text "not enough information"
+    deps:
+    - path: data/quail_race_fmt
+      md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
+      size: 170911082
+      nfiles: 7
+    - path: src/etl/choices/reformat_dataset.py
+      md5: e8e3c8d3f5afcfc5c8c9fda62296ac7d
+      size: 4721
+    outs:
+    - path: data/quail_empty_answers_removed/dev.json
+      md5: e8c4ed4ea82859767ebbdd4bcec51d3f
+      size: 524048

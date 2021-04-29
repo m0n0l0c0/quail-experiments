@@ -312,3 +312,81 @@ stages:
     metrics:
     - data/metrics/bert-eval-noea-std-quail/eval_mcqa.json:
         cache: false
+  dl_race:
+    cmd: ./src/etl/dl_race.sh
+    deps:
+    - src/etl/dl_race.sh
+    outs:
+    - data/RACE
+  bert-train-race:
+    cmd: ./src/processing/run.sh data/specs/bert-train-race_experiment.json
+    deps:
+    - data/RACE/dev
+    - data/RACE/train
+    - data/models/bert-base-uncased
+    - src/processing/run.sh
+    params:
+    - data/specs/bert-train-race_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.per_device_eval_batch_size
+      - params.per_device_train_batch_size
+      - params.task_name
+      - params.warmup_steps
+    outs:
+    - data/models/bert-train-race/config.json
+    - data/models/bert-train-race/pytorch_model.bin
+    - data/models/bert-train-race/special_tokens_map.json
+    - data/models/bert-train-race/tokenizer_config.json
+    - data/models/bert-train-race/training_args.bin
+    - data/models/bert-train-race/vocab.txt
+    - data/results/bert-train-race/eval_nbest_predictions.json
+    - data/results/bert-train-race/eval_predictions.json
+    - data/results/bert-train-race/train_nbest_predictions.json
+    - data/results/bert-train-race/train_predictions.json
+    metrics:
+    - data/metrics/bert-train-race/eval_metrics.json
+    - data/metrics/bert-train-race/train_metrics.json
+  tr_quail_dev_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s dev --no_answer_text "not enough information"
+    deps:
+    - data/quail_race_fmt
+    - src/etl/choices/reformat_dataset.py
+    outs:
+    - data/quail_empty_answers_removed/dev.json
+  bert-eval-noea-mod-quail:
+    cmd: ./src/processing/run.sh data/specs/bert-eval-noea-mod-quail_experiment.json
+    deps:
+    - data/models/bert-train-no-empty-answers
+    - data/quail_empty_answers_removed/dev.json
+    - src/processing/run.sh
+    params:
+    - data/specs/bert-eval-noea-mod-quail_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.per_device_eval_batch_size
+      - params.per_device_train_batch_size
+      - params.task_name
+      - params.warmup_steps
+    outs:
+    - data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+    - data/results/bert-eval-noea-mod-quail/eval_predictions.json
+    metrics:
+    - data/metrics/bert-eval-noea-mod-quail/eval_metrics.json
