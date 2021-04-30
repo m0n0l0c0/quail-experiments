@@ -15,6 +15,14 @@ stages:
     - src/etl/dl_models.py
     outs:
     - data/models/bert-base-uncased
+  dl_race:
+    cmd: ./src/etl/dl_race.sh
+    deps:
+    - src/etl/dl_race.sh
+    outs:
+    - data/RACE/train
+    - data/RACE/dev
+    - data/RACE/test
   tr_quail_train_to_race:
     cmd: src/etl/preprocess_quail_to_race.py data/quail/train.json data/quail/train_answers.json
       -o data/quail_race_fmt/train.json
@@ -51,185 +59,22 @@ stages:
     outs:
     - ./data/quail_no_empty_answers/dev_index_list.json
     - data/quail_no_empty_answers/dev.json
-  bert-train-no-empty-answers:
-    cmd: ./src/processing/run.sh data/specs/bert-train-no-empty-answers_experiment.json
+  tr_quail_dev_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s dev --no_answer_text "not enough information"
     deps:
-    - data/models/bert-base-uncased
-    - data/quail_no_empty_answers/dev.json
-    - data/quail_no_empty_answers/train.json
-    - src/processing/run.sh
-    params:
-    - data/specs/bert-train-no-empty-answers_experiment.json:
-      - params.do_eval
-      - params.do_train
-      - params.fp16
-      - params.fp16_opt_level
-      - params.gradient_accumulation_steps
-      - params.learning_rate
-      - params.max_seq_length
-      - params.meta
-      - params.model_type
-      - params.num_train_epochs
-      - params.per_device_eval_batch_size
-      - params.per_device_train_batch_size
-      - params.task_name
-      - params.warmup_steps
-    outs:
-    - data/models/bert-train-no-empty-answers/config.json
-    - data/models/bert-train-no-empty-answers/pytorch_model.bin
-    - data/models/bert-train-no-empty-answers/special_tokens_map.json
-    - data/models/bert-train-no-empty-answers/tokenizer_config.json
-    - data/models/bert-train-no-empty-answers/training_args.bin
-    - data/models/bert-train-no-empty-answers/vocab.txt
-    - data/results/bert-train-no-empty-answers/eval_nbest_predictions.json
-    - data/results/bert-train-no-empty-answers/eval_predictions.json
-    - data/results/bert-train-no-empty-answers/train_nbest_predictions.json
-    - data/results/bert-train-no-empty-answers/train_predictions.json
-  extract_no_empty_answers_embeddings:
-    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
-      data/specs/bert-eval-no-empty-answers_experiment.json --extract params --scatter_dataset
-      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
-    deps:
-    - data/models/bert-train-no-empty-answers
-    - data/quail_no_empty_answers/train.json
-    - data/specs/bert-eval-no-empty-answers_experiment.json
-    - src/etl/embeddings/extract/extract_embeddings.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings
-  extract_no_empty_answers_lengths:
-    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
-      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths
-    deps:
-    - data/quail_no_empty_answers/train.json
-    - src/etl/embeddings/extract/extract_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
-  extract_no_empty_answers_lengths_oversample_05:
-    cmd: python src/etl/embeddings/extract/extract_lengths.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/
-      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/train.json
-    - src/etl/embeddings/extract/extract_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
-  normalize_no_emtpy_answers_embeddings:
-    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
-      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
-    - src/etl/embeddings/transform/normalize_embeddings.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
-  normalize_no_emtpy_answers_embeddings_oversample_05:
-    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
-      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
-    - src/etl/embeddings/transform/normalize_embeddings.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
-  merge_norm_with_lengths:
-    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
-      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
-      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
-      --scatter_dataset
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
-    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
-  merge_norm_with_lengths_oversample_05:
-    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
-      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
-      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
-      --scatter_dataset
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
-    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
-  classification:
-    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
-      -o /data/gblanco/results/quail_no_empty_answers_2 --metrics_dir data/metrics/classification
-      --train --eval
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
-    - src/etl/embeddings/classify/classification.py
-    params:
-    - classification
-    - features
-    outs:
-    - /data/gblanco/results/quail_no_empty_answers_2
-    metrics:
-    - data/metrics/classification/scores.json:
-        cache: false
-  extract_noea_model_std_embeddings:
-    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
-      data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
-      -o /data/gblanco/datasets/embeddings/quail_noea_std_2
-    deps:
-    - data/models/bert-train-no-empty-answers
-    - data/quail_race_fmt/dev.json
-    - data/specs/bert-eval-noea-std-quail_experiment.json
-    - src/etl/embeddings/extract/extract_embeddings.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
-  extract_noea_std_lengths:
-    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
-      -s dev -t generic -o /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths
-    deps:
-    - data/quail_race_fmt/dev.json
-    - src/etl/embeddings/extract/extract_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
-  normalize_noea_std_embeddings:
-    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
-      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
-    - src/etl/embeddings/transform/normalize_embeddings.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
-  merge_std_norm_with_lengths:
-    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
-      -d /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
-      -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
-      --scatter_dataset
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
-    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
-    outs:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
-  classifier_corrects_model:
-    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/quail_no_empty_answers_2
-      -e /data/gblanco/datasets/embeddings/quail_noea_std_2/ -o data/metrics/classifier_corrects_model
-      --strategy no_answer --no_answer_text "not enough information" -d data/quail_race_fmt
-      -s dev
-    deps:
-    - /data/gblanco/datasets/embeddings/quail_noea_std_2
-    - /data/gblanco/results/quail_no_empty_answers_2
     - data/quail_race_fmt
-    - src/etl/embeddings/transform/correct_predictions.py
-    params:
-    - features
-    metrics:
-    - data/metrics/classifier_corrects_model/eval_nbest_predictions.json:
-        cache: false
-    - data/metrics/classifier_corrects_model/eval_predictions.json:
-        cache: false
-  evaluate_classifier_corrections:
-    cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
+    - src/etl/choices/reformat_dataset.py
+    outs:
+    - data/quail_empty_answers_removed/dev.json
+  tr_quail_train_no_empty_answers_removed:
+    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
+      -s train --no_answer_text "not enough information"
     deps:
-    - data/metrics/classifier_corrects_model/eval_nbest_predictions.json
     - data/quail_race_fmt
-    metrics:
-    - data/metrics/classifier_corrects_model/corrected_model_results.json:
-        cache: false
+    - src/etl/choices/reformat_dataset.py
+    outs:
+    - data/quail_empty_answers_removed/train.json
   bert-train:
     cmd: ./src/processing/run.sh data/specs/bert-train_experiment.json
     deps:
@@ -267,6 +112,40 @@ stages:
     metrics:
     - data/metrics/bert-train/eval_metrics.json
     - data/metrics/bert-train/train_metrics.json
+  bert-train-no-empty-answers:
+    cmd: ./src/processing/run.sh data/specs/bert-train-no-empty-answers_experiment.json
+    deps:
+    - data/models/bert-base-uncased
+    - data/quail_no_empty_answers/dev.json
+    - data/quail_no_empty_answers/train.json
+    - src/processing/run.sh
+    params:
+    - data/specs/bert-train-no-empty-answers_experiment.json:
+      - params.do_eval
+      - params.do_train
+      - params.fp16
+      - params.fp16_opt_level
+      - params.gradient_accumulation_steps
+      - params.learning_rate
+      - params.max_seq_length
+      - params.meta
+      - params.model_type
+      - params.num_train_epochs
+      - params.per_device_eval_batch_size
+      - params.per_device_train_batch_size
+      - params.task_name
+      - params.warmup_steps
+    outs:
+    - data/models/bert-train-no-empty-answers/config.json
+    - data/models/bert-train-no-empty-answers/pytorch_model.bin
+    - data/models/bert-train-no-empty-answers/special_tokens_map.json
+    - data/models/bert-train-no-empty-answers/tokenizer_config.json
+    - data/models/bert-train-no-empty-answers/training_args.bin
+    - data/models/bert-train-no-empty-answers/vocab.txt
+    - data/results/bert-train-no-empty-answers/eval_nbest_predictions.json
+    - data/results/bert-train-no-empty-answers/eval_predictions.json
+    - data/results/bert-train-no-empty-answers/train_nbest_predictions.json
+    - data/results/bert-train-no-empty-answers/train_predictions.json
   bert-eval-noea-std-quail:
     cmd: ./src/processing/run.sh data/specs/bert-eval-noea-std-quail_experiment.json
     deps:
@@ -294,32 +173,6 @@ stages:
     - data/results/bert-eval-noea-std-quail/eval_predictions.json
     metrics:
     - data/metrics/bert-eval-noea-std-quail/eval_metrics.json
-  evaluate_bert:
-    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert-train/eval_nbest_predictions.json
-      -m C_at_1 avg --task generic -o data/metrics/bert-train/eval_mcqa.json
-    deps:
-    - data/quail_race_fmt
-    - data/results/bert-train/eval_nbest_predictions.json
-    metrics:
-    - data/metrics/bert-train/eval_mcqa.json:
-        cache: false
-  evaluate_bert_noea_std_quail:
-    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert-eval-noea-std-quail/eval_nbest_predictions.json
-      -m C_at_1 avg --task generic -o data/metrics/bert-eval-noea-std-quail/eval_mcqa.json
-    deps:
-    - data/quail_race_fmt
-    - data/results/bert-eval-noea-std-quail/eval_nbest_predictions.json
-    metrics:
-    - data/metrics/bert-eval-noea-std-quail/eval_mcqa.json:
-        cache: false
-  dl_race:
-    cmd: ./src/etl/dl_race.sh
-    deps:
-    - src/etl/dl_race.sh
-    outs:
-    - data/RACE/train
-    - data/RACE/dev
-    - data/RACE/test
   bert-train-race:
     cmd: ./src/processing/run.sh data/specs/bert-train-race_experiment.json
     deps:
@@ -359,22 +212,169 @@ stages:
     metrics:
     - data/metrics/bert-train-race/eval_metrics.json
     - data/metrics/bert-train-race/train_metrics.json
-  tr_quail_dev_no_empty_answers_removed:
-    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
-      -s dev --no_answer_text "not enough information"
+  extract_no_empty_answers_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert-eval-no-empty-answers_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2 --oversample 0.5
+    deps:
+    - data/models/bert-train-no-empty-answers
+    - data/quail_no_empty_answers/train.json
+    - data/specs/bert-eval-no-empty-answers_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings
+  extract_no_empty_answers_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_no_empty_answers
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths
+    deps:
+    - data/quail_no_empty_answers/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+  extract_no_empty_answers_lengths_oversample_05:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/
+      -s train -t generic -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/train.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+  extract_noea_model_std_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/quail_noea_std_2
+    deps:
+    - data/models/bert-train-no-empty-answers
+    - data/quail_race_fmt/dev.json
+    - data/specs/bert-eval-noea-std-quail_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+  extract_noea_std_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
+      -s dev -t generic -o /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths
+    deps:
+    - data/quail_race_fmt/dev.json
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+  normalize_no_emtpy_answers_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+  normalize_no_emtpy_answers_embeddings_oversample_05:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_embeddings/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+  normalize_noea_std_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+  merge_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/normalized_embeddings_with_lengths
+  merge_norm_with_lengths_oversample_05:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/train_text_lengths_oversample_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2/oversample_normalized_embeddings_with_lengths
+  merge_std_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/dev_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2/normalized_embeddings_with_lengths
+  classification:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+      -o /data/gblanco/results/quail_no_empty_answers_2 --metrics_dir data/metrics/classification
+      --train --eval
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification
+    - features
+    outs:
+    - /data/gblanco/results/quail_no_empty_answers_2
+    metrics:
+    - data/metrics/classification/scores.json:
+        cache: false
+  classifier_corrects_model:
+    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/quail_no_empty_answers_2
+      -e /data/gblanco/datasets/embeddings/quail_noea_std_2/ -o data/metrics/classifier_corrects_model
+      --strategy no_answer --no_answer_text "not enough information" -d data/quail_race_fmt
+      -s dev
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2
+    - /data/gblanco/results/quail_no_empty_answers_2
+    - data/quail_race_fmt
+    - src/etl/embeddings/transform/correct_predictions.py
+    params:
+    - features
+    metrics:
+    - data/metrics/classifier_corrects_model/eval_nbest_predictions.json:
+        cache: false
+    - data/metrics/classifier_corrects_model/eval_predictions.json:
+        cache: false
+  evaluate_classifier_corrections:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
+      -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
+    deps:
+    - data/metrics/classifier_corrects_model/eval_nbest_predictions.json
+    - data/quail_race_fmt
+    metrics:
+    - data/metrics/classifier_corrects_model/corrected_model_results.json:
+        cache: false
+  evaluate_bert:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert-train/eval_nbest_predictions.json
+      -m C_at_1 avg --task generic -o data/metrics/bert-train/eval_mcqa.json
     deps:
     - data/quail_race_fmt
-    - src/etl/choices/reformat_dataset.py
-    outs:
-    - data/quail_empty_answers_removed/dev.json
-  tr_quail_train_no_empty_answers_removed:
-    cmd: python src/etl/choices/reformat_dataset.py -d ./data/quail_race_fmt -o ./data/quail_empty_answers_removed
-      -s train --no_answer_text "not enough information"
+    - data/results/bert-train/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert-train/eval_mcqa.json:
+        cache: false
+  evaluate_bert_noea_std_quail:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/results/bert-eval-noea-std-quail/eval_nbest_predictions.json
+      -m C_at_1 avg --task generic -o data/metrics/bert-eval-noea-std-quail/eval_mcqa.json
     deps:
     - data/quail_race_fmt
-    - src/etl/choices/reformat_dataset.py
-    outs:
-    - data/quail_empty_answers_removed/train.json
+    - data/results/bert-eval-noea-std-quail/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert-eval-noea-std-quail/eval_mcqa.json:
+        cache: false
   bert-eval-noea-mod-quail:
     cmd: ./src/processing/run.sh data/specs/bert-eval-noea-mod-quail_experiment.json
     deps:
