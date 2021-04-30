@@ -409,3 +409,21 @@ stages:
     - data/models/bert-eval-noea-mod-quail/vocab.txt
     metrics:
     - data/metrics/bert-eval-noea-mod-quail/eval_metrics.json
+  evaluate_bert_noea_mod_quail:
+    cmd: mcqa_utils -d data/quail_empty_answers_removed -n data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+      -m C_at_1 avg --task generic -o data/metrics/bert-eval-noea-mod-quail/eval_mcqa.json
+    deps:
+    - data/quail_empty_answers_removed
+    - data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert-eval-noea-mod-quail/eval_mcqa.json:
+        cache: false
+  evaluate_bert_race:
+    cmd: mcqa_utils -d data/RACE -n data/results/bert-train-race/eval_nbest_predictions.json
+      -m C_at_1 avg --task race -o data/metrics/bert-train-race/eval_mcqa.json
+    deps:
+    - data/RACE/dev/
+    - data/results/bert-train-race/eval_nbest_predictions.json
+    metrics:
+    - data/metrics/bert-train-race/eval_mcqa.json:
+        cache: false

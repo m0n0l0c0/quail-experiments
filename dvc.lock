@@ -815,3 +815,33 @@ stages:
     - path: data/results/bert-eval-noea-mod-quail/eval_predictions.json
       md5: e08236ba0426277a5193e335f7e3c271
       size: 30785
+  evaluate_bert_race:
+    cmd: mcqa_utils -d data/RACE -n data/results/bert-train-race/eval_nbest_predictions.json
+      -m C_at_1 avg --task race -o data/metrics/bert-train-race/eval_mcqa.json
+    deps:
+    - path: data/RACE/dev/
+      md5: 1be4be7086bef61408432e677c5056d0.dir
+      size: 3308878
+      nfiles: 1389
+    - path: data/results/bert-train-race/eval_nbest_predictions.json
+      md5: 8105df24e0b18f69364d28f791a69434
+      size: 671629
+    outs:
+    - path: data/metrics/bert-train-race/eval_mcqa.json
+      md5: 0ff7967b24a50552599a6cb15d626e86
+      size: 237
+  evaluate_bert_noea_mod_quail:
+    cmd: mcqa_utils -d data/quail_empty_answers_removed -n data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+      -m C_at_1 avg --task generic -o data/metrics/bert-eval-noea-mod-quail/eval_mcqa.json
+    deps:
+    - path: data/quail_empty_answers_removed
+      md5: 3b7e8fc7d5b42564c33bc1cde563d7e5.dir
+      size: 114670094
+      nfiles: 7
+    - path: data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+      md5: f1811d03114715b8442746b7c7f932ae
+      size: 308405
+    outs:
+    - path: data/metrics/bert-eval-noea-mod-quail/eval_mcqa.json
+      md5: 099e3dcdfce1ef863ad2159ceb2600ba
+      size: 235
