@@ -401,5 +401,11 @@ stages:
     outs:
     - data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
     - data/results/bert-eval-noea-mod-quail/eval_predictions.json
+    - data/models/bert-eval-noea-mod-quail/config.json
+    - data/models/bert-eval-noea-mod-quail/pytorch_model.bin
+    - data/models/bert-eval-noea-mod-quail/special_tokens_map.json
+    - data/models/bert-eval-noea-mod-quail/tokenizer_config.json
+    - data/models/bert-eval-noea-mod-quail/training_args.bin
+    - data/models/bert-eval-noea-mod-quail/vocab.txt
     metrics:
     - data/metrics/bert-eval-noea-mod-quail/eval_metrics.json

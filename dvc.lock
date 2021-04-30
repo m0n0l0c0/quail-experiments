@@ -677,3 +677,141 @@ stages:
     - path: data/quail_empty_answers_removed/train.json
       md5: d3a6f28fa96f7431cee0ec4aa4193105
       size: 2451755
+  bert-train-race:
+    cmd: ./src/processing/run.sh data/specs/bert-train-race_experiment.json
+    deps:
+    - path: data/RACE/dev
+      md5: 1be4be7086bef61408432e677c5056d0.dir
+      size: 3308878
+      nfiles: 1389
+    - path: data/RACE/train
+      md5: 487f0c637a5872e97716f6714a430585.dir
+      size: 60493414
+      nfiles: 25137
+    - path: data/models/bert-base-uncased
+      md5: be46589e12f830a3e7955451e37136ae.dir
+      size: 438215920
+      nfiles: 5
+    - path: src/processing/run.sh
+      md5: 311ef43e41a222b7a3d5e66084db3cca
+      size: 1947
+    params:
+      data/specs/bert-train-race_experiment.json:
+        params.do_eval: true
+        params.do_train: true
+        params.fp16: true
+        params.fp16_opt_level: O1
+        params.gradient_accumulation_steps: 8
+        params.learning_rate: 5e-05
+        params.max_seq_length: 484
+        params.meta: bert-train-race
+        params.model_type: bert
+        params.num_train_epochs: 2
+        params.per_device_eval_batch_size: 8
+        params.per_device_train_batch_size: 2
+        params.task_name: race
+        params.warmup_steps: 500
+    outs:
+    - path: data/RACE/cached_dev_BertTokenizer_484_race
+      md5: e57536c12df493892bca0cad6ef25921
+      size: 64271410
+    - path: data/RACE/cached_dev_BertTokenizer_484_race.lock
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      size: 0
+      isexec: true
+    - path: data/metrics/bert-train-race/eval_metrics.json
+      md5: 43e34ea9863968b48328465803bd1679
+      size: 66
+    - path: data/metrics/bert-train-race/train_metrics.json
+      md5: a05651c62ec4bff6b0a1f7895cdffa8b
+      size: 67
+    - path: data/models/bert-train-race/config.json
+      md5: 56e07662d4cb143aeb5ce3c5c9c2a992
+      size: 695
+    - path: data/models/bert-train-race/pytorch_model.bin
+      md5: f424c623dd7bdccb7fce5215977b9dba
+      size: 437986601
+    - path: data/models/bert-train-race/special_tokens_map.json
+      md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+      size: 112
+    - path: data/models/bert-train-race/tokenizer_config.json
+      md5: acaa1589c694bf6f6c146b3bac976f67
+      size: 161
+    - path: data/models/bert-train-race/training_args.bin
+      md5: d8a1ec0cbb0886eb975b9f24f646a180
+      size: 1548
+    - path: data/models/bert-train-race/vocab.txt
+      md5: 64800d5d8528ce344256daf115d4965e
+      size: 231508
+    - path: data/results/bert-train-race/eval_nbest_predictions.json
+      md5: 8105df24e0b18f69364d28f791a69434
+      size: 671629
+    - path: data/results/bert-train-race/eval_predictions.json
+      md5: 244343379c58a74108400a2000803bb4
+      size: 146253
+    - path: data/results/bert-train-race/train_nbest_predictions.json
+      md5: 563ab1462db8c22709ea630fd8a36585
+      size: 12181319
+    - path: data/results/bert-train-race/train_predictions.json
+      md5: 2266fa0b8364c98e150bc70d02266f61
+      size: 2805048
+  bert-eval-noea-mod-quail:
+    cmd: ./src/processing/run.sh data/specs/bert-eval-noea-mod-quail_experiment.json
+    deps:
+    - path: data/models/bert-train-no-empty-answers
+      md5: 1aaf9fd99a1b5c1b368750932fd8ce1a.dir
+      size: 438220750
+      nfiles: 7
+    - path: data/quail_empty_answers_removed/dev.json
+      md5: e8c4ed4ea82859767ebbdd4bcec51d3f
+      size: 524048
+    - path: data/quail_empty_answers_removed/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755
+    - path: src/processing/run.sh
+      md5: 311ef43e41a222b7a3d5e66084db3cca
+      size: 1947
+    params:
+      data/specs/bert-eval-noea-mod-quail_experiment.json:
+        params.do_eval: true
+        params.do_train: false
+        params.fp16: true
+        params.fp16_opt_level: O1
+        params.gradient_accumulation_steps: 8
+        params.learning_rate: 5e-05
+        params.max_seq_length: 484
+        params.meta: bert-eval-noea-mod-quail
+        params.model_type: bert
+        params.num_train_epochs: 2
+        params.per_device_eval_batch_size: 8
+        params.per_device_train_batch_size: 2
+        params.task_name: generic
+        params.warmup_steps: 500
+    outs:
+    - path: data/metrics/bert-eval-noea-mod-quail/eval_metrics.json
+      md5: bc7d0c19856e290f1885e64f6bdfca19
+      size: 65
+    - path: data/models/bert-eval-noea-mod-quail/config.json
+      md5: fda1d82a923cf7ffd8b9da484296692f
+      size: 698
+    - path: data/models/bert-eval-noea-mod-quail/pytorch_model.bin
+      md5: f58daea11b60f5587a51a12f9aa816db
+      size: 437986601
+    - path: data/models/bert-eval-noea-mod-quail/special_tokens_map.json
+      md5: 8b3fb1023167bb4ab9d70708eb05f6ec
+      size: 112
+    - path: data/models/bert-eval-noea-mod-quail/tokenizer_config.json
+      md5: acaa1589c694bf6f6c146b3bac976f67
+      size: 161
+    - path: data/models/bert-eval-noea-mod-quail/training_args.bin
+      md5: 389ca820235348da4ae8bd1fc8d84aad
+      size: 1557
+    - path: data/models/bert-eval-noea-mod-quail/vocab.txt
+      md5: 64800d5d8528ce344256daf115d4965e
+      size: 231508
+    - path: data/results/bert-eval-noea-mod-quail/eval_nbest_predictions.json
+      md5: f1811d03114715b8442746b7c7f932ae
+      size: 308405
+    - path: data/results/bert-eval-noea-mod-quail/eval_predictions.json
+      md5: e08236ba0426277a5193e335f7e3c271
+      size: 30785
