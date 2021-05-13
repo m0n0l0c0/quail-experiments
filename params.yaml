@@ -17,7 +17,7 @@ classification:
         batch_size: 200
 features:
     normalization: true
-    oversample: true
+    oversample: false
     embeddings: true
     logits: true
     contexts: true

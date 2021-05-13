@@ -51,7 +51,7 @@ def parse_flags():
     )
     parser.add_argument(
         "--strategy", required=False, default="no_answer", type=str,
-        choices=["no_answer", "random", "longest"],
+        choices=["no_answer", "random", "longest", "empty_answer"],
         help="Strategy to apply over answers where the model is wrong "
         "(by the classifier criteria)"
     )
@@ -73,6 +73,11 @@ def parse_flags():
         "-p", "--params_path", required=False, default="params.yaml", type=str,
         help="Path to params file to get features from (default to root"
         "params.yaml)"
+    )
+    parser.add_argument(
+        "-t", "--task", default="generic", required=False,
+        help="Task to evaluate (default = generic). This "
+        "is needed for the dataset processor (see geblanco/mc-transformers)"
     )
 
     args = parser.parse_args()
@@ -100,6 +105,8 @@ def apply_strategy(gold_answer, strategy_dict):
         answer = np.argmax(map(len, gold_answer.endings))
     elif strategy_dict["type"] == "no_answer":
         answer = get_index_matching_text(gold_answer, strategy_dict["extras"])
+    elif strategy_dict["type"] == "empty_answer":
+        answer = -1
 
     return answer
 
@@ -135,14 +142,16 @@ def get_classifier_from_model_answers(
         # logits comes as list of lists
         logits = logits[0]
         mdl_pred = int(np.argmax(softmax(logits, axis=1)))
-        match_idx = get_index_matching_text(gold, strategy_dict["extras"])
-        x, corrected = correct_sample(dataset, x, match_idx)
+        if strategy_dict["extras"] is not None:
+            match_idx = get_index_matching_text(gold, strategy_dict["extras"])
+            x, corrected = correct_sample(dataset, x, match_idx)
+            # account for answer in matching text
+            if corrected and match_idx <= mdl_pred:
+                mdl_pred += 1
+            if len(logits) < len(gold.endings):
+                logits = np.insert(logits, match_idx, np.min(logits))
+
         plain_x = dataset.destructure_sample(x)
-        # account for answer in matching text
-        if corrected and match_idx <= mdl_pred:
-            mdl_pred += 1
-        if len(logits) < len(gold.endings):
-            logits = np.insert(logits, match_idx, np.min(logits))
         mdl_answers.append(label_to_id(mdl_pred))
         cls_answers.append(classifier.predict(plain_x))
         final_logits.append(logits)
@@ -168,9 +177,11 @@ def correct_model_with_classifier(
         else:
             corrected_id = apply_strategy(gold, strategy_dict)
             pred_label = id_to_label(corrected_id)
-            # high probabilities when softmaxed
-            logits = np.array([-(len(logits)) for _ in range(len(logits))])
-            logits[corrected_id] = 0
+            # applied strategy might yield a negative number
+            if corrected_id in list(range(len(logits))):
+                # high probabilities when softmaxed
+                logits = np.array([-(len(logits)) for _ in range(len(logits))])
+                logits[corrected_id] = 0
 
         predictions[gold.example_id] = pred_label
         group_id = gold.example_id.split("-")[0]
@@ -214,9 +225,10 @@ def main(
     data_path,
     split,
     params_path,
+    task,
 ):
     print(f"Load gold answers from {data_path}")
-    mcqa_dataset = McqaDataset(data_path=data_path, task='generic')
+    mcqa_dataset = McqaDataset(data_path=data_path, task=task)
     gold_answers = mcqa_dataset.get_gold_answers(split, with_text_values=True)
     print(f"Load classifier from {classifier_path}")
     classifier = load_classifier(classifier_path)

@@ -326,7 +326,7 @@ stages:
             batch_size: 200
         features:
           normalization: true
-          oversample: true
+          oversample: false
           embeddings: true
           logits: true
           contexts: true
@@ -334,12 +334,12 @@ stages:
           endings: true
     outs:
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: a28b3d14515d0720891048ec559db86c.dir
+      md5: aa8beca8326d683c9978a41c7508106e.dir
       size: 1010084
       nfiles: 2
     - path: data/metrics/classification/scores.json
-      md5: 481153207e227ef247eab007b904e0c6
-      size: 529
+      md5: 4d62547e3ba4d3caaf96eb6c704e4632
+      size: 532
   extract_noea_model_std_quail_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-noea-std-quail_experiment.json --extract params --scatter_dataset
@@ -448,7 +448,7 @@ stages:
       size: 12874897805
       nfiles: 6496
     - path: /data/gblanco/results/quail_no_empty_answers_2
-      md5: a28b3d14515d0720891048ec559db86c.dir
+      md5: aa8beca8326d683c9978a41c7508106e.dir
       size: 1010084
       nfiles: 2
     - path: data/quail_race_fmt
@@ -456,13 +456,13 @@ stages:
       size: 170911082
       nfiles: 7
     - path: src/etl/embeddings/transform/correct_predictions.py
-      md5: 683fcc2626df9e4d14afcd91cff218b4
-      size: 8682
+      md5: fa1020aff97fc5fb32495d1473ecd059
+      size: 9206
     params:
       params.yaml:
         features:
           normalization: true
-          oversample: true
+          oversample: false
           embeddings: true
           logits: true
           contexts: true
@@ -470,26 +470,26 @@ stages:
           endings: true
     outs:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 78ffef0d2c1b947bef8b4352d22b5826
-      size: 452461
+      md5: e325d2a004b0e843d3e355323f235e45
+      size: 472118
     - path: data/metrics/classifier_corrects_model/eval_predictions.json
-      md5: 4892258603d15b9246d00cedc8cf6ddb
+      md5: 482eed5264f8e0cfd366cf5356f541d7
       size: 34625
   evaluate_classifier_corrections:
     cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/classifier_corrects_model/eval_nbest_predictions.json
       -m C_at_1 avg --task generic -o data/metrics/classifier_corrects_model/corrected_model_results.json
     deps:
     - path: data/metrics/classifier_corrects_model/eval_nbest_predictions.json
-      md5: 78ffef0d2c1b947bef8b4352d22b5826
-      size: 452461
+      md5: e325d2a004b0e843d3e355323f235e45
+      size: 472118
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
       size: 170911082
       nfiles: 7
     outs:
     - path: data/metrics/classifier_corrects_model/corrected_model_results.json
-      md5: 29dd918fdd091958dd304b73f9369318
-      size: 239
+      md5: 4c756a1188989dd77bf2df36e48e1004
+      size: 237
   bert-train:
     cmd: ./src/processing/run.sh data/specs/bert-train_experiment.json
     deps:
@@ -845,3 +845,177 @@ stages:
     - path: data/metrics/bert-eval-noea-mod-quail/eval_mcqa.json
       md5: 099e3dcdfce1ef863ad2159ceb2600ba
       size: 235
+  extract_std_race_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert-eval-race_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/std_race
+    deps:
+    - path: data/models/bert-train-race
+      md5: 26b1298631f3d827c5fcf263bfda5d50.dir
+      size: 438220735
+      nfiles: 7
+    - path: data/quail_no_empty_answers/train.json
+      md5: d3a6f28fa96f7431cee0ec4aa4193105
+      size: 2451755
+    - path: data/specs/bert-eval-race_experiment.json
+      md5: 4f59c9c4c4e6b316f8fb45240f95c8a8
+      size: 1202
+    - path: src/etl/embeddings/extract/extract_embeddings.py
+      md5: 375e77b5d8e5727848881bedc5f4d2ea
+      size: 15753
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race/embeddings
+      md5: fb5e05220c47021d58924b7ef5d0bd19.dir
+      size: 522590008556
+      nfiles: 87865
+  extract_std_race_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE -s train
+      -t race -o /data/gblanco/datasets/embeddings/std_race/train_text_lengths
+    deps:
+    - path: data/RACE/train
+      md5: 487f0c637a5872e97716f6714a430585.dir
+      size: 60493414
+      nfiles: 25137
+    - path: src/etl/embeddings/extract/extract_lengths.py
+      md5: 0233e7c9395d55903d824235618e7a30
+      size: 2566
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
+      md5: aa1ba36b94b41ffa48da1d8b7e559cd7
+      size: 6326502
+  normalize_std_race_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_race/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race/embeddings
+      md5: fb5e05220c47021d58924b7ef5d0bd19.dir
+      size: 522590008556
+      nfiles: 87865
+    - path: src/etl/embeddings/transform/normalize_embeddings.py
+      md5: 4fbd590c4418242cac7712c84a3608bf
+      size: 3091
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
+      md5: 86dcd066732ae861212fb2a5c3aa5608.dir
+      size: 65974759
+      nfiles: 87865
+  merge_std_race_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl -o
+      /data/gblanco/datasets/embeddings/std_race/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
+      md5: 86dcd066732ae861212fb2a5c3aa5608.dir
+      size: 65974759
+      nfiles: 87865
+    - path: /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
+      md5: aa1ba36b94b41ffa48da1d8b7e559cd7
+      size: 6326502
+    - path: src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+      md5: bdf8fd8efcebfb7ca4c90b250c44e7b7
+      size: 1925
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race/normalized_embeddings_with_lengths
+      md5: 91b10b01eb4994c3807a1b7ba0e71cd1.dir
+      size: 90225223
+      nfiles: 87865
+  classification_std_race:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/std_race
+      -o /data/gblanco/results/std_race --metrics_dir data/metrics/classification_std_race
+      --train --eval
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race
+      md5: fe7d01d3903c5a9a5d8b434bb0741922.dir
+      size: 522752535040
+      nfiles: 263596
+    - path: src/etl/embeddings/classify/classification.py
+      md5: f8e29232bd741b7b5d133086743b6ce2
+      size: 10350
+    params:
+      params.yaml:
+        classification:
+          iterations: 200
+          popsize: 10
+          selection: 10
+          early_stop: 6
+          balanced: false
+          memory: 64
+          autogoal: false
+          pipeline: mlp
+          sweep_features: false
+          seed: 42
+          test_size: 0.2
+          metric: weighted_f1
+          multi_layer:
+            lr: 0.001
+            epochs: 100
+            batch_size: 200
+        features:
+          normalization: true
+          oversample: false
+          embeddings: true
+          logits: true
+          contexts: true
+          question: true
+          endings: true
+    outs:
+    - path: /data/gblanco/results/std_race
+      md5: adae20518b3ea1e09d075dbd557b2b40.dir
+      size: 1019295
+      nfiles: 2
+    - path: data/metrics/classification_std_race/scores.json
+      md5: 36cdc46262c2a87445d13df9cb7302ef
+      size: 533
+  classifier_corrects_std_race_model:
+    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_race
+      -e /data/gblanco/datasets/embeddings/std_race/ -o data/metrics/classifier_corrects_std_race_model
+      --strategy empty_answer -d data/RACE --task race -s dev
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race
+      md5: fe7d01d3903c5a9a5d8b434bb0741922.dir
+      size: 522752535040
+      nfiles: 263596
+    - path: /data/gblanco/results/std_race
+      md5: adae20518b3ea1e09d075dbd557b2b40.dir
+      size: 1019295
+      nfiles: 2
+    - path: data/RACE
+      md5: 7c501bc79b1c1b2f9e16bf5535ed7cb7.dir
+      size: 1287967500
+      nfiles: 27937
+    - path: src/etl/embeddings/transform/correct_predictions.py
+      md5: fa1020aff97fc5fb32495d1473ecd059
+      size: 9206
+    params:
+      params.yaml:
+        features:
+          normalization: true
+          oversample: false
+          embeddings: true
+          logits: true
+          contexts: true
+          question: true
+          endings: true
+    outs:
+    - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
+      md5: bc91982b04aaa8cbf7434a111a907b0b
+      size: 1128986
+    - path: data/metrics/classifier_corrects_std_race_model/eval_predictions.json
+      md5: 3283fd2d6940955866de9786857c99b6
+      size: 146253
+  evaluate_classifier_corrections_std_race_model:
+    cmd: mcqa_utils -d data/RACE -n data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
+      -m C_at_1 avg --task race -o data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
+    deps:
+    - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
+      md5: bc91982b04aaa8cbf7434a111a907b0b
+      size: 1128986
+    - path: data/quail_race_fmt
+      md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
+      size: 170911082
+      nfiles: 7
+    outs:
+    - path: data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
+      md5: 2c33228c4165dbe7d4c8faaaad251ffa
+      size: 239
