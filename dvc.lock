@@ -957,16 +957,16 @@ stages:
           embeddings: false
           logits: true
           contexts: false
-          question: false
+          question: true
           endings: true
     outs:
     - path: /data/gblanco/results/std_race
-      md5: 35db281dec431e841516f58cc7edaabb.dir
-      size: 6751
+      md5: bd09e6b01251476249d72a29b768651c.dir
+      size: 6800
       nfiles: 3
     - path: data/metrics/classification_std_race/scores.json
-      md5: aa5d4169fc692cc899d53f19b15a7375
-      size: 455
+      md5: ffe4e3e1c08780cbf1314c2f7c89d7d0
+      size: 457
   classifier_corrects_std_race_model:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_race
       -e /data/gblanco/datasets/embeddings/std_race/ -o data/metrics/classifier_corrects_std_race_model
@@ -977,8 +977,8 @@ stages:
       size: 522752535040
       nfiles: 263596
     - path: /data/gblanco/results/std_race
-      md5: 35db281dec431e841516f58cc7edaabb.dir
-      size: 6751
+      md5: bd09e6b01251476249d72a29b768651c.dir
+      size: 6800
       nfiles: 3
     - path: data/RACE
       md5: 7c501bc79b1c1b2f9e16bf5535ed7cb7.dir
@@ -995,7 +995,7 @@ stages:
           embeddings: false
           logits: true
           contexts: false
-          question: false
+          question: true
           endings: true
     outs:
     - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
