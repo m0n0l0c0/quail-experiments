@@ -952,21 +952,21 @@ stages:
             epochs: 100
             batch_size: 200
         features:
-          normalization: true
+          normalization: false
           oversample: false
-          embeddings: false
-          logits: true
+          embeddings: true
+          logits: false
           contexts: false
-          question: true
-          endings: true
+          question: false
+          endings: false
     outs:
     - path: /data/gblanco/results/std_race
-      md5: 5578aef109eff1ef645e47033685de5a.dir
-      size: 853380
+      md5: 7221e5f69d487c2d59981bdc3dea38c5.dir
+      size: 4568422845
       nfiles: 2
     - path: data/metrics/classification_std_race/scores.json
-      md5: 70b6c634310f60b6a440be3a8422abf2
-      size: 530
+      md5: 32e64de4009a8d2c89b01972bbe35ac5
+      size: 532
   classifier_corrects_std_race_model:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_race
       -e /data/gblanco/datasets/embeddings/std_race/ -o data/metrics/classifier_corrects_std_race_model
@@ -977,8 +977,8 @@ stages:
       size: 522752535040
       nfiles: 263596
     - path: /data/gblanco/results/std_race
-      md5: 5578aef109eff1ef645e47033685de5a.dir
-      size: 853380
+      md5: 7221e5f69d487c2d59981bdc3dea38c5.dir
+      size: 4568422845
       nfiles: 2
     - path: data/RACE
       md5: 7c501bc79b1c1b2f9e16bf5535ed7cb7.dir
@@ -990,26 +990,26 @@ stages:
     params:
       params.yaml:
         features:
-          normalization: true
+          normalization: false
           oversample: false
-          embeddings: false
-          logits: true
+          embeddings: true
+          logits: false
           contexts: false
-          question: true
-          endings: true
+          question: false
+          endings: false
     outs:
     - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
-      md5: 23a8734084a90f260fe799f404eb0cb1
+      md5: 178629a139a9231b0611a0202a6ced6d
       size: 1128986
     - path: data/metrics/classifier_corrects_std_race_model/eval_predictions.json
-      md5: f88b2244ffc8efa7e0083c858c48e905
+      md5: e772fad6b7baeda71510a40e9dbf6600
       size: 146253
   evaluate_classifier_corrections_std_race_model:
     cmd: mcqa_utils -d data/RACE -n data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
       -m C_at_1 avg --task race -o data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
     deps:
     - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
-      md5: 23a8734084a90f260fe799f404eb0cb1
+      md5: 178629a139a9231b0611a0202a6ced6d
       size: 1128986
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
