@@ -957,16 +957,16 @@ stages:
           embeddings: false
           logits: true
           contexts: true
-          question: false
+          question: true
           endings: true
     outs:
     - path: /data/gblanco/results/std_race
-      md5: 8a23e14ea28120ee67375cac1bf43086.dir
-      size: 862596
+      md5: 7a843fefcb5744088199caab04a2dbad.dir
+      size: 865668
       nfiles: 2
     - path: data/metrics/classification_std_race/scores.json
-      md5: deb191b251a5da15e8969fbcd0280544
-      size: 482
+      md5: ac793d3662c390cb93d07ce21708cf50
+      size: 483
   classifier_corrects_std_race_model:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_race
       -e /data/gblanco/datasets/embeddings/std_race/ -o data/metrics/classifier_corrects_std_race_model
@@ -977,8 +977,8 @@ stages:
       size: 522752535040
       nfiles: 263596
     - path: /data/gblanco/results/std_race
-      md5: 8a23e14ea28120ee67375cac1bf43086.dir
-      size: 862596
+      md5: 7a843fefcb5744088199caab04a2dbad.dir
+      size: 865668
       nfiles: 2
     - path: data/RACE
       md5: 7c501bc79b1c1b2f9e16bf5535ed7cb7.dir
@@ -995,21 +995,21 @@ stages:
           embeddings: false
           logits: true
           contexts: true
-          question: false
+          question: true
           endings: true
     outs:
     - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
-      md5: 4322c7ab76982348b0400c5c874e32b7
+      md5: e640ae3900445012aa0b293464ac2aa3
       size: 1128986
     - path: data/metrics/classifier_corrects_std_race_model/eval_predictions.json
-      md5: 2ed4eeb88f84f8a50df516a55c1bbc0f
+      md5: 1cf3c5874afcbf528699ff659acf27f4
       size: 146253
   evaluate_classifier_corrections_std_race_model:
     cmd: mcqa_utils -d data/RACE -n data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
       -m C_at_1 avg --task race -o data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
     deps:
     - path: data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
-      md5: 4322c7ab76982348b0400c5c874e32b7
+      md5: e640ae3900445012aa0b293464ac2aa3
       size: 1128986
     - path: data/quail_race_fmt
       md5: e965782a0bf94efb8fbe0eaab74aefbd.dir
