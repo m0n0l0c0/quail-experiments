@@ -20,7 +20,7 @@ features:
     oversample: false
     embeddings: false
     logits: true
-    contexts: false
+    contexts: true
     question: false
     endings: false
 hyper-search:
