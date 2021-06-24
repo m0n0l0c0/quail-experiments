@@ -1019,3 +1019,75 @@ stages:
     - path: data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
       md5: 2c33228c4165dbe7d4c8faaaad251ffa
       size: 239
+  extract_std_race_dev_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval-race_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/std_race_dev
+    deps:
+    - path: data/models/bert-train-race
+      md5: 26b1298631f3d827c5fcf263bfda5d50.dir
+      size: 438220735
+      nfiles: 7
+    - path: data/specs/bert-eval-race_experiment.json
+      md5: 4f59c9c4c4e6b316f8fb45240f95c8a8
+      size: 1202
+    - path: src/etl/embeddings/extract/extract_embeddings.py
+      md5: 375e77b5d8e5727848881bedc5f4d2ea
+      size: 15753
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+      md5: a3efe402c2bafeaf7c64259896305462.dir
+      size: 29066490775
+      nfiles: 4888
+  normalize_std_race_dev_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+      md5: a3efe402c2bafeaf7c64259896305462.dir
+      size: 29066490775
+      nfiles: 4888
+    - path: src/etl/embeddings/transform/normalize_embeddings.py
+      md5: 4fbd590c4418242cac7712c84a3608bf
+      size: 3091
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+      md5: 30251403be3f8757fb3fed6a63a6e919.dir
+      size: 3683693
+      nfiles: 4888
+  extract_std_race_dev_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE -s dev
+      -t race -o /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths
+    deps:
+    - path: data/RACE/dev
+      md5: 1be4be7086bef61408432e677c5056d0.dir
+      size: 3308878
+      nfiles: 1389
+    - path: src/etl/embeddings/extract/extract_lengths.py
+      md5: 0233e7c9395d55903d824235618e7a30
+      size: 2566
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
+      md5: 74b1d7ceac549fe3c2ce9899918cff8d
+      size: 352143
+  merge_std_race_dev_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
+      md5: 74b1d7ceac549fe3c2ce9899918cff8d
+      size: 352143
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+      md5: 30251403be3f8757fb3fed6a63a6e919.dir
+      size: 3683693
+      nfiles: 4888
+    - path: src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+      md5: bdf8fd8efcebfb7ca4c90b250c44e7b7
+      size: 1925
+    outs:
+    - path: /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings_with_lengths
+      md5: 150aca0f204d9e9039541527199f8df8.dir
+      size: 5032505
+      nfiles: 4888

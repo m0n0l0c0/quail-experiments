@@ -145,3 +145,5 @@ data/*/cached_*
 /*.index
 /sweep_run*
 /nohup.*
+rundmc.sh
+
