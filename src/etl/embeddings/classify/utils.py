@@ -73,14 +73,19 @@ def save_classifier(classifier, output_dir, feature_set=None):
 
 
 def load_classifier(output_dir, feature_set=None):
-    if not Path(output_dir).exists():
+    output_dir_path = Path(output_dir)
+    if not output_dir_path.exists():
         raise RuntimeError(
             "Requested to load a classifier from an invalid path "
             f"`{output_dir}`"
         )
 
-    fname = get_save_load_name(feature_set)
-    classifier_fname = os.path.join(output_dir, fname)
+    classifier_fname = output_dir
+    if output_dir_path.is_dir():
+        fname = get_save_load_name(feature_set)
+        classifier_fname = os.path.join(output_dir, fname)
+    elif output_dir_path.is_file():
+        classifier_fname = output_dir
     classifier = Unpickler(open(classifier_fname, "rb")).load()
     print(f"Loaded classifier from: {classifier_fname}")
     return classifier
