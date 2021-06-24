@@ -335,7 +335,7 @@ stages:
     - src/etl/embeddings/extract/extract_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
-    extract_std_race_dev_embeddings:
+  extract_std_race_dev_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
       data/specs/bert-eval-race_experiment.json --extract params --scatter_dataset
       -o /data/gblanco/datasets/embeddings/std_race_dev
