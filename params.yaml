@@ -19,7 +19,7 @@ features:
     normalization: true
     oversample: false
     embeddings: false
-    logits: true
+    logits: false
     contexts: false
     question: true
     endings: true
