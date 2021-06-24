@@ -335,6 +335,24 @@ stages:
     - src/etl/embeddings/extract/extract_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
+    extract_std_race_dev_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval-race_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/std_race_dev
+    deps:
+    - data/models/bert-train-race
+    - data/specs/bert-eval-race_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+  extract_std_race_dev_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE
+      -s dev -t race -o /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths
+    deps:
+    - data/RACE/dev
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
   normalize_std_race_embeddings:
     cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_race/embeddings
       -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
@@ -343,6 +361,14 @@ stages:
     - src/etl/embeddings/transform/normalize_embeddings.py
     outs:
     - /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
+  normalize_std_race_dev_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/std_race_dev/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
   merge_std_race_norm_with_lengths:
     cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
       -d /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
@@ -354,6 +380,17 @@ stages:
     - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_race/normalized_embeddings_with_lengths
+  merge_std_race_dev_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings_with_lengths
   classification:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/quail_no_empty_answers_2
       -o /data/gblanco/results/quail_no_empty_answers_2 --metrics_dir data/metrics/classification
