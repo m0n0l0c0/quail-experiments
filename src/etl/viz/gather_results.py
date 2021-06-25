@@ -112,6 +112,8 @@ def git_tape(scores_file, commit_msg, digits, output_file, print_report):
     for commit in repo.walk(repo.head.target):
         os.system(f"git checkout {commit.id} 2>&1 >/dev/null")
         if commit.message.strip() == commit_msg:
+            if not start_found:
+                print(f"Found starting commit at {commit.id}")
             start_found = True
         else:
             if not start_found and commit.message.strip() != commit_msg:
