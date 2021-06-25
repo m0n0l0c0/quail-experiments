@@ -20,8 +20,8 @@ features:
     oversample: false
     embeddings: false
     logits: true
-    contexts: true
-    question: true
+    contexts: false
+    question: false
     endings: true
 hyper-search:
     iterations: 2000
