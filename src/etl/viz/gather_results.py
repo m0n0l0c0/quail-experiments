@@ -115,7 +115,7 @@ def git_tape(scores_file, commit_msg, digits, output_file, print_report):
             base_cmd += " 1>/dev/null"
             base_cmd += " 2>/dev/null"
         else:
-            base_cmd += "2>&1 >/dev/null"
+            base_cmd += " 2>&1 >/dev/null"
         os.system(base_cmd)
         if commit.message.strip() == commit_msg:
             if not start_found:
