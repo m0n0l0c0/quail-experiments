@@ -1,20 +1,26 @@
 import os
 import sys
 import json
+import argparse
 import numpy as np
 
 
-data = json.load(open(sys.argv[1], "r"))
-topk = int(sys.argv[2])
-
-data_dir = os.path.dirname(sys.argv[1])
-topk_path = os.path.join(data_dir, "topk.json")
-zero_cl_path = os.path.join(data_dir, "class_0.json")
-one_cl_path = os.path.join(data_dir, "class_1.json")
-
-topk_field = "macro avg.f1-score"
-best_cl_zero_fields = "0.f1-score"
-best_cl_one_fields = "1.f1-score"
+def parse_flags():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_metric", type=str)
+    parser.add_argument(
+        "-m", "--metric_field", type=str, required=True,
+        help="Field to extract to sort metrics (dot notation accepted)."
+    )
+    parser.add_argument(
+        "-t", "--topk", type=int, default=3,
+        help="Number of top metrics to keep."
+    )
+    parser.add_argument(
+        "-o", "--output", type=str, default=None,
+        help="Output file to store top metrics"
+    )
+    return parser.parse_args()
 
 
 def field_access(data, key):
@@ -24,29 +30,26 @@ def field_access(data, key):
     return aux
 
 
-topk_mets = {}
-keys = list(data.keys())
+def main(input_metric, metric_field, topk, output):
+    data = json.load(open(input_metric, "r"))
+    data_dir = os.path.dirname(input_metric)
 
-zero_vals = [field_access(elem, best_cl_zero_fields) for elem in data.values()]
-zero_max = np.argmax(zero_vals)
-best_cl_zero = {keys[zero_max]: data[keys[zero_max]]}
+    if output is None:
+        output = os.path.join(data_dir, "topk.json")
 
-one_vals = [field_access(elem, best_cl_one_fields) for elem in data.values()]
-one_max = np.argmax(one_vals)
-best_cl_one = {keys[one_max]: data[keys[one_max]]}
+    topk_mets = {}
+    keys = list(data.keys())
 
-vals = [field_access(elem, topk_field) for elem in data.values()]
-topk_indices = np.argsort(vals, axis=None)[::-1][:topk].tolist()
-for index in topk_indices:
-    index_key = keys[index]
-    topk_mets[index_key] = data[index_key]
+    vals = [field_access(elem, metric_field) for elem in data.values()]
+    topk_indices = np.argsort(vals, axis=None)[::-1][:topk].tolist()
+    for index in topk_indices:
+        index_key = keys[index]
+        topk_mets[index_key] = data[index_key]
+
+    with open(output, "w") as fout:
+        fout.write(json.dumps(topk_mets) + "\n")
 
 
-with open(zero_cl_path, "w") as fout:
-    fout.write(json.dumps(best_cl_zero) + "\n")
+if __name__ == "__main__":
+    main(**vars(parse_flags()))
 
-with open(one_cl_path, "w") as fout:
-    fout.write(json.dumps(best_cl_one) + "\n")
-
-with open(topk_path, "w") as fout:
-    fout.write(json.dumps(topk_mets) + "\n")
