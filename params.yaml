@@ -18,10 +18,10 @@ classification:
 features:
     normalization: true
     oversample: false
-    embeddings: false
+    embeddings: true
     logits: false
-    contexts: true
-    question: true
-    endings: true
+    contexts: false
+    question: false
+    endings: false
 hyper-search:
     iterations: 2000
