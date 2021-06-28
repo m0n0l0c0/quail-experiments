@@ -196,6 +196,28 @@ def correct_model_with_classifier(
     return nbest_predictions, predictions
 
 
+def predictions_from_answers(gold_answers, all_logits_dataset):
+    real_answers = np.array(list(all_logits_dataset))
+    real_answers = real_answers.reshape(real_answers.shape[0], -1)
+    real_answers = np.argmax(softmax(real_answers, axis=1), axis=1)
+
+    predictions = {}
+    nbest_predictions = defaultdict(list)
+    for gold, logits in zip(gold_answers, all_logits_dataset):
+        pred_label = id_to_label(int(np.argmax(softmax(logits, axis=1))))
+        predictions[gold.example_id] = pred_label
+        group_id = gold.example_id.split("-")[0]
+        nbest_pred = {
+            "logits": logits.tolist(),
+            "probs": (softmax(logits, axis=1)).tolist(),
+            "pred_label": pred_label,
+            "label": id_to_label(gold.label),
+        }
+        nbest_predictions[group_id].append(nbest_pred)
+
+    return nbest_predictions, predictions
+
+
 def get_path_from_features(classifier_path, data_path, params_path):
     params = load_params(params_path)
     features = get_features_from_object(params, allow_all_feats=True)
@@ -244,10 +266,20 @@ def main(
     mdl_answers, cls_answers, all_logits = get_classifier_from_model_answers(
         classifier, dataset, strategy_dict, gold_answers
     )
+    # save corrected predictions
     nbest_predictions, predictions = correct_model_with_classifier(
         mdl_answers, cls_answers, strategy_dict, gold_answers, all_logits
     )
     prefix = "eval" if split == "dev" else split
+    save_dict = {
+        f"corrected_{prefix}_nbest_predictions": nbest_predictions,
+        f"corrected_{prefix}_predictions": predictions,
+    }
+    save_predictions(output_dir, **save_dict)
+    # save original predictions
+    nbest_predictions, predictions = predictions_from_answers(
+        gold_answers, all_logits
+    )
     save_dict = {
         f"{prefix}_nbest_predictions": nbest_predictions,
         f"{prefix}_predictions": predictions,
