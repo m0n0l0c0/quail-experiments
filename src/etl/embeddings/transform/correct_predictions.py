@@ -272,8 +272,8 @@ def main(
     )
     prefix = "eval" if split == "dev" else split
     save_dict = {
-        f"corrected_{prefix}_nbest_predictions": nbest_predictions,
-        f"corrected_{prefix}_predictions": predictions,
+        f"{prefix}_nbest_predictions": nbest_predictions,
+        f"{prefix}_predictions": predictions,
     }
     save_predictions(output_dir, **save_dict)
     # save original predictions
@@ -281,8 +281,8 @@ def main(
         gold_answers, all_logits
     )
     save_dict = {
-        f"{prefix}_nbest_predictions": nbest_predictions,
-        f"{prefix}_predictions": predictions,
+        f"original_{prefix}_nbest_predictions": nbest_predictions,
+        f"original_{prefix}_predictions": predictions,
     }
     save_predictions(output_dir, **save_dict)
 
