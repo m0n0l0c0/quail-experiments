@@ -21,7 +21,7 @@ features:
     embeddings: false
     logits: true
     contexts: true
-    question: false
-    endings: true
+    question: true
+    endings: false
 hyper-search:
     iterations: 2000
