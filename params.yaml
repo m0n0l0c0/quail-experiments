@@ -19,9 +19,9 @@ features:
     normalization: true
     oversample: false
     embeddings: true
-    logits: true
+    logits: false
     contexts: false
     question: true
-    endings: true
+    endings: false
 hyper-search:
     iterations: 2000
