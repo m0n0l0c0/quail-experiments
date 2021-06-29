@@ -3,9 +3,5 @@
   "C_at_1_total": 4887,
   "C_at_1_correct": 3168,
   "C_at_1_incorrect": 1719,
-  "C_at_1_unanswered": 0,
-  "avg": 0.6482504604051565,
-  "avg_total": 4887,
-  "avg_correct": 3168,
-  "avg_incorrect": 1719
+  "C_at_1_unanswered": 0
 }
