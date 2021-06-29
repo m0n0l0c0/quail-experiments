@@ -1,11 +1,7 @@
 {
-  "C_at_1": 0.5566341853417202,
+  "C_at_1": 0.5568391866913124,
   "C_at_1_total": 2164,
-  "C_at_1_correct": 1204,
+  "C_at_1_correct": 1205,
   "C_at_1_incorrect": 959,
-  "C_at_1_unanswered": 1,
-  "avg": 0.55637707948244,
-  "avg_total": 2164,
-  "avg_correct": 1204,
-  "avg_incorrect": 960
+  "C_at_1_unanswered": 0
 }
