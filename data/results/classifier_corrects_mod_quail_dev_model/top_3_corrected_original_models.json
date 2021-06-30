@@ -1,0 +1,1 @@
+{"mlp_logits_question": {"avg": 0.5568391866913124, "avg_total": 2164, "avg_correct": 1205, "avg_incorrect": 959}, "mlp_logits_endings": {"avg": 0.5568391866913124, "avg_total": 2164, "avg_correct": 1205, "avg_incorrect": 959}, "mlp_logits": {"avg": 0.5568391866913124, "avg_total": 2164, "avg_correct": 1205, "avg_incorrect": 959}}
