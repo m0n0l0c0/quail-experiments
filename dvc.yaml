@@ -543,3 +543,163 @@ stages:
     metrics:
     - data/metrics/bert-train-race/eval_mcqa.json:
         cache: false
+  extract_std_quail_train_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
+      data/specs/bert-eval_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/std_quail_train
+    deps:
+    - data/models/bert-train
+    - data/quail_race_fmt/train.json
+    - data/specs/bert-eval_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_train/embeddings
+  extract_std_quail_dev_embeddings:
+    cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
+      data/specs/bert-eval_experiment.json --extract params --scatter_dataset
+      -o /data/gblanco/datasets/embeddings/std_quail_dev
+    deps:
+    - data/models/bert-train
+    - data/quail_race_fmt/dev.json
+    - data/specs/bert-eval_experiment.json
+    - src/etl/embeddings/extract/extract_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/embeddings
+  extract_std_quail_train_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
+      -s train -t generic -o /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths
+    deps:
+    - data/quail_race_fmt/train
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths_data.pkl
+  extract_std_quail_dev_lengths:
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
+      -s dev -t generic -o /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths
+    deps:
+    - data/quail_race_fmt/dev
+    - src/etl/embeddings/extract/extract_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths_data.pkl
+  normalize_std_quail_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_quail_train/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/std_quail_train/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings
+  normalize_std_quail_dev_embeddings:
+    cmd: python src/etl/embeddings/transform/normalize_embeddings.py -d /data/gblanco/datasets/embeddings/std_quail_dev/embeddings
+      -n 50 --scatter_dataset -o /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings
+    deps:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/embeddings
+    - src/etl/embeddings/transform/normalize_embeddings.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings
+  merge_std_quail_train_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_train/normalized_embeddings_with_lengths
+  merge_std_quail_dev_norm_with_lengths:
+    cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings
+      -d /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths_data.pkl
+      -o /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings_with_lengths
+      --scatter_dataset
+    deps:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings
+    - /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths_data.pkl
+    - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
+    outs:
+    - /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings_with_lengths
+  classification:
+    cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/std_quail_train
+      -o /data/gblanco/results/std_quail_train_classification --metrics_dir data/metrics/std_quail_train_classification
+      --train --eval
+    deps:
+    - /data/gblanco/datasets/embeddings/std_quail_train
+    - src/etl/embeddings/classify/classification.py
+    params:
+    - classification
+    - features
+    outs:
+    - /data/gblanco/results/std_quail_train_classification
+    metrics:
+    - data/metrics/std_quail_train_classification/scores.json:
+        cache: false
+  classifier_corrects_model_no_answer:
+    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_quail_train_classification
+      -e /data/gblanco/datasets/embeddings/std_quail_dev/ -o data/metrics/std_quail_corrects_model_no_answer
+      --strategy no_answer --no_answer_text "not enough information" -d data/quail_race_fmt
+      -s dev
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2
+    - /data/gblanco/results/std_quail_train_classification
+    - data/quail_race_fmt
+    - src/etl/embeddings/transform/correct_predictions.py
+    params:
+    - features
+    metrics:
+    - data/metrics/std_quail_corrects_model_no_answer/eval_nbest_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_no_answer/eval_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_no_answer/original_eval_nbest_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_no_answer/original_eval_predictions.json:
+        cache: false
+  evaluate_classifier_corrections_no_answer:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/std_quail_corrects_model_no_answer/eval_nbest_predictions.json
+      -m avg --task generic -o data/metrics/std_quail_corrects_model_no_answer/corrected_model_results.json
+    deps:
+    - data/metrics/std_quail_corrects_model_no_answer/eval_nbest_predictions.json
+    - data/quail_race_fmt
+    metrics:
+    - data/metrics/std_quail_corrects_model_no_answer/corrected_model_results.json:
+        cache: false
+  evaluate_classifier_corrections:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/std_quail_corrects_model_no_answer/original_eval_nbest_predictions.json
+      -m avg --task generic -o data/metrics/std_quail_corrects_model_no_answer/original_model_results.json
+    deps:
+    - data/metrics/std_quail_corrects_model_no_answer/original_eval_nbest_predictions.json
+    - data/quail_race_fmt
+    metrics:
+    - data/metrics/std_quail_corrects_model_no_answer/original_model_results.json:
+        cache: false
+  classifier_corrects_model_empty_answer:
+    cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_quail_train_classification
+      -e /data/gblanco/datasets/embeddings/std_quail_dev/ -o data/metrics/std_quail_corrects_model_empty_answer
+      --strategy empty_answer -d data/quail_race_fmt
+      -s dev
+    deps:
+    - /data/gblanco/datasets/embeddings/quail_noea_std_2
+    - /data/gblanco/results/std_quail_train_classification
+    - data/quail_race_fmt
+    - src/etl/embeddings/transform/correct_predictions.py
+    params:
+    - features
+    metrics:
+    - data/metrics/std_quail_corrects_model_empty_answer/eval_nbest_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_empty_answer/eval_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_empty_answer/original_eval_nbest_predictions.json:
+        cache: false
+    - data/metrics/std_quail_corrects_model_empty_answer/original_eval_predictions.json:
+        cache: false
+  evaluate_classifier_corrections_empty_answer:
+    cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/std_quail_corrects_model_empty_answer/eval_nbest_predictions.json
+      -m avg --task generic -o data/metrics/std_quail_corrects_model_empty_answer/corrected_model_results.json
+    deps:
+    - data/metrics/std_quail_corrects_model_empty_answer/eval_nbest_predictions.json
+    - data/quail_race_fmt
+    metrics:
+    - data/metrics/std_quail_corrects_model_empty_answer/corrected_model_results.json:
+        cache: false
