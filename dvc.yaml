@@ -619,7 +619,7 @@ stages:
     - src/etl/embeddings/transform/merge_embeddings_and_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_quail_dev/normalized_embeddings_with_lengths
-  classification:
+  classification_std_quail:
     cmd: python src/etl/embeddings/classify/classification.py -d /data/gblanco/datasets/embeddings/std_quail_train
       -o /data/gblanco/results/std_quail_train_classification --metrics_dir data/metrics/std_quail_train_classification
       --train --eval
@@ -664,7 +664,7 @@ stages:
     metrics:
     - data/metrics/std_quail_corrects_model_no_answer/corrected_model_results.json:
         cache: false
-  evaluate_classifier_corrections:
+  evaluate_classifier_corrections_original:
     cmd: mcqa_utils -d data/quail_race_fmt -n data/metrics/std_quail_corrects_model_no_answer/original_eval_nbest_predictions.json
       -m avg --task generic -o data/metrics/std_quail_corrects_model_no_answer/original_model_results.json
     deps:
