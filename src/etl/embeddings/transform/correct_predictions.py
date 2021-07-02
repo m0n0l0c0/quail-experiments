@@ -144,12 +144,13 @@ def get_classifier_from_model_answers(
         mdl_pred = int(np.argmax(softmax(logits, axis=1)))
         if strategy_dict["extras"] is not None:
             match_idx = get_index_matching_text(gold, strategy_dict["extras"])
-            x, corrected = correct_sample(dataset, x, match_idx)
-            # account for answer in matching text
-            if corrected and match_idx <= mdl_pred:
-                mdl_pred += 1
-            if len(logits) < len(gold.endings):
-                logits = np.insert(logits, match_idx, np.min(logits))
+            if classifier.input_size < len(logits):
+                x, corrected = correct_sample(dataset, x, match_idx)
+                # account for answer in matching text
+                if corrected and match_idx <= mdl_pred:
+                    mdl_pred += 1
+                if len(logits) < len(gold.endings):
+                    logits = np.insert(logits, match_idx, np.min(logits))
 
         plain_x = dataset.destructure_sample(x)
         mdl_answers.append(label_to_id(mdl_pred))
