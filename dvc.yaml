@@ -328,8 +328,8 @@ stages:
     outs:
     - /data/gblanco/datasets/embeddings/std_race/embeddings
   extract_std_race_lengths:
-    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE
-      -s train -t race -o /data/gblanco/datasets/embeddings/std_race/train_text_lengths
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE -s train
+      -t race -o /data/gblanco/datasets/embeddings/std_race/train_text_lengths
     deps:
     - data/RACE/train
     - src/etl/embeddings/extract/extract_lengths.py
@@ -346,8 +346,8 @@ stages:
     outs:
     - /data/gblanco/datasets/embeddings/std_race_dev/embeddings
   extract_std_race_dev_lengths:
-    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE
-      -s dev -t race -o /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths
+    cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/RACE -s dev
+      -t race -o /data/gblanco/datasets/embeddings/std_race_dev/dev_text_lengths
     deps:
     - data/RACE/dev
     - src/etl/embeddings/extract/extract_lengths.py
@@ -371,8 +371,8 @@ stages:
     - /data/gblanco/datasets/embeddings/std_race_dev/normalized_embeddings
   merge_std_race_norm_with_lengths:
     cmd: python src/etl/embeddings/transform/merge_embeddings_and_lengths.py -e /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
-      -d /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl
-      -o /data/gblanco/datasets/embeddings/std_race/normalized_embeddings_with_lengths
+      -d /data/gblanco/datasets/embeddings/std_race/train_text_lengths_data.pkl -o
+      /data/gblanco/datasets/embeddings/std_race/normalized_embeddings_with_lengths
       --scatter_dataset
     deps:
     - /data/gblanco/datasets/embeddings/std_race/normalized_embeddings
@@ -447,11 +447,11 @@ stages:
     metrics:
     - data/metrics/classification_std_race/scores.json:
         cache: false
+    frozen: true
   classifier_corrects_std_race_model:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_race
       -e /data/gblanco/datasets/embeddings/std_race/ -o data/metrics/classifier_corrects_std_race_model
-      --strategy empty_answer -d data/RACE --task race
-      -s dev
+      --strategy empty_answer -d data/RACE --task race -s dev
     deps:
     - /data/gblanco/datasets/embeddings/std_race
     - /data/gblanco/results/std_race
@@ -464,6 +464,7 @@ stages:
         cache: false
     - data/metrics/classifier_corrects_std_race_model/eval_predictions.json:
         cache: false
+    frozen: true
   evaluate_classifier_corrections_std_race_model:
     cmd: mcqa_utils -d data/RACE -n data/metrics/classifier_corrects_std_race_model/eval_nbest_predictions.json
       -m C_at_1 avg --task race -o data/metrics/classifier_corrects_std_race_model/corrected_model_results.json
@@ -545,8 +546,7 @@ stages:
         cache: false
   extract_std_quail_train_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s train --args_file
-      data/specs/bert-eval_experiment.json --extract params --scatter_dataset
-      -o /data/gblanco/datasets/embeddings/std_quail_train
+      data/specs/bert-eval_experiment.json --extract params --scatter_dataset -o /data/gblanco/datasets/embeddings/std_quail_train
     deps:
     - data/models/bert-train
     - data/quail_race_fmt/train.json
@@ -556,8 +556,7 @@ stages:
     - /data/gblanco/datasets/embeddings/std_quail_train/embeddings
   extract_std_quail_dev_embeddings:
     cmd: python src/etl/embeddings/extract/extract_embeddings.py -s dev --args_file
-      data/specs/bert-eval_experiment.json --extract params --scatter_dataset
-      -o /data/gblanco/datasets/embeddings/std_quail_dev
+      data/specs/bert-eval_experiment.json --extract params --scatter_dataset -o /data/gblanco/datasets/embeddings/std_quail_dev
     deps:
     - data/models/bert-train
     - data/quail_race_fmt/dev.json
@@ -569,7 +568,7 @@ stages:
     cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
       -s train -t generic -o /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths
     deps:
-    - data/quail_race_fmt/train
+    - data/quail_race_fmt/train.json
     - src/etl/embeddings/extract/extract_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_quail_train/train_text_lengths_data.pkl
@@ -577,7 +576,7 @@ stages:
     cmd: python src/etl/embeddings/extract/extract_lengths.py -d data/quail_race_fmt
       -s dev -t generic -o /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths
     deps:
-    - data/quail_race_fmt/dev
+    - data/quail_race_fmt/dev.json
     - src/etl/embeddings/extract/extract_lengths.py
     outs:
     - /data/gblanco/datasets/embeddings/std_quail_dev/dev_text_lengths_data.pkl
@@ -676,8 +675,7 @@ stages:
   classifier_corrects_model_empty_answer:
     cmd: python src/etl/embeddings/transform/correct_predictions.py -c /data/gblanco/results/std_quail_train_classification
       -e /data/gblanco/datasets/embeddings/std_quail_dev/ -o data/metrics/std_quail_corrects_model_empty_answer
-      --strategy empty_answer -d data/quail_race_fmt
-      -s dev
+      --strategy empty_answer -d data/quail_race_fmt -s dev
     deps:
     - /data/gblanco/datasets/embeddings/quail_noea_std_2
     - /data/gblanco/results/std_quail_train_classification
